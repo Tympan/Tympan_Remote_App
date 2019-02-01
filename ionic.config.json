@@ -1,0 +1,7 @@
+{
+  "name": "tympanRemote",
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "angular"
+}

@@ -1,0 +1,42 @@
+{
+	"pages": [
+		{
+			"type": "cards",
+			"cards": [
+				{
+					"name": "Algorithm",
+					"buttons": [
+						{"label": "A", "cmd": "a"},
+						{"label": "B", "cmd": "b"}
+					]
+				}
+			]
+		},
+		{
+			"type": "cards",
+			"cards": [
+				{
+					"name": "High Gain",
+					"buttons": [
+						{"label": "-", "cmd": "c"},
+						{"label": "+", "cmd": "C"}
+					]
+				},
+				{
+					"name": "Mid Gain",
+					"buttons": [
+						{"label": "-", "cmd": "d"},
+						{"label": "+", "cmd": "D"}
+					]
+				},
+				{
+					"name": "Low Gain",
+					"buttons": [
+						{"label": "-", "cmd": "e"},
+						{"label": "+", "cmd": "E"}
+					]
+				}
+			]
+		}
+	]
+}
