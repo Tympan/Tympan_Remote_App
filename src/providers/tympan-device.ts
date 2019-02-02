@@ -19,22 +19,22 @@ export class TympanDevice {
             {
                 'name': 'High Gain',
                 'buttons': [
-                    {'label': '-', 'cmd': 'c'},
-                    {'label': '+', 'cmd': 'C'}
+                    {'label': '-', 'cmd': '#'},
+                    {'label': '+', 'cmd': '3'}
                 ]
             },
             {
                 'name': 'Mid Gain',
                 'buttons': [
-                    {'label': '-', 'cmd': 'd'},
-                    {'label': '+', 'cmd': 'D'}
+                    {'label': '-', 'cmd': '@'},
+                    {'label': '+', 'cmd': '2'}
                 ]
             },
             {
                 'name': 'Low Gain',
                 'buttons': [
-                    {'label': '-', 'cmd': 'e'},
-                    {'label': '+', 'cmd': 'E'}
+                    {'label': '-', 'cmd': '!'},
+                    {'label': '+', 'cmd': '1'}
                 ]
             }
         ];
