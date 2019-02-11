@@ -26,7 +26,12 @@ $ ionic cordova platform add android
 
 To build:
 ```bash
-$ ionic run android --prod
+$ ionic cordova run android --prod
+```
+
+To serve it locally:
+```bash
+$ npm run serve
 ```
 
 (--prod makes it smaller, load faster, and not be debugg-able.)
