@@ -7,7 +7,7 @@
 </ion-header>
 
 <ion-content>
-  <ion-card *ngFor="let card of device.cards; let i = index">
+  <ion-card *ngFor="let card of remote.cards; let i = index">
 	<ion-card-header>{{card.name}}</ion-card-header>
     <ion-card-content>
     	<ion-button *ngFor="let btn of card.buttons; let j = index" (click)="cmd(btn.cmd)">{{btn.label}}</ion-button>

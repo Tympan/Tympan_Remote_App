@@ -1,9 +1,5 @@
 import { Injectable } from '@angular/core';
-//import { map } from 'rxjs/operators'
-//import { Observable } from 'rxjs'
 import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
-
-import { TympanDevice } from './tympan-device';
 
 /**
  * This class contains the variables and methods for the Tympan Remote app.
@@ -12,11 +8,11 @@ import { TympanDevice } from './tympan-device';
   providedIn: 'root'
 })
 export class TympanRemote {
-  public devices: TympanDevice[] = [];
   public btSerial: BluetoothSerial;
   public devList: any;
   public logArray: string[];
   public activeDevice: number;
+  public cards: any;
 
   /* Emulate preference */
   /*
@@ -36,13 +32,40 @@ export class TympanRemote {
   */
 
   constructor() {
-    this.devices = [];
-    this.devices.push(new TympanDevice('myuuid'));
-    this.devices[0].parent = this;
     this.btSerial = new BluetoothSerial();
     this.devList = [];
     this.logArray = [];
     this.activeDevice = -1;
+    this.cards = [
+      {
+        'name': 'Algorithm',
+        'buttons': [
+          {'label': 'A', 'cmd': 'a'},
+          {'label': 'B', 'cmd': 'b'}
+        ]
+      },
+      {
+        'name': 'High Gain',
+        'buttons': [
+          {'label': '-', 'cmd': '#'},
+          {'label': '+', 'cmd': '3'}
+        ]
+      },
+      {
+        'name': 'Mid Gain',
+        'buttons': [
+          {'label': '-', 'cmd': '@'},
+          {'label': '+', 'cmd': '2'}
+        ]
+      },
+      {
+        'name': 'Low Gain',
+        'buttons': [
+          {'label': '-', 'cmd': '!'},
+          {'label': '+', 'cmd': '1'}
+        ]
+      }
+    ];
 
     this.log('hello');
     this.getDeviceList();
@@ -53,10 +76,7 @@ export class TympanRemote {
    *  change in bluetooth config)
    */
   public reset() {
-    for (let device of this.devices) {
-      device.disconnect();
-    }
-    this.devices = [];
+    // Should reset the bluetooth connection, disconnecting from any active device.
   }
 
   public setActiveDevice(idx: number) {
@@ -91,6 +111,7 @@ export class TympanRemote {
         for (let idx = 0; idx<devices.length; idx++) {
           let device = devices[idx];
         }
+        // We should eventually do this update a bit smoother
         this.devList = devices;
       },()=>{
         this.log(`failed to get device list`);
