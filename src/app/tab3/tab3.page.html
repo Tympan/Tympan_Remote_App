@@ -6,4 +6,15 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content></ion-content>
+<ion-content>
+    <ion-card>
+        <ion-item *ngFor="let dev of remote.devList; let i = index" (click)=setActive(i)>
+            <p>name: {{dev.name}}<br>id: {{dev.id}}</p>
+        </ion-item>
+    </ion-card>
+
+    <ion-card>
+        <ion-item>{{remote.logArray.length}} logs</ion-item>
+        <p *ngFor="let msg of remote.logArray; let i = index">{{msg}}</p>
+    </ion-card>
+</ion-content>

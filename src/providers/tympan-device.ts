@@ -1,8 +1,11 @@
+import { TympanRemote } from './tympan-remote';
+
 export class TympanDevice {
     public label: string;
     public uuid: string;
     public connected: boolean;
     public cards: any;
+    public parent: TympanRemote;
 
     constructor(uuid: string) {
         this.label = 'a device';
@@ -49,6 +52,6 @@ export class TympanDevice {
     }
 
     public sendCommand(cmd: string) {
-        console.log(`Sending ${cmd} to ${this.label}`);
+        this.parent.log(`Sending ${cmd} to ${this.label}`);
     }
 }

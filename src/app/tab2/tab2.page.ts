@@ -15,6 +15,6 @@ export class Tab2Page {
     }
 
     cmd(s: string) {
-        this.device.sendCommand(s);
+        this.remote.send(s);
     }
 }
