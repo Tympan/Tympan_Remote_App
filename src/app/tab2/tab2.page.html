@@ -1,16 +1,16 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>
-      Tab Two
+      Sound Adjustments
     </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <ion-card *ngFor="let card of remote.cards; let i = index">
+  <ion-card *ngFor="let card of remote.pages[1].cards; let i = index">
 	<ion-card-header>{{card.name}}</ion-card-header>
     <ion-card-content>
-    	<ion-button *ngFor="let btn of card.buttons; let j = index" (click)="cmd(btn.cmd)">{{btn.label}}</ion-button>
+    	<ion-button strong=true class="button halfBtn" *ngFor="let btn of card.buttons; let j = index" (click)="cmd(btn.cmd)">{{btn.label}}</ion-button>
     </ion-card-content>
   </ion-card>
 </ion-content>
