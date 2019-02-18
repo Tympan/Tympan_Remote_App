@@ -12,7 +12,7 @@ export class TympanRemote {
   public devList: any;
   public logArray: string[];
   public activeDevice: number;
-  public cards: any;
+  public pages: any;
 
   /* Emulate preference */
   /*
@@ -36,33 +36,43 @@ export class TympanRemote {
     this.devList = [];
     this.logArray = [];
     this.activeDevice = -1;
-    this.cards = [
-      {
-        'name': 'Algorithm',
-        'buttons': [
-          {'label': 'A', 'cmd': 'a'},
-          {'label': 'B', 'cmd': 'b'}
+    this.pages = [
+      { 
+        'title':'Presets', 
+        'cards':[
+          {
+            'name': 'Algorithm',
+            'buttons': [
+              {'label': '~A', 'cmd': 'd'},
+              {'label': '~B', 'cmd': 'D'}
+            ]
+          }
         ]
       },
-      {
-        'name': 'High Gain',
-        'buttons': [
-          {'label': '-', 'cmd': '#'},
-          {'label': '+', 'cmd': '3'}
-        ]
-      },
-      {
-        'name': 'Mid Gain',
-        'buttons': [
-          {'label': '-', 'cmd': '@'},
-          {'label': '+', 'cmd': '2'}
-        ]
-      },
-      {
-        'name': 'Low Gain',
-        'buttons': [
-          {'label': '-', 'cmd': '!'},
-          {'label': '+', 'cmd': '1'}
+      { 
+        'title':'Presets', 
+        'cards':[
+          {
+            'name': 'High Gain',
+            'buttons': [
+              {'label': '~-', 'cmd': '#'},
+              {'label': '~+', 'cmd': '3'}
+            ]
+          },
+          {
+            'name': 'Mid Gain',
+            'buttons': [
+              {'label': '~-', 'cmd': '@'},
+              {'label': '~+', 'cmd': '2'}
+            ]
+          },
+          {
+            'name': 'Low Gain',
+            'buttons': [
+              {'label': '~-', 'cmd': '!'},
+              {'label': '~+', 'cmd': '1'}
+            ]
+          }
         ]
       }
     ];
@@ -95,12 +105,34 @@ export class TympanRemote {
   public subscribe() {
     let dev = this.devList[this.activeDevice];    
     this.btSerial.subscribe('\n').subscribe((data)=>{
-      this.log(`> ${data}`);
+      this.log(`>${data}`);
+      if (data.length>5 && data.slice(0,4)=='JSON') {
+        this.parseConfigStringFromDevice(data);
+      }
     });
+  }
+
+  public parseConfigStringFromDevice(data: string) {
+    this.log('Found json config from arduino:');
+    let cfgStr = data.slice(5).replace(/'/g,'"');
+    this.log(cfgStr);
+    try {
+      let cfgObj = JSON.parse(cfgStr);
+      this.pages = cfgObj.pages;
+      this.log('Updating pages...');
+    }
+    catch(err) {
+      this.log(`Invalid json string: ${err}`);
+      for (let idx = 0; idx<cfgStr.length; idx=idx+20) {
+        this.log(`${idx}: ${cfgStr.slice(idx,idx+20)}`);
+      }
+    }
+
   }
 
   public sayHello() {    
     this.send('h');
+    this.send('J');
   }
 
   public async getDeviceList () {
