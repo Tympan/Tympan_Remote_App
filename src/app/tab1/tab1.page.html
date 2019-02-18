@@ -7,10 +7,14 @@
 </ion-header>
 
 <ion-content>
-  <ion-img src="/assets/icon/icon.png"></ion-img>
+  <ion-row>
+    <ion-col col-4></ion-col>
+    <ion-col col-4><ion-img src="/assets/tympan-logo.png"></ion-img></ion-col>
+    <ion-col col-4></ion-col>
+  </ion-row>
 
   <ion-card *ngFor="let card of remote.pages[0].cards; let i = index">
-  <ion-card-title>{{card.name}}</ion-card-title>
+  <ion-card-header>{{card.name}}</ion-card-header>
     <ion-card-content>
       <ion-button expand="block" *ngFor="let btn of card.buttons; let j = index" (click)="cmd(btn.cmd)">{{btn.label}}</ion-button>
     </ion-card-content>
