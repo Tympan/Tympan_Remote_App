@@ -41,5 +41,5 @@ $ npm run serve
 To re-generate resources (icons, etc):
 
 ```bash
-$ ionic resources
+$ ionic cordova resources --cordova-res
 ```
