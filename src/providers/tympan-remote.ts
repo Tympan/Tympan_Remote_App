@@ -1,5 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
+import { Logger } from './logger';
 
 /**
  * This class contains the variables and methods for the Tympan Remote app.
@@ -10,7 +11,6 @@ import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
 export class TympanRemote {
   public btSerial: BluetoothSerial;
   public devList: any;
-  public logArray: string[];
   public activeDevice: number;
   public pages: any;
 
@@ -31,10 +31,9 @@ export class TympanRemote {
   }
   */
 
-  constructor(private zone: NgZone) {
+  constructor(private zone: NgZone, private logger: Logger) {
     this.btSerial = new BluetoothSerial();
     this.devList = [];
-    this.logArray = [];
     this.activeDevice = -1;
     this.pages = [
       { 
@@ -77,7 +76,7 @@ export class TympanRemote {
       }
     ];
 
-    this.log('hello');
+    this.logger.log('hello');
     this.getDeviceList();
   }
 
@@ -92,20 +91,20 @@ export class TympanRemote {
   public setActiveDevice(idx: number) {
     this.activeDevice = idx;
     let dev = this.devList[this.activeDevice];
-    this.log(`setAD: connecting to ${idx} (${dev.id})`); //  `
+    this.logger.log(`setAD: connecting to ${idx} (${dev.id})`); //  `
     this.btSerial.connect(dev.id).subscribe(()=>{
-      this.log('CONNECTED');
+      this.logger.log('CONNECTED');
       this.subscribe();
       this.sayHello();
     },()=>{
-      this.log('CONNECTION FAIL');
+      this.logger.log('CONNECTION FAIL');
     });
   }
 
   public subscribe() {
     let dev = this.devList[this.activeDevice];    
     this.btSerial.subscribe('\n').subscribe((data)=>{
-      this.log(`>${data}`);
+      this.logger.log(`>${data}`);
       if (data.length>5 && data.slice(0,4)=='JSON') {
         this.parseConfigStringFromDevice(data);
       }
@@ -113,18 +112,18 @@ export class TympanRemote {
   }
 
   public parseConfigStringFromDevice(data: string) {
-    this.log('Found json config from arduino:');
+    this.logger.log('Found json config from arduino:');
     let cfgStr = data.slice(5).replace(/'/g,'"');
-    this.log(cfgStr);
+    this.logger.log(cfgStr);
     try {
       let cfgObj = JSON.parse(cfgStr);
       this.pages = cfgObj.pages;
-      this.log('Updating pages...');
+      this.logger.log('Updating pages...');
     }
     catch(err) {
-      this.log(`Invalid json string: ${err}`);
+      this.logger.log(`Invalid json string: ${err}`);
       for (let idx = 0; idx<cfgStr.length; idx=idx+20) {
-        this.log(`${idx}: ${cfgStr.slice(idx,idx+20)}`);
+        this.logger.log(`${idx}: ${cfgStr.slice(idx,idx+20)}`);
       }
     }
 
@@ -136,43 +135,35 @@ export class TympanRemote {
   }
 
   public async getDeviceList () {
-    this.log('Getting device list:');
+    this.logger.log('Getting device list:');
     let active = true;
     if (active) {
       this.btSerial.list().then((devices)=>{
         for (let idx = 0; idx<devices.length; idx++) {
           let device = devices[idx];
+          this.logger.log(`Device ${idx}: ${device.id}`);
         }
         // We should eventually do this update a bit smoother
         this.devList = devices;
       },()=>{
-        this.log(`failed to get device list`);
+        this.logger.log(`failed to get device list`);
       });
-      this.log('DONE.');
+      this.logger.log('DONE.');
     }
-  }
-
-  public log(s: string) {
-    console.log(s);
-    this.zone.run(()=>{
-      this.logArray.push(s);
-    });
-    console.log("logs are:");
-    console.log(this.logArray);
   }
 
   public send(s: string) {
     let active = this.activeDevice > -1;
     if (active) {
       let dev = this.devList[this.activeDevice];
-      this.log(`Sending ${s} to ${dev.id}`);  
+      this.logger.log(`Sending ${s} to ${dev.id}`);  
       this.btSerial.write(s).then(()=>{
-        //this.log(`Successfully sent ${s}`);
+        //this.logger.log(`Successfully sent ${s}`);
       }).catch(()=>{
-        this.log(`Failed to send ${s}`);
+        this.logger.log(`Failed to send ${s}`);
       });
     } else {
-      this.log('INACTIVE.  SEND FAIL.');
+      this.logger.log('INACTIVE.  SEND FAIL.');
     }
   }
 }
