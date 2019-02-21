@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
 
 /**
@@ -31,7 +31,7 @@ export class TympanRemote {
   }
   */
 
-  constructor() {
+  constructor(private zone: NgZone) {
     this.btSerial = new BluetoothSerial();
     this.devList = [];
     this.logArray = [];
@@ -154,7 +154,9 @@ export class TympanRemote {
 
   public log(s: string) {
     console.log(s);
-    this.logArray.push(s);
+    this.zone.run(()=>{
+      this.logArray.push(s);
+    });
     console.log("logs are:");
     console.log(this.logArray);
   }

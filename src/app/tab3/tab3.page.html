@@ -18,7 +18,7 @@
 
     <ion-card>
         <ion-card-header>Logs</ion-card-header>
-        <ion-item>{{remote.logArray.length}} logs.  Last 2:</ion-item>
+        <ion-item>{{remote.logArray.length}} logs.  Last 3:</ion-item>
         <p *ngFor="let msg of remote.logArray.slice(-3); let i = index">{{msg}}</p>
     </ion-card>
 </ion-content>
