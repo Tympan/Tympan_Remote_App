@@ -13,4 +13,9 @@
     	<ion-button strong=true class="button halfBtn" *ngFor="let btn of card.buttons; let j = index" (click)="cmd(btn.cmd)">{{btn.label}}</ion-button>
     </ion-card-content>
   </ion-card>
+
+    <ion-card>
+        <ion-card-header>Logs</ion-card-header>
+        <p *ngFor="let msg of logger.logArray.slice(-2); let i = index">{{msg}}</p>
+    </ion-card>
 </ion-content>

@@ -12,9 +12,9 @@ export class Tab3Page {
     constructor(public remote: TympanRemote, private logger:Logger) {
     }
 
-    public setActive(i: number) {
-      //this.remote.log(`Setting ${i} as active`);
-      this.remote.setActiveDevice(i);
+    public setActive(id: string) {
+      this.logger.log(`Setting ${id} as active`);
+      this.remote.setActiveDevice(id);
     }
 
 }

@@ -2,6 +2,30 @@ import { Injectable, NgZone } from '@angular/core';
 import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
 import { Logger } from './logger';
 
+interface iDevice {
+  id: string;
+  name: string;
+  uuid?: string;
+  class?: number;
+  address?: string;
+  rssi?: number;
+  emulated?: boolean;
+}
+
+const DEVICE_1: iDevice = {
+  id: 'mo:ck:01',
+  name: 'mock1',
+  emulated: true
+};
+
+const DEVICE_2: iDevice = {
+  id: 'mo:ck:02',
+  name: 'mock2',
+  emulated: true
+};
+
+const BLUETOOTH:boolean = true;
+
 /**
  * This class contains the variables and methods for the Tympan Remote app.
  */
@@ -10,31 +34,53 @@ import { Logger } from './logger';
 })
 export class TympanRemote {
   public btSerial: BluetoothSerial;
-  public devList: any;
-  public activeDevice: number;
+  public allDevices: iDevice[];
+  public _activeDeviceId: string;
   public pages: any;
+  public emulate: boolean = false;
+  public connected: boolean = false;
 
-  /* Emulate preference */
-  /*
-  get emulate() : boolean {
-    if ( _.isUndefined(localStorage.emulate) ) {
-      // default to emulate in browser and not on device.
-      localStorage.emulate = _.isUndefined(window.cordova);
+  get activeDevice() {
+    if (this.connected) {
+      let f = this.findDeviceWithId(this._activeDeviceId);
+      return f;
+    } else {
+      return undefined;
     }
-    return JSON.parse(localStorage.emulate);
   }
-  set emulate(val : boolean) {
-    if ( val !== localStorage.emulate ) {
-      this.reset();
+
+  get activeDeviceId() {
+    if (this.connected) {
+      return this._activeDeviceId;
+    } else {
+      return '';
     }
-    localStorage.emulate = val;
   }
-  */
+
+  get deviceIds(): string[] {
+    // Should only return emulated devices if emulate
+    let deviceIds: string[] = [];
+    for (let dev of this.allDevices) {
+      //this.logger.log(dev);
+      if (dev.emulated && !this.emulate) {
+        // do nothing
+      } else {
+        this.logger.log(`Pushing ${dev.id}`);
+        deviceIds.push(dev.id);
+      }
+    }
+    return deviceIds;
+  }
+
+  get devices(): any {
+    return this.allDevices;
+  }
 
   constructor(private zone: NgZone, private logger: Logger) {
     this.btSerial = new BluetoothSerial();
-    this.devList = [];
-    this.activeDevice = -1;
+    this.allDevices = [];
+    this.allDevices.push(DEVICE_1);
+    this.allDevices.push(DEVICE_2);
     this.pages = [
       { 
         'title':'Presets', 
@@ -75,9 +121,18 @@ export class TympanRemote {
         ]
       }
     ];
+    this.setActiveDevice(DEVICE_1.id);
 
     this.logger.log('hello');
-    this.getDeviceList();
+    this.updateDeviceList();
+  }
+
+  public findDeviceWithId(id: string) {
+    let device = this.allDevices.find((dev)=>{
+      this.logger.log(`Comparing ${id} with ${dev.id}`);
+      return dev.id == id;
+    });
+    return device;
   }
 
   /*
@@ -85,24 +140,47 @@ export class TympanRemote {
    *  change in bluetooth config)
    */
   public reset() {
-    // Should reset the bluetooth connection, disconnecting from any active device.
+    // Should reset the bluetooth connection, disconnecting from any connected device.
   }
 
-  public setActiveDevice(idx: number) {
-    this.activeDevice = idx;
-    let dev = this.devList[this.activeDevice];
-    this.logger.log(`setAD: connecting to ${idx} (${dev.id})`); //  `
-    this.btSerial.connect(dev.id).subscribe(()=>{
-      this.logger.log('CONNECTED');
-      this.subscribe();
-      this.sayHello();
-    },()=>{
-      this.logger.log('CONNECTION FAIL');
-    });
+  public setActiveDevice(id: string) {
+
+    this.logger.log(`remote.setActiveDevice: setting device with id ${id} as active.`);
+    let dev = this.findDeviceWithId(id);
+    if (dev==null) {
+      this.logger.log('Could not find device.');
+      this._activeDeviceId = '';
+      return;
+    }
+    if (dev.emulated) {
+      this._activeDeviceId = id;
+      this.connected = true;
+    } else {
+      this.logger.log(`setAD: connecting to ${dev.name} (${dev.id})`); //  `
+      this.btSerial.connect(dev.id).subscribe(()=>{
+        this.logger.log('CONNECTED');
+        this._activeDeviceId = id;
+        this.connected = true;
+        this.subscribe();
+        this.sayHello();
+      },()=>{
+        this.logger.log('CONNECTION FAIL');
+        this._activeDeviceId = '';
+        this.connected = false;
+      });      
+    }
+  }
+
+  public testFn() {
+    /*
+    this.btSerial.isEnabled().then(()=>{this.logger.log('Is Enabled.');},()=>{this.logger.log('Is Not Enabled.');});
+    this.btSerial.isConnected().then(()=>{this.logger.log('Is Connected.');},()=>{this.logger.log('Is Not Connected.');});
+    this.updateDeviceList();
+    */
+    console.log(this.allDevices);
   }
 
   public subscribe() {
-    let dev = this.devList[this.activeDevice];    
     this.btSerial.subscribe('\n').subscribe((data)=>{
       this.logger.log(`>${data}`);
       if (data.length>5 && data.slice(0,4)=='JSON') {
@@ -126,7 +204,6 @@ export class TympanRemote {
         this.logger.log(`${idx}: ${cfgStr.slice(idx,idx+20)}`);
       }
     }
-
   }
 
   public sayHello() {    
@@ -134,29 +211,32 @@ export class TympanRemote {
     this.send('J');
   }
 
-  public async getDeviceList () {
+  public async updateDeviceList () {
+    console.log('before:');
+    console.log(this.allDevices);
     this.logger.log('Getting device list:');
-    let active = true;
-    if (active) {
+    if (BLUETOOTH) {
       this.btSerial.list().then((devices)=>{
+        this.allDevices = [];
         for (let idx = 0; idx<devices.length; idx++) {
           let device = devices[idx];
-          this.logger.log(`Device ${idx}: ${device.id}`);
+          this.logger.log(`Found device ${device.name}`);
+          //if (!this.allDevices[device.id]) {
+            device.emulated = false;
+            this.allDevices.push(device);
+          //}
         }
-        // We should eventually do this update a bit smoother
-        this.devList = devices;
       },()=>{
         this.logger.log(`failed to get device list`);
       });
-      this.logger.log('DONE.');
     }
+    console.log('after:');
+    console.log(this.allDevices);
   }
 
   public send(s: string) {
-    let active = this.activeDevice > -1;
-    if (active) {
-      let dev = this.devList[this.activeDevice];
-      this.logger.log(`Sending ${s} to ${dev.id}`);  
+    if (BLUETOOTH) {
+      this.logger.log(`Sending ${s} to ${this.activeDevice.name}`);  
       this.btSerial.write(s).then(()=>{
         //this.logger.log(`Successfully sent ${s}`);
       }).catch(()=>{
