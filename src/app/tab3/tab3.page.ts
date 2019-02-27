@@ -9,7 +9,7 @@ import { Logger } from '../../providers/logger';
 })
 export class Tab3Page {
 
-    constructor(public remote: TympanRemote, private logger:Logger) {
+    constructor(public remote: TympanRemote, public logger:Logger) {
     }
 
     public setActive(id: string) {

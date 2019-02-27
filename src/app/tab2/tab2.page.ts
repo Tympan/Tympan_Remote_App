@@ -9,7 +9,7 @@ import { Logger } from '../../providers/logger';
 })
 export class Tab2Page {
 
-    constructor(public remote: TympanRemote, private logger:Logger) {
+    constructor(public remote: TympanRemote, public logger:Logger) {
     }
 
     cmd(s: string) {
