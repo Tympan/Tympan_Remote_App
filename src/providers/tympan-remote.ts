@@ -127,6 +127,10 @@ export class TympanRemote {
     this.updateDeviceList();
   }
 
+  public isActiveId(id: string) {
+    return id == this._activeDeviceId;
+  }
+
   public findDeviceWithId(id: string) {
     let device = this.allDevices.find((dev)=>{
       this.logger.log(`Comparing ${id} with ${dev.id}`);

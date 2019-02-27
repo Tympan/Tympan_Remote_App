@@ -17,14 +17,19 @@
     <ion-card>
         <ion-card-title>Paired Devices</ion-card-title>
         <ion-card-content>
-            <ion-item *ngFor="let dev of remote.devices" (click)=setActive(dev.id)> 
-                <p>{{dev.name}} {{ dev.id==remote.activeDeviceId?"      Connected!":" "}}</p>
-            </ion-item>
+          <ion-item *ngFor="let dev of remote.devices" (click)=setActive(dev.id) [color]="remote.isActiveId(dev.id) ? 'primary' : 'light'">
+              <ion-col size-xs="6">
+                  {{ dev.name }}
+              </ion-col>
+              <ion-col size-xs="6">
+                  {{ dev.id==remote.activeDeviceId?"Connected!":" "}}
+              </ion-col>
+          </ion-item>
         </ion-card-content>
     </ion-card>
 
     <ion-card>
-        <ion-card-header>Logs</ion-card-header>
+        <ion-card-title>Logs</ion-card-title>
         <p *ngFor="let msg of logger.logArray.slice(-5)">{{msg}}</p>
     </ion-card>
 
