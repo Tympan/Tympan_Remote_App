@@ -143,9 +143,18 @@ export class TympanRemote {
     // Should reset the bluetooth connection, disconnecting from any connected device.
   }
 
+  public disconnect() {
+    this._activeDeviceId = '';
+    this.connected = false;
+    if (BLUETOOTH) {
+      this.btSerial.disconnect();
+    }
+  }
+
   public setActiveDevice(id: string) {
 
     this.logger.log(`remote.setActiveDevice: setting device with id ${id} as active.`);
+    this.disconnect();
     let dev = this.findDeviceWithId(id);
     if (dev==null) {
       this.logger.log('Could not find device.');
