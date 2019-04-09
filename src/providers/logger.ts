@@ -14,6 +14,7 @@ export class Logger {
   }
 
   public log(s: string) {
+    console.log(s);
     this.zone.run(()=>{
       this.logArray.push(s);
     });
