@@ -14,5 +14,25 @@ export class Tab2Page {
 
     cmd(s: string) {
         this.remote.send(s);
+        //this.applyStyleToBtnWithCmd(s);
+    }
+
+    applyStyleToBtnWithCmd(s: string) {
+    	for (let page of this.remote.pages) {
+    		for (let card of page.cards) {
+    			for (let button of card.buttons) {
+    				if (button.cmd == s) {
+    					console.log('FOUND BUTTON!');
+    					let str = 'STATE=' + 'BTN:' + button.id + ':';
+    					if (this.remote.btn[button.id].isOn) {
+	    					str += '0';
+    					} else {
+	    					str += '1';
+    					}
+    					this.remote.parseStateStringFromDevice(str);
+    				}
+    			}
+    		}
+    	}
     }
 }

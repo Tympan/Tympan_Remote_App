@@ -26,6 +26,9 @@ const DEVICE_2: iDevice = {
 
 const BLUETOOTH:boolean = true;
 
+const BUTTON_STYLE_ON = {color: 'success', isOn: true};
+const BUTTON_STYLE_OFF = {color: 'medium', isOn: false};
+
 /**
  * This class contains the variables and methods for the Tympan Remote app.
  */
@@ -36,9 +39,10 @@ export class TympanRemote {
   public btSerial: BluetoothSerial;
   public allDevices: iDevice[];
   public _activeDeviceId: string;
-  public pages: any;
+  private _pages: any = {};
   public emulate: boolean = false;
   public connected: boolean = false;
+  public btn: any = {};
 
   get activeDevice() {
     if (this.connected) {
@@ -76,6 +80,28 @@ export class TympanRemote {
     return this.allDevices;
   }
 
+  get pages() {
+    return this._pages;
+  }
+
+  set pages(pages: any) {
+    let btnStyle = {};
+    for (let page of pages) {
+      for (let card of page.cards) {
+        for (let button of card.buttons) {
+          if (button.id) {
+            btnStyle[button.id] = BUTTON_STYLE_OFF;
+          } else {
+            button['id'] = 'default';
+            btnStyle['default'] = BUTTON_STYLE_OFF;
+          }
+        }
+      }
+    }
+    this._pages = pages;
+    this.btn = btnStyle;
+  }
+
   constructor(private zone: NgZone, private logger: Logger) {
     this.btSerial = new BluetoothSerial();
     this.allDevices = [];
@@ -88,8 +114,17 @@ export class TympanRemote {
           {
             'name': 'Algorithm',
             'buttons': [
-              {'label': '~A', 'cmd': 'd'},
-              {'label': '~B', 'cmd': 'D'}
+              {'label': '~A', 'cmd': 'd', 'id': 'algA'},
+              {'label': '~B', 'cmd': 'D', 'id': 'algB'},
+              {'label': '~C', 'cmd': 'c', 'id': 'algC'}
+            ]
+          },
+          {
+            'name': 'Alg2',
+            'buttons': [
+              {'label': '~E', 'cmd': 'd', 'id': 'algE'},
+              {'label': '~F', 'cmd': 'D', 'id': 'algF'},
+              {'label': '~G', 'cmd': 'c', 'id': 'algG'}
             ]
           }
         ]
@@ -100,15 +135,15 @@ export class TympanRemote {
           {
             'name': 'High Gain',
             'buttons': [
-              {'label': '~-', 'cmd': '#'},
-              {'label': '~+', 'cmd': '3'}
+              {'label': '~-', 'cmd': '#', 'id': 'hi'},
+              {'label': '~+', 'cmd': '3', 'id': 'rest'}
             ]
           },
           {
             'name': 'Mid Gain',
             'buttons': [
-              {'label': '~-', 'cmd': '@'},
-              {'label': '~+', 'cmd': '2'}
+              {'label': '~-', 'cmd': '@', 'id': 'rest'},
+              {'label': '~+', 'cmd': '2', 'id': 'rest'}
             ]
           },
           {
@@ -190,14 +225,15 @@ export class TympanRemote {
     this.btSerial.isConnected().then(()=>{this.logger.log('Is Connected.');},()=>{this.logger.log('Is Not Connected.');});
     this.updateDeviceList();
     */
-    console.log(this.allDevices);
   }
 
   public subscribe() {
     this.btSerial.subscribe('\n').subscribe((data)=>{
       this.logger.log(`>${data}`);
-      if (data.length>5 && data.slice(0,4)=='JSON') {
+      if (data.length>5 && data.slice(0,5)=='JSON=') {
         this.parseConfigStringFromDevice(data);
+      } else if (data.length>6 && data.slice(0,6)=='STATE=') {
+        this.parseStateStringFromDevice(data);
       }
     });
   }
@@ -219,14 +255,51 @@ export class TympanRemote {
     }
   }
 
+  public parseStateStringFromDevice(data: string) {
+    //this.logger.log('Found state string from arduino:');
+    let stateStr = data.slice(6);
+    //this.logger.log(stateStr);
+    let parts = stateStr.split(':');
+    let featType = parts[0];
+    let id = parts[1];
+    let val = parts[2];
+    /* We're splitting on ":", but maybe the user wanted to display a message that included a colon? */
+    for (let idx = 3; idx<featType.length; idx++) {
+      val += ':';
+      val += parts[idx];
+    }
+    try {
+      switch (featType) {
+        case 'BTN':
+          if (val[0]==='0') {
+            this.btn[id] = BUTTON_STYLE_OFF;
+          } else if (val[0]==='1') {
+            this.btn[id] = BUTTON_STYLE_ON;
+          } else {
+            throw 'Button state must be 0 or 1';
+          }
+          break;
+        case 'SLI':
+          break;
+        case 'NUM':
+          break;
+        case 'TXT':
+          break;
+      }
+      //this.logger.log('Updating pages...');
+    }
+    catch(err) {
+      this.logger.log(`Invalid state string: ${err}`);
+    }
+  }
+
+
   public sayHello() {    
     this.send('h');
     this.send('J');
   }
 
   public async updateDeviceList () {
-    console.log('before:');
-    console.log(this.allDevices);
     this.logger.log('Getting device list:');
     if (BLUETOOTH) {
       this.btSerial.list().then((devices)=>{
@@ -243,8 +316,6 @@ export class TympanRemote {
         this.logger.log(`failed to get device list`);
       });
     }
-    console.log('after:');
-    console.log(this.allDevices);
   }
 
   public send(s: string) {
