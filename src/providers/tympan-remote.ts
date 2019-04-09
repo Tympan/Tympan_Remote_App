@@ -93,6 +93,7 @@ export class TympanRemote {
   public emulate: boolean = false;
   public connected: boolean = false;
   public btn: any = {};
+  public devIcon: string = "/assets/tympan-logo.png";
 
   get activeDevice() {
     if (this.connected) {
@@ -249,6 +250,9 @@ export class TympanRemote {
       let cfgObj = JSON.parse(cfgStr);
       this.pages = cfgObj.pages;
       this.logger.log('Updating pages...');
+      if (this.icon) {
+        this.devIcon = '/assets/' + cfgObj.icon;
+      }
     }
     catch(err) {
       this.logger.log(`Invalid json string: ${err}`);
