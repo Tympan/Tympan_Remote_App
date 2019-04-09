@@ -14,9 +14,16 @@
   </ion-row>
 
   <ion-card *ngFor="let card of remote.pages[0].cards; let i = index">
-  <ion-card-header>{{card.name}}</ion-card-header>
+  <ion-card-header style="padding-bottom: 8px; padding-top: 8px">{{card.name}}</ion-card-header>
     <ion-card-content>
-      <ion-button expand="block" *ngFor="let btn of card.buttons; let j = index" (click)="cmd(btn.cmd)">{{btn.label}}</ion-button>
+      <ion-row  *ngFor="let btn of card.buttons; let j = index">
+        <ion-col size-xs="1" size-s="2"></ion-col>
+        <ion-col size-xs="10" size-s="8" class="ion-no-padding">
+          <ion-button expand="block" strong=true [color]="remote.btn[btn.id].color" (click)="cmd(btn.cmd)">{{btn.label}}</ion-button>
+        </ion-col>
+        <ion-col size-xs="1" size-s="2"></ion-col>
+      </ion-row>
     </ion-card-content>
   </ion-card>
+
 </ion-content>

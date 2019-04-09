@@ -15,7 +15,7 @@
     </ion-card>
 
     <ion-card>
-        <ion-card-title>Paired Devices</ion-card-title>
+        <ion-card-header style="padding-bottom: 8px; padding-top: 8px">Paired Devices</ion-card-header>
         <ion-card-content>
           <ion-item *ngFor="let dev of remote.devices" (click)=setActive(dev.id) [color]="remote.isActiveId(dev.id) ? 'primary' : 'light'">
               <ion-col size-xs="6">
@@ -29,8 +29,8 @@
     </ion-card>
 
     <ion-card>
-        <ion-card-title>Logs</ion-card-title>
-        <p *ngFor="let msg of logger.logArray.slice(-5)">{{msg}}</p>
+        <ion-card-header style="padding-bottom: 8px; padding-top: 8px">Logs</ion-card-header>
+        <p style="margin: 4px" *ngFor="let msg of logger.logArray.slice(-5)">{{msg}}</p>
     </ion-card>
 
 
