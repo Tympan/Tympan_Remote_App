@@ -250,7 +250,7 @@ export class TympanRemote {
       let cfgObj = JSON.parse(cfgStr);
       this.pages = cfgObj.pages;
       this.logger.log('Updating pages...');
-      if (this.icon) {
+      if (cfgObj.icon) {
         this.devIcon = '/assets/' + cfgObj.icon;
       }
     }
