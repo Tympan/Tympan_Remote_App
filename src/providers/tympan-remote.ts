@@ -29,6 +29,56 @@ const BLUETOOTH:boolean = true;
 const BUTTON_STYLE_ON = {color: 'success', isOn: true};
 const BUTTON_STYLE_OFF = {color: 'medium', isOn: false};
 
+const DEFAULT_PAGES = [
+  { 
+    'title':'Presets', 
+    'cards':[
+      {
+        'name': 'Algorithm',
+        'buttons': [
+          {'label': '~A', 'cmd': 'd', 'id': 'algA'},
+          {'label': '~B', 'cmd': 'D', 'id': 'algB'},
+          {'label': '~C', 'cmd': 'c', 'id': 'algC'}
+        ]
+      },
+      {
+        'name': 'Alg2',
+        'buttons': [
+          {'label': '~E', 'cmd': 'd', 'id': 'algE'},
+          {'label': '~F', 'cmd': 'D', 'id': 'algF'},
+          {'label': '~G', 'cmd': 'c', 'id': 'algG'}
+        ]
+      }
+    ]
+  },
+  { 
+    'title':'Presets', 
+    'cards':[
+      {
+        'name': 'High Gain',
+        'buttons': [
+          {'label': '~-', 'cmd': '#', 'id': 'hi'},
+          {'label': '~+', 'cmd': '3', 'id': 'rest'}
+        ]
+      },
+      {
+        'name': 'Mid Gain',
+        'buttons': [
+          {'label': '~-', 'cmd': '@', 'id': 'rest'},
+          {'label': '~+', 'cmd': '2', 'id': 'rest'}
+        ]
+      },
+      {
+        'name': 'Low Gain',
+        'buttons': [
+          {'label': '~-', 'cmd': '!'},
+          {'label': '~+', 'cmd': '1'}
+        ]
+      }
+    ]
+  }
+];
+
 /**
  * This class contains the variables and methods for the Tympan Remote app.
  */
@@ -107,55 +157,7 @@ export class TympanRemote {
     this.allDevices = [];
     this.allDevices.push(DEVICE_1);
     this.allDevices.push(DEVICE_2);
-    this.pages = [
-      { 
-        'title':'Presets', 
-        'cards':[
-          {
-            'name': 'Algorithm',
-            'buttons': [
-              {'label': '~A', 'cmd': 'd', 'id': 'algA'},
-              {'label': '~B', 'cmd': 'D', 'id': 'algB'},
-              {'label': '~C', 'cmd': 'c', 'id': 'algC'}
-            ]
-          },
-          {
-            'name': 'Alg2',
-            'buttons': [
-              {'label': '~E', 'cmd': 'd', 'id': 'algE'},
-              {'label': '~F', 'cmd': 'D', 'id': 'algF'},
-              {'label': '~G', 'cmd': 'c', 'id': 'algG'}
-            ]
-          }
-        ]
-      },
-      { 
-        'title':'Presets', 
-        'cards':[
-          {
-            'name': 'High Gain',
-            'buttons': [
-              {'label': '~-', 'cmd': '#', 'id': 'hi'},
-              {'label': '~+', 'cmd': '3', 'id': 'rest'}
-            ]
-          },
-          {
-            'name': 'Mid Gain',
-            'buttons': [
-              {'label': '~-', 'cmd': '@', 'id': 'rest'},
-              {'label': '~+', 'cmd': '2', 'id': 'rest'}
-            ]
-          },
-          {
-            'name': 'Low Gain',
-            'buttons': [
-              {'label': '~-', 'cmd': '!'},
-              {'label': '~+', 'cmd': '1'}
-            ]
-          }
-        ]
-      }
-    ];
+    this.pages = DEFAULT_PAGES;
     this.setActiveDevice(DEVICE_1.id);
 
     this.logger.log('hello');
@@ -185,6 +187,7 @@ export class TympanRemote {
   public disconnect() {
     this._activeDeviceId = '';
     this.connected = false;
+    this.pages = DEFAULT_PAGES;
     if (BLUETOOTH) {
       this.btSerial.disconnect();
     }
