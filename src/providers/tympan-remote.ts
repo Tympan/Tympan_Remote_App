@@ -152,12 +152,16 @@ export class TympanRemote {
         }
       }
     }
-    this._config.pages = pages;
-    this.btn = btnStyle;
+    this.zone.run(()=>{
+      this._config.pages = pages;
+      this.btn = btnStyle;      
+    });
   }
 
   set devIcon(filename: string) {
-    this._devIcon = '/assets/devIcon/' + filename; 
+    this.zone.run(()=>{
+      this._devIcon = '/assets/devIcon/' + filename; 
+    });
   }
 
   get devIcon(): string {
@@ -287,29 +291,31 @@ export class TympanRemote {
       val += ':';
       val += parts[idx];
     }
-    try {
-      switch (featType) {
-        case 'BTN':
-          if (val[0]==='0') {
-            this.btn[id] = BUTTON_STYLE_OFF;
-          } else if (val[0]==='1') {
-            this.btn[id] = BUTTON_STYLE_ON;
-          } else {
-            throw 'Button state must be 0 or 1';
-          }
-          break;
-        case 'SLI':
-          break;
-        case 'NUM':
-          break;
-        case 'TXT':
-          break;
+    this.zone.run(()=>{
+      try {
+        switch (featType) {
+          case 'BTN':
+            if (val[0]==='0') {
+              this.btn[id] = BUTTON_STYLE_OFF;
+            } else if (val[0]==='1') {
+              this.btn[id] = BUTTON_STYLE_ON;
+            } else {
+              throw 'Button state must be 0 or 1';
+            }
+            break;
+          case 'SLI':
+            break;
+          case 'NUM':
+            break;
+          case 'TXT':
+            break;
+        }
+        //this.logger.log('Updating pages...');
       }
-      //this.logger.log('Updating pages...');
-    }
-    catch(err) {
-      this.logger.log(`Invalid state string: ${err}`);
-    }
+      catch(err) {
+        this.logger.log(`Invalid state string: ${err}`);
+      }      
+    });
   }
 
 
