@@ -12,9 +12,12 @@
 		"test": "ng test",
 		"lint": "ng lint",
 		"e2e": "ng e2e",
+		"cordova": "cordova",
+		"ionic": "ionic",
 		"ionic.build.ios": "ionic cordova build ios -- --buildFlag=\"-UseModernBuildSystem=0\"",
 		"ionic.build.android": "ionic cordova build android",
-		"ionic.run.android": "ionic cordova run android"
+		"ionic.run.android": "ionic cordova run android",
+		"resources": "ionic cordova resources --cordova-res"
 	},
 	"dependencies": {
 		"@angular/common": "^7.2.2",
