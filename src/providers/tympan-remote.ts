@@ -29,55 +29,58 @@ const BLUETOOTH:boolean = true;
 const BUTTON_STYLE_ON = {color: 'success', isOn: true};
 const BUTTON_STYLE_OFF = {color: 'medium', isOn: false};
 
-const DEFAULT_PAGES = [
-  { 
-    'title':'Presets', 
-    'cards':[
-      {
-        'name': 'Algorithm',
-        'buttons': [
-          {'label': '~A', 'cmd': 'd', 'id': 'algA'},
-          {'label': '~B', 'cmd': 'D', 'id': 'algB'},
-          {'label': '~C', 'cmd': 'c', 'id': 'algC'}
-        ]
-      },
-      {
-        'name': 'Alg2',
-        'buttons': [
-          {'label': '~E', 'cmd': 'd', 'id': 'algE'},
-          {'label': '~F', 'cmd': 'D', 'id': 'algF'},
-          {'label': '~G', 'cmd': 'c', 'id': 'algG'}
-        ]
-      }
-    ]
-  },
-  { 
-    'title':'Presets', 
-    'cards':[
-      {
-        'name': 'High Gain',
-        'buttons': [
-          {'label': '~-', 'cmd': '#', 'id': 'hi'},
-          {'label': '~+', 'cmd': '3', 'id': 'rest'}
-        ]
-      },
-      {
-        'name': 'Mid Gain',
-        'buttons': [
-          {'label': '~-', 'cmd': '@', 'id': 'rest'},
-          {'label': '~+', 'cmd': '2', 'id': 'rest'}
-        ]
-      },
-      {
-        'name': 'Low Gain',
-        'buttons': [
-          {'label': '~-', 'cmd': '!'},
-          {'label': '~+', 'cmd': '1'}
-        ]
-      }
-    ]
-  }
-];
+const DEFAULT_CONFIG = {
+  'icon': 'creare.png',
+  'pages': [
+    { 
+      'title':'Presets', 
+      'cards':[
+        {
+          'name': 'Algorithm',
+          'buttons': [
+            {'label': '~A', 'cmd': 'd', 'id': 'algA'},
+            {'label': '~B', 'cmd': 'D', 'id': 'algB'},
+            {'label': '~C', 'cmd': 'c', 'id': 'algC'}
+          ]
+        },
+        {
+          'name': 'Alg2',
+          'buttons': [
+            {'label': '~E', 'cmd': 'd', 'id': 'algE'},
+            {'label': '~F', 'cmd': 'D', 'id': 'algF'},
+            {'label': '~G', 'cmd': 'c', 'id': 'algG'}
+          ]
+        }
+      ]
+    },
+    { 
+      'title':'Presets', 
+      'cards':[
+        {
+          'name': 'High Gain',
+          'buttons': [
+            {'label': '~-', 'cmd': '#', 'id': 'hi'},
+            {'label': '~+', 'cmd': '3', 'id': 'rest'}
+          ]
+        },
+        {
+          'name': 'Mid Gain',
+          'buttons': [
+            {'label': '~-', 'cmd': '@', 'id': 'rest'},
+            {'label': '~+', 'cmd': '2', 'id': 'rest'}
+          ]
+        },
+        {
+          'name': 'Low Gain',
+          'buttons': [
+            {'label': '~-', 'cmd': '!'},
+            {'label': '~+', 'cmd': '1'}
+          ]
+        }
+      ]
+    }
+  ]
+}
 
 /**
  * This class contains the variables and methods for the Tympan Remote app.
@@ -89,11 +92,11 @@ export class TympanRemote {
   public btSerial: BluetoothSerial;
   public allDevices: iDevice[];
   public _activeDeviceId: string;
-  private _pages: any = {};
+  private _config: any = {};
   public emulate: boolean = false;
   public connected: boolean = false;
   public btn: any = {};
-  public devIcon: string = "/assets/tympan-logo.png";
+  private _devIcon: string;
 
   get activeDevice() {
     if (this.connected) {
@@ -132,7 +135,7 @@ export class TympanRemote {
   }
 
   get pages() {
-    return this._pages;
+    return this._config.pages;
   }
 
   set pages(pages: any) {
@@ -149,16 +152,25 @@ export class TympanRemote {
         }
       }
     }
-    this._pages = pages;
+    this._config.pages = pages;
     this.btn = btnStyle;
   }
+
+  set devIcon(filename: string) {
+    this._devIcon = '/assets/devIcon/' + filename; 
+  }
+
+  get devIcon(): string {
+    return this._devIcon;
+  } 
 
   constructor(private zone: NgZone, private logger: Logger) {
     this.btSerial = new BluetoothSerial();
     this.allDevices = [];
     this.allDevices.push(DEVICE_1);
     this.allDevices.push(DEVICE_2);
-    this.pages = DEFAULT_PAGES;
+    this.pages = DEFAULT_CONFIG.pages;
+    this.devIcon = DEFAULT_CONFIG.icon;
     this.setActiveDevice(DEVICE_1.id);
 
     this.logger.log('hello');
@@ -188,7 +200,8 @@ export class TympanRemote {
   public disconnect() {
     this._activeDeviceId = '';
     this.connected = false;
-    this.pages = DEFAULT_PAGES;
+    this.pages = DEFAULT_CONFIG.pages;
+    this.devIcon = DEFAULT_CONFIG.icon;
     if (BLUETOOTH) {
       this.btSerial.disconnect();
     }
@@ -251,10 +264,9 @@ export class TympanRemote {
       this.pages = cfgObj.pages;
       this.logger.log('Updating pages...');
       if (cfgObj.icon) {
-        this.devIcon = '/assets/' + cfgObj.icon;
+        this.devIcon = cfgObj.icon;
       }
-    }
-    catch(err) {
+    } catch(err) {
       this.logger.log(`Invalid json string: ${err}`);
       for (let idx = 0; idx<cfgStr.length; idx=idx+20) {
         this.logger.log(`${idx}: ${cfgStr.slice(idx,idx+20)}`);
