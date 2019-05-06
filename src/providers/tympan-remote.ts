@@ -80,7 +80,7 @@ const DEFAULT_CONFIG = {
       ]
     }
   ]
-}
+};
 
 /**
  * This class contains the variables and methods for the Tympan Remote app.
