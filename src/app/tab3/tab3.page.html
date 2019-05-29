@@ -7,32 +7,34 @@
 </ion-header>
 
 <ion-content>
+  <ion-row>
+    <ion-col col-4></ion-col>
+    <ion-col col-4><ion-img [src]="remote.devIcon"></ion-img></ion-col>
+    <ion-col col-4></ion-col>
+  </ion-row>
 
-    <ion-card>
-      <ion-button strong=true (click)="remote.updateDeviceList()">
-        Rescan for Devices
-      </ion-button>
-    </ion-card>
 
-    <ion-card>
-        <ion-card-header style="padding-bottom: 8px; padding-top: 8px">Paired Devices</ion-card-header>
-        <ion-card-content>
-          <ion-item *ngFor="let dev of remote.devices" (click)=setActive(dev.id) [color]="remote.isActiveId(dev.id) ? 'primary' : 'light'">
-              <ion-col size-xs="6">
-                  {{ dev.name }}
-              </ion-col>
-              <ion-col size-xs="6">
-                  {{ dev.id==remote.activeDeviceId?"Connected!":" "}}
-              </ion-col>
-          </ion-item>
-        </ion-card-content>
-    </ion-card>
+  <ion-card>
+    <ion-button strong=true (click)="remote.updateDeviceList()">
+      Rescan for Devices
+    </ion-button>
+  </ion-card>
 
-    <ion-card>
-        <ion-card-header style="padding-bottom: 8px; padding-top: 8px">Logs</ion-card-header>
-        <p style="margin: 4px">Tympan Remote, v0.1.1</p>
-        <p style="margin: 4px" *ngFor="let msg of logger.logArray.slice(-5)">{{msg}}</p>
-    </ion-card>
+  <ion-card>
+    <ion-card-header style="padding-bottom: 8px; padding-top: 8px">Paired Devices</ion-card-header>
+    <ion-card-content>
+      <ion-item *ngFor="let dev of remote.devices" (click)=setActive(dev.id) [color]="remote.isActiveId(dev.id) ? 'primary' : 'light'">
+        <ion-col size-xs="6">{{ dev.name }}</ion-col>
+        <ion-col size-xs="6">{{ dev.id==remote.activeDeviceId?"Connected!":" "}}</ion-col>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+      <ion-card-header style="padding-bottom: 8px; padding-top: 8px">Logs</ion-card-header>
+      <p style="margin: 4px">Tympan Remote, v0.1.1</p>
+      <p style="margin: 4px" *ngFor="let msg of logger.logArray.slice(-5)">{{msg}}</p>
+  </ion-card>
 
 
 </ion-content>
