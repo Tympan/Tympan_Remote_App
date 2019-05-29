@@ -6,3 +6,51 @@
 .button {
 	height:5vh;
 }
+
+.container {
+  width: 100px;
+  background-color: green;
+  overflow: hidden; 
+  white-space: nowrap;
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  .scroll {
+    overflow: auto;
+  }
+}
+
+.gridCard {
+	border: thin solid gray;
+	margin: 5px 5px 0px 0px;
+	padding: 10px;
+
+}
+
+.gridTitle {
+	padding-bottom: 8px;
+	padding-top: 8px;
+}
+
+.gridHeader {
+	padding-bottom: 8px;
+	padding-top: 8px;
+	font-size: 20px;
+	text-align: center;
+}
+
+.gridData {
+	/* font-size: 20px; */
+	text-align: center;
+	background-color: lightgray;
+}
+
+.gridColFrozen {
+	/* font-size: 20px; */
+	text-align: center;
+}
+
+.logText {
+	margin: 4px;
+	text-align: left;
+}

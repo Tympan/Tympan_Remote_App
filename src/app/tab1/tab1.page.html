@@ -1,12 +1,13 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>
-      Tympan Presets
+      Specify Algorithm
     </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
+  <!--
   <ion-row>
     <ion-col col-4></ion-col>
     <ion-col col-4><ion-img [src]="remote.devIcon"></ion-img></ion-col>
@@ -24,6 +25,161 @@
         <ion-col size-xs="1" size-s="2"></ion-col>
       </ion-row>
     </ion-card-content>
+  </ion-card>
+  -->
+
+        <!--
+        <ion-row class="gridCard">
+          <ion-col size="12" class="gridCardHeader">DSL</ion-col>
+        </ion-row>
+        -->
+
+        <!--
+        <ion-slides>
+          <ion-slide>
+            <ion-grid style="width:100% !important; margin:4px">
+
+            <ion-row>
+              <ion-col size="4">Index</ion-col>
+              <ion-col size="4">Starting Frequency</ion-col>
+              <ion-col size="4">Low SPL Compression Ratio</ion-col>
+            </ion-row>
+            <ion-row *ngFor="let freq of dsl.freqs; let band = index"  class="ion-no-padding">
+              <ion-col size="4"><ion-input disabled=true>{{band+1}}</ion-input></ion-col>
+              <ion-col size="4"><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.freqs[band]" disabled="{{band==0}}"></ion-input></ion-col>
+              <ion-col size="4"><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.compressionLowSPL[band]"></ion-input></ion-col>
+            </ion-row>
+
+            </ion-grid>
+          </ion-slide>
+
+          <ion-slide>
+            <ion-grid style="width:100% !important; margin:4px">
+            <ion-row>
+              <ion-col size="4">Compression Start Knee</ion-col>
+              <ion-col size="4">Compression Ratio</ion-col>
+              <ion-col size="4">Compression Start Gain</ion-col>
+            </ion-row>
+            <ion-row *ngFor="let freq of dsl.freqs; let band = index"  class="ion-no-padding">
+              <ion-col size="4"><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.compressionStartKnee[band]"></ion-input></ion-col>
+              <ion-col size="4"><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.compressionRatio[band]"></ion-input></ion-col>
+              <ion-col size="4"><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.compressionStartGain[band]"></ion-input></ion-col>
+            </ion-row>
+            </ion-grid>            
+          </ion-slide>
+
+          <ion-slide>
+            <ion-grid style="width:100% !important; margin:4px">
+            <ion-row>
+              <ion-col size="4">Expansion End Knee</ion-col>
+              <ion-col size="4">Threshold</ion-col>
+            </ion-row>
+            <ion-row *ngFor="let freq of dsl.freqs; let band = index"  class="ion-no-padding">
+              <ion-col size="4"><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.expansionEndKnee[band]"></ion-input></ion-col>
+              <ion-col size="4"><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.threshold[band]"></ion-input></ion-col>
+            </ion-row>
+            </ion-grid>            
+          </ion-slide>
+
+        </ion-slides>
+-->
+
+
+
+<!--
+            <ion-grid style="margin:4px">
+            <ion-row>
+              <ion-col size="4">Index</ion-col>
+              <ion-col size="4">Starting Frequency</ion-col>
+              <ion-col size="4">Low SPL Compression Ratio</ion-col>
+              <ion-col size="4">Compression Start Knee</ion-col>
+              <ion-col size="4">Compression Ratio</ion-col>
+              <ion-col size="4">Compression Start Gain</ion-col>
+              <ion-col size="4">Expansion End Knee</ion-col>
+              <ion-col size="4">Threshold</ion-col>
+            </ion-row>
+            <ion-row *ngFor="let freq of dsl.freqs; let band = index"  class="ion-no-padding">
+              <ion-col size="4"><ion-input disabled=true>{{band+1}}</ion-input></ion-col>
+              <ion-col size="4"><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.freqs[band]" disabled="{{band==0}}"></ion-input></ion-col>
+              <ion-col size="4"><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.compressionLowSPL[band]"></ion-input></ion-col>
+              <ion-col size="4"><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.compressionStartKnee[band]"></ion-input></ion-col>
+              <ion-col size="4"><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.compressionRatio[band]"></ion-input></ion-col>
+              <ion-col size="4"><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.compressionStartGain[band]"></ion-input></ion-col>
+              <ion-col size="4"><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.expansionEndKnee[band]"></ion-input></ion-col>
+              <ion-col size="4"><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.threshold[band]"></ion-input></ion-col>
+            </ion-row>
+          </ion-grid>
+-->
+
+<!--
+        <div class="container">
+          <div class="scroll" scrollX="true">
+          <ion-grid style="margin:4px width:100% !important">
+            <ion-row>
+              <ion-col size="2"></ion-col>
+              <ion-col size="8">Starting Frequency</ion-col>
+              <ion-col>Low SPL Compression Ratio</ion-col>
+              <ion-col>Compression Start Knee</ion-col>
+              <ion-col>Compression Ratio</ion-col>
+              <ion-col>Compression Start Gain</ion-col>
+              <ion-col>Expansion End Knee</ion-col>
+              <ion-col>Threshold</ion-col>
+            </ion-row>
+            <ion-row *ngFor="let freq of dsl.freqs; let band = index"  class="ion-no-padding">
+              <ion-col><ion-input disabled=true>{{band+1}}</ion-input></ion-col>
+              <ion-col><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.freqs[band]" disabled="{{band==0}}"></ion-input></ion-col>
+              <ion-col><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.compressionLowSPL[band]"></ion-input></ion-col>
+              <ion-col><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.compressionStartKnee[band]"></ion-input></ion-col>
+              <ion-col><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.compressionRatio[band]"></ion-input></ion-col>
+              <ion-col><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.compressionStartGain[band]"></ion-input></ion-col>
+              <ion-col><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.expansionEndKnee[band]"></ion-input></ion-col>
+              <ion-col><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="dsl.threshold[band]"></ion-input></ion-col>
+            </ion-row>
+          </ion-grid>
+        </div>
+        </div>
+  -->
+
+  <ion-card *ngFor="let card of pages[0].cards; let cardIdx = index">
+    <ion-card-title style="padding-bottom: 8px; padding-top: 8px; text-align:center">{{card.name}}</ion-card-title>
+    <ion-card-content>
+      <ion-item *ngFor="let input of card.inputs; let inputIdx = index">
+        <div *ngIf="input.type==='numeric'" style="width:100% !important">
+          <ion-row>
+            <ion-col size="6" class="gridColFrozen">{{input.label}}</ion-col>
+            <ion-col size="6" class="gridData">
+                <ion-input inputmode="input.type" type="number" debounce="5000" [(ngModel)]="pages[0].cards[cardIdx].inputs[inputIdx].value"></ion-input>
+            </ion-col>
+          </ion-row>
+        </div>
+        <div *ngIf="input.type==='grid'" style="width:100% !important">
+          <ion-grid style="margin:4px; width:100% !important">
+            <ion-row>
+              <ion-col size="3" class="gridHeader ion-text-left">{{input.indexLabel}}</ion-col>
+              <ion-col size="2"><ion-button (click)="moveLeft()" expand="full" color="primary"><ion-icon name="arrow-dropleft"></ion-icon></ion-button></ion-col>
+              <ion-col size="5" class="gridHeader">{{grid.columns[col].label}}</ion-col>
+              <ion-col size="2"><ion-button (click)="moveRight()" expand="full" color="primary"><ion-icon name="arrow-dropright"></ion-icon></ion-button></ion-col>
+            </ion-row>
+            <ion-row *ngFor="let tmp of rowNums; let band = index"  class="ion-no-padding">
+              <ion-col size="3" class="gridColFrozen"><ion-input disabled=true>{{band+1}}</ion-input></ion-col>
+              <ion-col size="9" class="gridData"><ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="input.columns[col].values[band]"></ion-input></ion-col>
+            </ion-row>
+          </ion-grid>
+        </div>
+      </ion-item>
+      <ion-button expand="block" *ngIf="card.submitButton">SUBMIT {{card.name}}</ion-button>
+    </ion-card-content>
+  </ion-card>
+
+
+
+  <ion-card>
+    <ion-item>
+      <ion-label>Property</ion-label>
+      <ion-select interface="popover">
+        <ion-select-option *ngFor="let col of grid.columns; let j = index">{{col.label}}</ion-select-option>
+      </ion-select>
+    </ion-item>
   </ion-card>
 
 </ion-content>
