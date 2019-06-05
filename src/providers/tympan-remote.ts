@@ -78,6 +78,47 @@ const DEFAULT_CONFIG = {
           ]
         }
       ]
+    },
+    {
+      'title': 'BoysTown Algorithm',
+      'cards': [
+        {
+          'name': 'DSL',
+          'inputs': [
+            {'label': 'Attack', 'type': 'numeric', 'value': 30},
+            {'label': 'Release', 'type': 'numeric', 'value': 300},
+            {'label': 'maxdB', 'type': 'numeric', 'value': 115},
+            {'label': 'speaker', 'type': 'numeric', 'value': 0},
+            {'label': 'numChannels', 'type': 'numeric', 'disabled': true, 'value': 8},
+            {'label': 'Band Data', 'type': 'grid', 'numRows': 8, 'indexLabel': 'Band', 'columns': [
+                    {'label': 'Frequency', 'values': [0, 317.1666, 502.9734, 797.6319, 1264.9, 2005.9, 3181.1, 5044.7]},
+                    {'label': 'Low SPL Compression Ratio', 'values': [0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57]},
+                    {'label': 'Compression Start Gain', 'values': [20., 20., 25., 30., 30., 30., 30., 30.]},
+                    {'label': 'Compression Start Knee', 'values': [20., 20., 25., 30., 30., 30., 30., 30.]},
+                    {'label': 'Compression Ratio', 'values': [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5]},
+                    {'label': 'Expansion End Knee', 'values': [45.0, 45.0, 33.0, 32.0, 36.0, 34.0, 36.0, 40.0]},
+                    {'label': 'Threshold', 'values': [90., 90., 90., 90., 90., 91., 92., 93.]},
+            ]},
+          ],      
+          'submitButton': {'prefix': 'Mdsl'}
+        },
+        {
+          'name': 'WDRC',
+          'inputs': [
+            {'label': 'Attack', 'type': 'numeric', 'value': 5},
+            {'label': 'Release', 'type': 'numeric', 'value': 300},
+            {'label': 'Sample Rate', 'type': 'numeric', 'value': 24000},
+            {'label': 'maxdB', 'type': 'numeric', 'value': 115},
+            {'label': 'Low SPL Compression Ratio', 'type': 'numeric', 'value': 1.0},
+            {'label': 'Compression Start Gain', 'type': 'numeric', 'value': 0.},
+            {'label': 'Compression Start Knee', 'type': 'numeric', 'value': 115.},
+            {'label': 'Compression Ratio', 'type': 'numeric', 'value': 1.},
+            {'label': 'Expansion End Knee', 'type': 'numeric', 'value': 0.0},
+            {'label': 'Threshold', 'type': 'numeric', 'value': 98.0},
+          ],
+          'submitButton': {'prefix': 'Mwdrc'}
+        },
+      ],
     }
   ]
 };
