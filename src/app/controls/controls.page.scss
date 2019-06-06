@@ -1,12 +1,12 @@
-.welcome-card ion-img {
-  max-height: 35vh;
-  overflow: hidden;
-}
-
 .button {
 	height:5vh;
 }
 
+.pageTitle {
+	margin: 5px 5px 0px 0px;
+	text-align: center;
+	font-size: 28px;	
+}
 
 .sliderCard {
 	border: thin solid gray;
@@ -37,6 +37,12 @@
 .gridColFrozen {
 	/* font-size: 20px; */
 	text-align: center;
+}
+
+logHeader {
+	margin: 4px;
+	text-align: center;	
+	font-size: 16px;
 }
 
 .logText {

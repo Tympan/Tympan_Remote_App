@@ -5,7 +5,7 @@ import { Logger } from '../../providers/logger';
 @Component({
   selector: 'app-tab2',
   templateUrl: 'presets.page.html',
-  styleUrls: ['presets.page.scss']
+  styleUrls: ['presets.page.scss', '../controls/controls.page.scss']
 })
 export class PresetsPage {
 
@@ -17,6 +17,7 @@ export class PresetsPage {
         //this.applyStyleToBtnWithCmd(s);
     }
 
+    /*
     applyStyleToBtnWithCmd(s: string) {
     	for (let page of this.remote.pages) {
     		for (let card of page.cards) {
@@ -35,4 +36,5 @@ export class PresetsPage {
     		}
     	}
     }
+    */
 }

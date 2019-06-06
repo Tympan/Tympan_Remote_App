@@ -1,8 +1,8 @@
 <ion-content>
   <ion-slides>
-    <ion-slide *ngFor="let page of remote.pages; let pageIdx = index">
+    <ion-slide *ngFor="let page of remote.pages.slice(1); let pageIdx = index">
       <div style="width:100% !important; margin:4px">
-        <p>{{page.title}}</p>
+        <p class="pageTitle">{{page.title}}</p>
         <ion-card *ngFor="let card of page.cards; let cardIdx = index" class="sliderCard">
           <ion-card-header class="sliderCardHeader">{{card.name}}</ion-card-header>
 
@@ -45,12 +45,13 @@
             </ion-card-content>
 
         </ion-card>
-        <!-- LOG CARD -->
-        <ion-card class="sliderCard">
-          <ion-card-header class="sliderCardHeader">Logs</ion-card-header>
-          <p *ngFor="let msg of logger.logArray.slice(-2); let i = index" class="logText">{{msg}}</p>
-        </ion-card>
       </div>
     </ion-slide>    
   </ion-slides>
 </ion-content>
+
+<ion-footer>
+  <!-- LOG CARD -->
+  <p class="logHeader">Logs</p>
+  <p *ngFor="let msg of logger.logArray.slice(-2); let i = index" class="logText">{{msg}}</p>
+</ion-footer>
