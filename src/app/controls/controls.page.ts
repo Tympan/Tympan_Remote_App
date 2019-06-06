@@ -74,43 +74,34 @@ const DEFAULT_WDRC = {
 
 @Component({
   selector: 'app-tab1',
-  templateUrl: 'tab1.page.html',
-  styleUrls: ['tab1.page.scss']
+  templateUrl: 'controls.page.html',
+  styleUrls: ['controls.page.scss']
 })
 
-export class Tab1Page {
-	public dsl: any;
-	public wdrc: any;
-	public pages: any;
-	public grid: any;
-	public col: number;
-	public rowNums: any;
+export class ControlsPage {
 
     constructor(public remote: TympanRemote, public logger:Logger) {
-    	this.dsl = DEFAULT_DSL;
-    	this.wdrc = DEFAULT_WDRC;
-    	this.pages = [THIS_PAGE];
-    	this.grid = this.pages[0].cards[0].inputs[5];
-    	this.col = 0;
-    	this.rowNums = Array(this.grid.numRows).fill(0).map((x,i)=>i);
     };
 
     cmd(s: string) {
         this.remote.send(s);
     };
 
-    moveLeft() {
-    	if (this.col>0) {
-	    	this.col--;
-    	}
-    	console.log(`Col: `+this.col)
+    sendInputCard(input: any) {
+    	console.log('sending...');
+    	console.log(input);
     }
 
-    moveRight() {
-    	if (this.col<this.grid.columns.length-1) {
-	    	this.col++;
+    moveLeft(input: any) {
+    	if (input.currentCol>0) {
+	    	input.currentCol--;
     	}
-    	console.log(`Col: `+this.col)
+    }
+
+    moveRight(input: any) {
+    	if (input.currentCol<input.columns.length-1) {
+	    	input.currentCol++;
+    	}
     }
 
 }

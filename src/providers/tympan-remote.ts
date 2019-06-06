@@ -54,7 +54,7 @@ const DEFAULT_CONFIG = {
       ]
     },
     { 
-      'title':'Presets', 
+      'title':'Gain Settings', 
       'cards':[
         {
           'name': 'High Gain',
@@ -180,19 +180,40 @@ export class TympanRemote {
   }
 
   set pages(pages: any) {
+    // Set styles for all buttons on pages:
     let btnStyle = {};
     for (let page of pages) {
-      for (let card of page.cards) {
-        for (let button of card.buttons) {
-          if (button.id) {
-            btnStyle[button.id] = BUTTON_STYLE_OFF;
-          } else {
-            button['id'] = 'default';
-            btnStyle['default'] = BUTTON_STYLE_OFF;
+      if (page.cards) {
+        for (let card of page.cards) {
+          if (card.buttons) {
+            for (let button of card.buttons) {
+              if (button.id) {
+                btnStyle[button.id] = BUTTON_STYLE_OFF;
+              } else {
+                button['id'] = 'default';
+                btnStyle['default'] = BUTTON_STYLE_OFF;
+              }
+            }            
           }
-        }
+        }        
       }
     }
+    // Create variables to control cycling through tables:
+    for (let page of pages) {
+      if (page.cards) {
+        for (let card of page.cards) {
+          if (card.inputs) {
+            for (let input of card.inputs) {
+              if (input.type==='grid') {
+                input['rowNums'] = Array(input.numRows).fill(0).map((x,i)=>i);
+                input['currentCol'] = 0;
+              }
+            }            
+          }
+        }        
+      }
+    }
+    // Update the styles:
     this.zone.run(()=>{
       this._config.pages = pages;
       this.btn = btnStyle;      

@@ -1,0 +1,64 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      Presets
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-slides>
+    <ion-slide *ngFor="let page of remote.pages; let pageIdx = index">
+      <div style="width:100% !important; margin:4px">
+        <p>{{page.title}}</p>
+        <ion-card *ngFor="let card of page.cards; let cardIdx = index" class="sliderCard">
+          <ion-card-header style="padding-bottom: 8px; padding-top: 8px">{{card.name}}</ion-card-header>
+
+            <!-- BUTTON CONTENT: -->
+            <ion-card-content *ngIf="!!card.buttons">
+              <ion-row>
+                <ion-col size="6" *ngFor="let btn of card.buttons; let j = index"  class="ion-no-padding">
+                  <ion-button expand="block" strong=true [color]="remote.btn[btn.id].color" (click)="cmd(btn.cmd)">{{btn.label}}</ion-button>
+                </ion-col>
+              </ion-row>
+            </ion-card-content>
+
+            <!-- INPUTS CONTENT: -->
+            <ion-card-content *ngIf="!!card.inputs">
+              <ion-item *ngFor="let input of card.inputs; let inputIdx = index">
+                <div *ngIf="input.type==='numeric'" style="width:100% !important">
+                  <ion-row>
+                    <ion-col size="6" class="gridColFrozen">{{input.label}}</ion-col>
+                    <ion-col size="6" class="gridData">
+                        <ion-input inputmode="input.type" type="number" debounce="5000" [(ngModel)]="input.value"></ion-input>
+                    </ion-col>
+                  </ion-row>
+                </div>
+                <div *ngIf="input.type==='grid'" style="width:100% !important">
+                  <ion-grid style="margin:4px; width:100% !important">
+                    <ion-row>
+                      <ion-col size="3" class="gridHeader ion-text-left">{{input.indexLabel}}</ion-col>
+                      <ion-col size="2"><ion-button (click)="moveLeft(input)" expand="full" color="primary"><ion-icon name="arrow-dropleft"></ion-icon></ion-button></ion-col>
+                      <ion-col size="5" class="gridHeader">{{input.columns[input.currentCol].label}}</ion-col>
+                      <ion-col size="2"><ion-button (click)="moveRight(input)" expand="full" color="primary"><ion-icon name="arrow-dropright"></ion-icon></ion-button></ion-col>
+                    </ion-row>
+                    <ion-row *ngFor="let tmp of input.rowNums; let band = index"  class="ion-no-padding">
+                      <ion-col size="3" class="gridColFrozen"><ion-input disabled=true>{{band+1}}</ion-input></ion-col>
+                      <ion-col size="9" class="gridData"><ion-input inputmode="numeric" type="number" debounce="1000" [(ngModel)]="input.columns[input.currentCol].values[band]"></ion-input></ion-col>
+                    </ion-row>
+                  </ion-grid>
+                </div>
+              </ion-item>
+              <ion-button expand="block" *ngIf="card.submitButton" (click)="sendInputCard(card)">SUBMIT {{card.name}}</ion-button>
+            </ion-card-content>
+
+        </ion-card>
+        <!-- LOG CARD -->
+        <ion-card>
+          <ion-card-header style="padding-bottom: 8px; padding-top: 8px">Logs</ion-card-header>
+          <p style="margin: 4px" *ngFor="let msg of logger.logArray.slice(-2); let i = index">{{msg}}</p>
+        </ion-card>
+      </div>
+    </ion-slide>    
+  </ion-slides>
+</ion-content>
