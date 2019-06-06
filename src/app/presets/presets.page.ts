@@ -4,10 +4,10 @@ import { Logger } from '../../providers/logger';
 
 @Component({
   selector: 'app-tab2',
-  templateUrl: 'tab2.page.html',
-  styleUrls: ['tab2.page.scss']
+  templateUrl: 'presets.page.html',
+  styleUrls: ['presets.page.scss']
 })
-export class Tab2Page {
+export class PresetsPage {
 
     constructor(public remote: TympanRemote, public logger:Logger) {
     }
