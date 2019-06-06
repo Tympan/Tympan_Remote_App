@@ -1,18 +1,10 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>
-      Presets
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content>
   <ion-slides>
     <ion-slide *ngFor="let page of remote.pages; let pageIdx = index">
       <div style="width:100% !important; margin:4px">
         <p>{{page.title}}</p>
         <ion-card *ngFor="let card of page.cards; let cardIdx = index" class="sliderCard">
-          <ion-card-header style="padding-bottom: 8px; padding-top: 8px">{{card.name}}</ion-card-header>
+          <ion-card-header class="sliderCardHeader">{{card.name}}</ion-card-header>
 
             <!-- BUTTON CONTENT: -->
             <ion-card-content *ngIf="!!card.buttons">
@@ -54,9 +46,9 @@
 
         </ion-card>
         <!-- LOG CARD -->
-        <ion-card>
-          <ion-card-header style="padding-bottom: 8px; padding-top: 8px">Logs</ion-card-header>
-          <p style="margin: 4px" *ngFor="let msg of logger.logArray.slice(-2); let i = index">{{msg}}</p>
+        <ion-card class="sliderCard">
+          <ion-card-header class="sliderCardHeader">Logs</ion-card-header>
+          <p *ngFor="let msg of logger.logArray.slice(-2); let i = index" class="logText">{{msg}}</p>
         </ion-card>
       </div>
     </ion-slide>    
