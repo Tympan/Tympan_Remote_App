@@ -1,6 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
 import { Logger } from './logger';
+import ieee754 from 'ieee754';
 
 interface iDevice {
   id: string;
@@ -25,6 +26,12 @@ const DEVICE_2: iDevice = {
 };
 
 const BLUETOOTH:boolean = true;
+
+enum ByteOrder {MSB, LSB};
+
+const DATASTREAM_START_CHAR = String.fromCharCode(0x02);
+const DATASTREAM_SEPARATOR = String.fromCharCode(0x03);
+const DATASTREAM_END_CHAR = String.fromCharCode(0x04);
 
 const BUTTON_STYLE_ON = {color: 'success', isOn: true};
 const BUTTON_STYLE_OFF = {color: 'medium', isOn: false};
@@ -85,38 +92,38 @@ const DEFAULT_CONFIG = {
         {
           'name': 'DSL',
           'inputs': [
-            {'label': 'Attack', 'type': 'numeric', 'value': 30},
-            {'label': 'Release', 'type': 'numeric', 'value': 300},
-            {'label': 'maxdB', 'type': 'numeric', 'value': 115},
-            {'label': 'speaker', 'type': 'numeric', 'value': 0},
-            {'label': 'numChannels', 'type': 'numeric', 'disabled': true, 'value': 8},
+            {'label': 'Attack', 'type': 'float', 'value': 30},
+            {'label': 'Release', 'type': 'float', 'value': 300},
+            {'label': 'maxdB', 'type': 'float', 'value': 115},
+            {'label': 'speaker', 'type': 'int', 'value': 0},
+            {'label': 'numChannels', 'type': 'int', 'value': 8, 'disabled': true},
             {'label': 'Band Data', 'type': 'grid', 'numRows': 8, 'indexLabel': 'Band', 'columns': [
-                    {'label': 'Frequency', 'values': [0, 317.1666, 502.9734, 797.6319, 1264.9, 2005.9, 3181.1, 5044.7]},
-                    {'label': 'Low SPL Compression Ratio', 'values': [0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57]},
-                    {'label': 'Compression Start Gain', 'values': [20., 20., 25., 30., 30., 30., 30., 30.]},
-                    {'label': 'Compression Start Knee', 'values': [20., 20., 25., 30., 30., 30., 30., 30.]},
-                    {'label': 'Compression Ratio', 'values': [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5]},
-                    {'label': 'Expansion End Knee', 'values': [45.0, 45.0, 33.0, 32.0, 36.0, 34.0, 36.0, 40.0]},
-                    {'label': 'Threshold', 'values': [90., 90., 90., 90., 90., 91., 92., 93.]},
+                    {'label': 'Frequency', 'type': 'float', 'values': [0, 317.1666, 502.9734, 797.6319, 1264.9, 2005.9, 3181.1, 5044.7]},
+                    {'label': 'Low SPL Compression Ratio', 'type': 'float', 'values': [0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57]},
+                    {'label': 'Compression Start Gain', 'type': 'float', 'values': [20., 20., 25., 30., 30., 30., 30., 30.]},
+                    {'label': 'Compression Start Knee', 'type': 'float', 'values': [20., 20., 25., 30., 30., 30., 30., 30.]},
+                    {'label': 'Compression Ratio', 'type': 'float', 'values': [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5]},
+                    {'label': 'Expansion End Knee', 'type': 'float', 'values': [45.0, 45.0, 33.0, 32.0, 36.0, 34.0, 36.0, 40.0]},
+                    {'label': 'Threshold', 'type': 'float', 'values': [90., 90., 90., 90., 90., 91., 92., 93.]},
             ]},
           ],      
-          'submitButton': {'prefix': 'Mdsl'}
+          'submitButton': {'prefix': 'dsl'}
         },
         {
           'name': 'WDRC',
           'inputs': [
-            {'label': 'Attack', 'type': 'numeric', 'value': 5},
-            {'label': 'Release', 'type': 'numeric', 'value': 300},
-            {'label': 'Sample Rate', 'type': 'numeric', 'value': 24000},
-            {'label': 'maxdB', 'type': 'numeric', 'value': 115},
-            {'label': 'Low SPL Compression Ratio', 'type': 'numeric', 'value': 1.0},
-            {'label': 'Compression Start Gain', 'type': 'numeric', 'value': 0.},
-            {'label': 'Compression Start Knee', 'type': 'numeric', 'value': 115.},
-            {'label': 'Compression Ratio', 'type': 'numeric', 'value': 1.},
-            {'label': 'Expansion End Knee', 'type': 'numeric', 'value': 0.0},
-            {'label': 'Threshold', 'type': 'numeric', 'value': 98.0},
+            {'label': 'Attack', 'type': 'float', 'value': 5},
+            {'label': 'Release', 'type': 'float', 'value': 300},
+            {'label': 'Sample Rate', 'type': 'int', 'value': 24000},
+            {'label': 'maxdB', 'type': 'float', 'value': 115},
+            {'label': 'Low SPL Compression Ratio', 'type': 'float', 'value': 1.0},
+            {'label': 'Compression Start Gain', 'type': 'float', 'value': 0.},
+            {'label': 'Compression Start Knee', 'type': 'float', 'value': 115.},
+            {'label': 'Compression Ratio', 'type': 'float', 'value': 1.},
+            {'label': 'Expansion End Knee', 'type': 'float', 'value': 0.0},
+            {'label': 'Threshold', 'type': 'float', 'value': 98.0},
           ],
-          'submitButton': {'prefix': 'Mwdrc'}
+          'submitButton': {'prefix': 'wdrc'}
         },
       ],
     }
@@ -249,7 +256,7 @@ export class TympanRemote {
 
   public findDeviceWithId(id: string) {
     let device = this.allDevices.find((dev)=>{
-      this.logger.log(`Comparing ${id} with ${dev.id}`);
+      //this.logger.log(`Comparing ${id} with ${dev.id}`);
       return dev.id == id;
     });
     return device;
@@ -308,6 +315,15 @@ export class TympanRemote {
     this.btSerial.isConnected().then(()=>{this.logger.log('Is Connected.');},()=>{this.logger.log('Is Not Connected.');});
     this.updateDeviceList();
     */
+    //this.send(DATASTREAM_SEPARATOR);
+    this.send(DATASTREAM_START_CHAR);
+    this.send(this.numberAsCharStr(13,'int32'));
+    this.send(DATASTREAM_SEPARATOR);
+    this.send('test');
+    this.send(DATASTREAM_SEPARATOR);
+    this.send(this.numberAsCharStr(17501197,'int32'));
+    this.send(this.numberAsCharStr(3.14,'float'));
+    this.send(DATASTREAM_END_CHAR);
   }
 
   public subscribe() {
@@ -327,7 +343,8 @@ export class TympanRemote {
     this.logger.log(cfgStr);
     try {
       let cfgObj = JSON.parse(cfgStr);
-      this.pages = cfgObj.pages;
+      //this.pages = cfgObj.pages;
+      this.pages = cfgObj.pages.concat(DEFAULT_CONFIG.pages);
       this.logger.log('Updating pages...');
       if (cfgObj.icon) {
         this.devIcon = cfgObj.icon;
@@ -380,7 +397,6 @@ export class TympanRemote {
     });
   }
 
-
   public sayHello() {    
     this.send('h');
     this.send('J');
@@ -417,6 +433,91 @@ export class TympanRemote {
       this.logger.log('INACTIVE.  SEND FAIL.');
     }
   }
+
+  public sendInputCard(card: any) {
+    console.log('sending...');
+    console.log(card);
+
+    let dataStr = card.submitButton.prefix + DATASTREAM_SEPARATOR;
+    for (let input of card.inputs) {
+      if (this.isNumeric(input.type)) {
+        dataStr += this.numberAsCharStr(input.value, input.type);
+        dataStr += ',';
+      } else if (input.type ==='grid') {
+        for (let col of input.columns) {
+          dataStr += '[';
+          for (let value of col.values) {
+            dataStr += this.numberAsCharStr(value, col.type);
+            dataStr += ',';
+          }
+          dataStr += '],';
+        } 
+      }
+    }
+
+    this.logger.log("Sending " + DATASTREAM_START_CHAR + ", length = " + dataStr.length.toString());
+
+    let charStr = DATASTREAM_START_CHAR + this.numberAsCharStr(dataStr.length,'int32') + DATASTREAM_SEPARATOR + dataStr + DATASTREAM_END_CHAR;
+
+    if (BLUETOOTH) {
+      this.btSerial.write(charStr).then(()=>{
+        //this.logger.log(`Successfully sent ${charStr}`);
+      }).catch(()=>{
+        this.logger.log(`Failed to send ${charStr}`);
+      });
+    } else {
+      this.logger.log('INACTIVE.  SEND FAIL.');
+    }
+
+    this.logger.log("Sending " + DATASTREAM_START_CHAR + ", length = " + dataStr.length.toString());
+
+  }
+
+  public numberAsCharStr(num: number, numType: string) {
+    let str = '';
+    let hex = '';
+    let BO: ByteOrder = ByteOrder.LSB;
+
+    switch (numType) {
+      case 'int':
+      case 'int32':
+        //str = num.toString();
+        let byteArray = new Uint8Array(4);
+        let rem = num;
+        for (let i=3; i>=0; i--) {
+        //for (let i=0; i<4; i++) {
+          byteArray[i] = rem & 0xFF;
+          rem = rem >> 8;
+        }
+        for (let i=0; i<4; i++) {        
+          str += String.fromCharCode(byteArray[i]);
+          hex += ('00' + byteArray[i].toString(16)).slice(-2);
+        }
+        this.logger.log('int check: ' + num + ' => ' + str + '(' + hex + ')');          
+        break;
+      case 'float': // float32
+      case 'float32':
+        let b2 = new Uint8Array(4);
+        ieee754.write(b2,num,0,false,23,4);
+        for (let i=0; i<4; i++) {
+          str += String.fromCharCode(b2[i]);
+          hex += ('00' + b2[i].toString(16)).slice(-2);
+        }
+        this.logger.log('ieee754 check: ' + num + ' => ' + str + '(' + hex + ')');
+        break;
+    }
+    if (BO == ByteOrder.LSB) {
+      return str.split('').reverse().join('');
+    } else {
+      return str;
+    }
+  };
+
+  public isNumeric(s: string) {
+    const numerics = ['int', 'float'];
+    return numerics.includes(s);
+  }
+
 }
 
 

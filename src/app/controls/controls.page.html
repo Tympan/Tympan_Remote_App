@@ -18,11 +18,11 @@
             <!-- INPUTS CONTENT: -->
             <ion-card-content *ngIf="!!card.inputs">
               <ion-item *ngFor="let input of card.inputs; let inputIdx = index">
-                <div *ngIf="input.type==='numeric'" style="width:100% !important">
+                <div *ngIf="remote.isNumeric(input.type)" style="width:100% !important">
                   <ion-row>
                     <ion-col size="6" class="gridColFrozen">{{input.label}}</ion-col>
                     <ion-col size="6" class="gridData">
-                        <ion-input inputmode="input.type" type="number" debounce="5000" [(ngModel)]="input.value"></ion-input>
+                        <ion-input inputmode="numeric" type="number" debounce="5000" [(ngModel)]="input.value"></ion-input>
                     </ion-col>
                   </ion-row>
                 </div>
