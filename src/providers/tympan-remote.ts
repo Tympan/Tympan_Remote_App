@@ -114,7 +114,7 @@ const DEFAULT_CONFIG = {
           'inputs': [
             {'label': 'Attack', 'type': 'float', 'value': 5},
             {'label': 'Release', 'type': 'float', 'value': 300},
-            {'label': 'Sample Rate', 'type': 'int', 'value': 24000},
+            {'label': 'Sample Rate', 'type': 'float', 'value': 24000},
             {'label': 'maxdB', 'type': 'float', 'value': 115},
             {'label': 'Low SPL Compression Ratio', 'type': 'float', 'value': 1.0},
             {'label': 'Compression Start Gain', 'type': 'float', 'value': 0.},
@@ -442,15 +442,15 @@ export class TympanRemote {
     for (let input of card.inputs) {
       if (this.isNumeric(input.type)) {
         dataStr += this.numberAsCharStr(input.value, input.type);
-        dataStr += ',';
+        //dataStr += ',';
       } else if (input.type ==='grid') {
         for (let col of input.columns) {
-          dataStr += '[';
+          //dataStr += '[';
           for (let value of col.values) {
             dataStr += this.numberAsCharStr(value, col.type);
-            dataStr += ',';
+            //dataStr += ',';
           }
-          dataStr += '],';
+          //dataStr += '],';
         } 
       }
     }
