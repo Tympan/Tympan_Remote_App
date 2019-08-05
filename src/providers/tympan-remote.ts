@@ -36,6 +36,7 @@ const DATASTREAM_END_CHAR = String.fromCharCode(0x04);
 const BUTTON_STYLE_ON = {color: 'success', isOn: true};
 const BUTTON_STYLE_OFF = {color: 'medium', isOn: false};
 
+/*
 const DEFAULT_CONFIG = {
   'icon': 'creare.png',
   'pages': [
@@ -48,14 +49,6 @@ const DEFAULT_CONFIG = {
             {'label': '~A', 'cmd': 'd', 'id': 'algA'},
             {'label': '~B', 'cmd': 'D', 'id': 'algB'},
             {'label': '~C', 'cmd': 'c', 'id': 'algC'}
-          ]
-        },
-        {
-          'name': 'Alg2',
-          'buttons': [
-            {'label': '~E', 'cmd': 'd', 'id': 'algE'},
-            {'label': '~F', 'cmd': 'D', 'id': 'algF'},
-            {'label': '~G', 'cmd': 'c', 'id': 'algG'}
           ]
         }
       ]
@@ -127,6 +120,21 @@ const DEFAULT_CONFIG = {
         },
       ],
     }
+  ]
+*/
+
+const DEFAULT_CONFIG = {
+  'icon':'tympan.png',
+  'pages':[
+    {'title':'Presets','cards':[
+      {'name':'Record Mics to SD Card','buttons':[{'label': 'Start', 'cmd': 'r', 'id':'recordStart'},{'label': 'Stop', 'cmd': 's'}]}
+    ]},
+    {'title':'Tuner','cards':[
+      {'name':'Select Input','buttons':[{'label': 'Headset Mics', 'cmd': 'W', 'id':'configHeadset'},{'label': 'PCB Mics', 'cmd': 'w', 'id': 'configPCB'}]},
+      {'name':'Input Gain', 'buttons':[{'label': 'Less', 'cmd' :'I'},{'label': 'More', 'cmd': 'i'}]},
+      {'name':'Record Mics to SD Card','buttons':[{'label': 'Start', 'cmd': 'r', 'id':'recordStart'},{'label': 'Stop', 'cmd': 's'}]},
+      {'name':'CPU Reporting', 'buttons':[{'label': 'Start', 'cmd' :'c','id':'cpuStart'},{'label': 'Stop', 'cmd': 'C'}]}
+    ]}                            
   ]
 };
 
