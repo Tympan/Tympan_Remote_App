@@ -21,18 +21,19 @@
     </ion-card-content>
   </ion-card>
 
+  <!--
   <ion-card>
     <ion-button strong=true (click)="remote.testFn()">
       TEST
     </ion-button>
-
   </ion-card>
+  -->
 
 </ion-content>
 
 <ion-footer>
   <!-- LOG CARD -->
   <p class="logHeader">Logs</p>
-  <p *ngFor="let msg of logger.logArray.slice(-5); let i = index" class="logText">{{msg}}</p>
+  <p *ngFor="let msg of logger.logArray.slice(-2); let i = index" class="logText">{{msg}}</p>
 </ion-footer>
 
