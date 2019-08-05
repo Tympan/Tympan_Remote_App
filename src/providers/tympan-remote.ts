@@ -237,6 +237,12 @@ export class TympanRemote {
     return this._devIcon;
   } 
 
+  set activeDeviceId(id: string) {
+    this.zone.run(()=>{
+      this._activeDeviceId = id;
+    })
+  }
+
   constructor(private zone: NgZone, private logger: Logger) {
     this.btSerial = new BluetoothSerial();
     this.allDevices = [];
@@ -291,19 +297,19 @@ export class TympanRemote {
       return;
     }
     if (dev.emulated) {
-      this._activeDeviceId = id;
+      this.activeDeviceId = id;
       this.connected = true;
     } else {
       this.logger.log(`setAD: connecting to ${dev.name} (${dev.id})`); //  `
       this.btSerial.connect(dev.id).subscribe(()=>{
         this.logger.log('CONNECTED');
-        this._activeDeviceId = id;
+        this.activeDeviceId = id;
         this.connected = true;
         this.subscribe();
         this.sayHello();
       },()=>{
         this.logger.log('CONNECTION FAIL');
-        this._activeDeviceId = '';
+        this.activeDeviceId = '';
         this.connected = false;
       });      
     }
@@ -343,8 +349,8 @@ export class TympanRemote {
     this.logger.log(cfgStr);
     try {
       let cfgObj = JSON.parse(cfgStr);
-      //this.pages = cfgObj.pages;
-      this.pages = cfgObj.pages.concat(DEFAULT_CONFIG.pages);
+      this.pages = cfgObj.pages;
+      //this.pages = cfgObj.pages.concat(DEFAULT_CONFIG.pages);
       this.logger.log('Updating pages...');
       if (cfgObj.icon) {
         this.devIcon = cfgObj.icon;
