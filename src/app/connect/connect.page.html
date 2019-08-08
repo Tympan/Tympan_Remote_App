@@ -21,6 +21,20 @@
     </ion-card-content>
   </ion-card>
 
+  <ion-card>
+    <ion-card-header>Settings</ion-card-header>
+    <ion-card-content>
+
+      <ion-list>
+        <ion-item>
+          <ion-label>Show logs on all tabs</ion-label>
+          <ion-toggle [(ngModel)]="remote.showLogs"></ion-toggle>
+        </ion-item>
+      </ion-list>
+
+    </ion-card-content>
+  </ion-card>
+
   <!--
   <ion-card>
     <ion-button strong=true (click)="remote.testFn()">
@@ -29,11 +43,12 @@
   </ion-card>
   -->
 
+  <ion-card>
+    <!-- LOG CARD -->
+    <ion-card-header>Logs</ion-card-header>
+    <p *ngFor="let msg of logger.logArray.slice(-4); let i = index" class="logText">{{msg}}</p>
+  </ion-card>
+
 </ion-content>
 
-<ion-footer>
-  <!-- LOG CARD -->
-  <p class="logHeader">Logs</p>
-  <p *ngFor="let msg of logger.logArray.slice(-2); let i = index" class="logText">{{msg}}</p>
-</ion-footer>
 

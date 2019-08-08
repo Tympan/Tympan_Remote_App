@@ -153,6 +153,7 @@ export class TympanRemote {
   public connected: boolean = false;
   public btn: any = {};
   private _devIcon: string;
+  public showLogs: boolean = false;
 
   get activeDevice() {
     if (this.connected) {
