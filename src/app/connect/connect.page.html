@@ -43,6 +43,14 @@
   </ion-card>
 
   <ion-card>
+    <ion-card-header>Send Single Character</ion-card-header>
+    <ion-item>
+      <ion-input item-start placeholder="Enter Character"></ion-input>
+      <ion-button item-end srtong=true>Send</ion-button>
+    </ion-item>
+  </ion-card>
+
+  <ion-card>
     <!-- LOG CARD -->
     <ion-card-header>Logs</ion-card-header>
     <p *ngFor="let msg of logger.logArray.slice(-4); let i = index" class="logText">{{msg}}</p>
