@@ -46,7 +46,6 @@
 		"core-js": "^2.5.4",
 		"ieee754": "^1.1.13",
 		"ionic": "^4.12.0",
-		"ios-deploy": "^1.9.4",
 		"rxjs": "~6.3.3",
 		"zone.js": "~0.8.29"
 	},
@@ -75,6 +74,9 @@
 		"ts-node": "~8.0.0",
 		"tslint": "~5.12.0",
 		"typescript": "~3.1.6"
+	},
+	"optionalDependencies": {
+		"ios-deploy": "^1.9.4"
 	},
 	"cordova": {
 		"plugins": {
