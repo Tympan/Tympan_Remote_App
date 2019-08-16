@@ -6,10 +6,6 @@
   </ion-row>
 
   <ion-card>
-
-  </ion-card>
-
-  <ion-card>
     <ion-card-header style="padding-bottom: 8px; padding-top: 8px">Paired Devices</ion-card-header>
     <ion-card-content>
       <ion-item *ngFor="let dev of remote.devices" (click)=setActive(dev.id) [color]="remote.isActiveId(dev.id) ? 'primary' : 'light'">
@@ -30,6 +26,10 @@
         <ion-item>
           <ion-label>Show logs on all tabs</ion-label>
           <ion-toggle [(ngModel)]="remote.showLogs"></ion-toggle>
+        </ion-item>
+        <ion-item>
+          <ion-label>Show Boys Town Algorithm</ion-label>
+          <ion-toggle></ion-toggle>
         </ion-item>
       </ion-list>
 
