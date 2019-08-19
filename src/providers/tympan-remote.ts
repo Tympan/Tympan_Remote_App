@@ -123,7 +123,7 @@ const BOYSTOWN_PAGE = {
   ],
 };
 
-const ADD_BOYSTOWN: boolean = true;
+let ADD_BOYSTOWN: boolean = false;
 
 
 /*
@@ -444,6 +444,18 @@ export class TympanRemote {
       });
     }
   }
+
+  public addBoysTownPage() {
+    ADD_BOYSTOWN = true;
+    this.pages = this.pages.concat(BOYSTOWN_PAGE); 
+  }  
+
+  public removeBoysTownPage() {
+    if (ADD_BOYSTOWN) {
+      ADD_BOYSTOWN = false;
+      this.pages = DEFAULT_CONFIG.pages;
+    }
+  }    
 
   public send(s: string) {
     if (BLUETOOTH) {
