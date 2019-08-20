@@ -29,8 +29,8 @@
         </ion-item>
         <ion-item>
           <ion-label>Show Boys Town Algorithm</ion-label>
-          <ion-button strong = true (click)="remote.addBoysTownPage()">Show</ion-button>
-          <ion-button strong = true (click)="remote.removeBoysTownPage()">Hide</ion-button>
+          <ion-button strong=true (click)="remote.addBoysTownPage()">Show</ion-button>
+          <ion-button strong=true (click)="remote.removeBoysTownPage()">Hide</ion-button>
         </ion-item>
       </ion-list>
 
@@ -46,8 +46,8 @@
   <ion-card>
     <ion-card-header>Send Single Character</ion-card-header>
     <ion-item>
-      <ion-input item-start placeholder="Enter Character"></ion-input>
-      <ion-button item-end srtong=true>Send</ion-button>
+      <ion-input item-start placeholder="Enter Character" [(ngModel)]="SingleCharInput"></ion-input>
+      <ion-button item-end strong=true (click)="remote.send(SingleCharInput)">Send</ion-button>
     </ion-item>
   </ion-card>
 
@@ -56,7 +56,7 @@
     <ion-card-header>Logs</ion-card-header>
     <p *ngFor="let msg of logger.logArray.slice(-4); let i = index" class="logText">{{msg}}</p>
   </ion-card>
-<ion-note >Version: {{VersionNumber}}</ion-note>
+<ion-note>Version: {{VersionNumber}}</ion-note>
 </ion-content>
 
 
