@@ -10,6 +10,7 @@ import { AppVersion } from '@ionic-native/app-version/ngx';
 })
 export class ConnectPage {
     VersionNumber:string;
+    SingleCharInput: string;
     constructor(public remote: TympanRemote, public logger:Logger, public appVersion: AppVersion) {
       {
         this.runVersion();
