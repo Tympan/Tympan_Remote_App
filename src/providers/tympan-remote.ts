@@ -203,9 +203,9 @@ export class TympanRemote {
 
   set pages(pages: any) {
     // Add the Boystown page?
-    if (ADD_BOYSTOWN) {
-      pages = pages.concat(BOYSTOWN_PAGE);
-    }
+    // if (ADD_BOYSTOWN) {
+    //   pages = pages.concat(BOYSTOWN_PAGE);
+    // }
 
     // Set styles for all buttons on pages:
     let btnStyle = {};
@@ -447,8 +447,10 @@ export class TympanRemote {
   }
 
   public addBoysTownPage() {
-    ADD_BOYSTOWN = true;
-    this.pages = this.pages.concat(BOYSTOWN_PAGE); 
+    if (ADD_BOYSTOWN === false) {
+      ADD_BOYSTOWN = true;
+      this.pages = this.pages.concat(BOYSTOWN_PAGE); 
+    }
   }  
 
   public removeBoysTownPage() {
