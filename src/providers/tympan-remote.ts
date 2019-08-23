@@ -36,7 +36,6 @@ const DATASTREAM_END_CHAR = String.fromCharCode(0x04);
 const BUTTON_STYLE_ON = {color: 'success', isOn: true};
 const BUTTON_STYLE_OFF = {color: 'medium', isOn: false};
 
-/*
 const DEFAULT_CONFIG = {
   'icon': 'creare.png',
   'pages': [
@@ -78,51 +77,56 @@ const DEFAULT_CONFIG = {
           ]
         }
       ]
-    },
-    {
-      'title': 'BoysTown Algorithm',
-      'cards': [
-        {
-          'name': 'DSL',
-          'inputs': [
-            {'label': 'Attack', 'type': 'float', 'value': 30},
-            {'label': 'Release', 'type': 'float', 'value': 300},
-            {'label': 'maxdB', 'type': 'float', 'value': 115},
-            {'label': 'speaker', 'type': 'int', 'value': 0},
-            {'label': 'numChannels', 'type': 'int', 'value': 8, 'disabled': true},
-            {'label': 'Band Data', 'type': 'grid', 'numRows': 8, 'indexLabel': 'Band', 'columns': [
-                    {'label': 'Frequency', 'type': 'float', 'values': [0, 317.1666, 502.9734, 797.6319, 1264.9, 2005.9, 3181.1, 5044.7]},
-                    {'label': 'Low SPL Compression Ratio', 'type': 'float', 'values': [0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57]},
-                    {'label': 'Compression Start Gain', 'type': 'float', 'values': [20., 20., 25., 30., 30., 30., 30., 30.]},
-                    {'label': 'Compression Start Knee', 'type': 'float', 'values': [20., 20., 25., 30., 30., 30., 30., 30.]},
-                    {'label': 'Compression Ratio', 'type': 'float', 'values': [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5]},
-                    {'label': 'Expansion End Knee', 'type': 'float', 'values': [45.0, 45.0, 33.0, 32.0, 36.0, 34.0, 36.0, 40.0]},
-                    {'label': 'Threshold', 'type': 'float', 'values': [90., 90., 90., 90., 90., 91., 92., 93.]},
-            ]},
-          ],      
-          'submitButton': {'prefix': 'dsl'}
-        },
-        {
-          'name': 'WDRC',
-          'inputs': [
-            {'label': 'Attack', 'type': 'float', 'value': 5},
-            {'label': 'Release', 'type': 'float', 'value': 300},
-            {'label': 'Sample Rate', 'type': 'float', 'value': 24000},
-            {'label': 'maxdB', 'type': 'float', 'value': 115},
-            {'label': 'Low SPL Compression Ratio', 'type': 'float', 'value': 1.0},
-            {'label': 'Compression Start Gain', 'type': 'float', 'value': 0.},
-            {'label': 'Compression Start Knee', 'type': 'float', 'value': 115.},
-            {'label': 'Compression Ratio', 'type': 'float', 'value': 1.},
-            {'label': 'Expansion End Knee', 'type': 'float', 'value': 0.0},
-            {'label': 'Threshold', 'type': 'float', 'value': 98.0},
-          ],
-          'submitButton': {'prefix': 'wdrc'}
-        },
-      ],
     }
   ]
-*/
+};
 
+const BOYSTOWN_PAGE = {
+  'title': 'BoysTown Algorithm',
+  'cards': [
+    {
+      'name': 'DSL',
+      'inputs': [
+        {'label': 'Attack', 'type': 'float', 'value': 30},
+        {'label': 'Release', 'type': 'float', 'value': 300},
+        {'label': 'maxdB', 'type': 'float', 'value': 115},
+        {'label': 'speaker', 'type': 'int', 'value': 0},
+        {'label': 'numChannels', 'type': 'int', 'value': 8, 'disabled': true},
+        {'label': 'Band Data', 'type': 'grid', 'numRows': 8, 'indexLabel': 'Band', 'columns': [
+                {'label': 'Frequency', 'type': 'float', 'values': [0, 317.1666, 502.9734, 797.6319, 1264.9, 2005.9, 3181.1, 5044.7]},
+                {'label': 'Low SPL Compression Ratio', 'type': 'float', 'values': [0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57]},
+                {'label': 'Compression Start Gain', 'type': 'float', 'values': [20., 20., 25., 30., 30., 30., 30., 30.]},
+                {'label': 'Compression Start Knee', 'type': 'float', 'values': [20., 20., 25., 30., 30., 30., 30., 30.]},
+                {'label': 'Compression Ratio', 'type': 'float', 'values': [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5]},
+                {'label': 'Expansion End Knee', 'type': 'float', 'values': [45.0, 45.0, 33.0, 32.0, 36.0, 34.0, 36.0, 40.0]},
+                {'label': 'Threshold', 'type': 'float', 'values': [90., 90., 90., 90., 90., 91., 92., 93.]},
+        ]},
+      ],      
+      'submitButton': {'prefix': 'dsl'}
+    },
+    {
+      'name': 'WDRC',
+      'inputs': [
+        {'label': 'Attack', 'type': 'float', 'value': 5},
+        {'label': 'Release', 'type': 'float', 'value': 300},
+        {'label': 'Sample Rate', 'type': 'float', 'value': 24000},
+        {'label': 'maxdB', 'type': 'float', 'value': 115},
+        {'label': 'Low SPL Compression Ratio', 'type': 'float', 'value': 1.0},
+        {'label': 'Compression Start Gain', 'type': 'float', 'value': 0.},
+        {'label': 'Compression Start Knee', 'type': 'float', 'value': 115.},
+        {'label': 'Compression Ratio', 'type': 'float', 'value': 1.},
+        {'label': 'Expansion End Knee', 'type': 'float', 'value': 0.0},
+        {'label': 'Threshold', 'type': 'float', 'value': 98.0},
+      ],
+      'submitButton': {'prefix': 'wdrc'}
+    },
+  ],
+};
+
+const ADD_BOYSTOWN: boolean = true;
+
+
+/*
 const DEFAULT_CONFIG = {
   'icon':'tympan.png',
   'pages':[
@@ -137,6 +141,7 @@ const DEFAULT_CONFIG = {
     ]}                            
   ]
 };
+*/
 
 /**
  * This class contains the variables and methods for the Tympan Remote app.
@@ -153,6 +158,7 @@ export class TympanRemote {
   public connected: boolean = false;
   public btn: any = {};
   private _devIcon: string;
+  public showLogs: boolean = false;
 
   get activeDevice() {
     if (this.connected) {
@@ -195,6 +201,11 @@ export class TympanRemote {
   }
 
   set pages(pages: any) {
+    // Add the Boystown page?
+    if (ADD_BOYSTOWN) {
+      pages = pages.concat(BOYSTOWN_PAGE);
+    }
+
     // Set styles for all buttons on pages:
     let btnStyle = {};
     for (let page of pages) {
@@ -329,7 +340,7 @@ export class TympanRemote {
     this.btSerial.isConnected().then(()=>{this.logger.log('Is Connected.');},()=>{this.logger.log('Is Not Connected.');});
     this.updateDeviceList();
     */
-    //this.send(DATASTREAM_SEPARATOR);
+
     this.send(DATASTREAM_START_CHAR);
     this.send(this.numberAsCharStr(13,'int32'));
     this.send(DATASTREAM_SEPARATOR);
@@ -358,7 +369,6 @@ export class TympanRemote {
     try {
       let cfgObj = JSON.parse(cfgStr);
       this.pages = cfgObj.pages;
-      //this.pages = cfgObj.pages.concat(DEFAULT_CONFIG.pages);
       this.logger.log('Updating pages...');
       if (cfgObj.icon) {
         this.devIcon = cfgObj.icon;
@@ -484,7 +494,6 @@ export class TympanRemote {
     }
 
     this.logger.log("Sending " + DATASTREAM_START_CHAR + ", length = " + dataStr.length.toString());
-
   }
 
   public numberAsCharStr(num: number, numType: string) {

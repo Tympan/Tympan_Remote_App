@@ -50,7 +50,7 @@
   </ion-slides>
 </ion-content>
 
-<ion-footer>
+<ion-footer *ngIf="remote.showLogs" style="height:100px !important">
   <!-- LOG CARD -->
   <p class="logHeader">Logs</p>
   <p *ngFor="let msg of logger.logArray.slice(-2); let i = index" class="logText">{{msg}}</p>

@@ -17,6 +17,7 @@
 		"ionic.add.ios": "ionic cordova platform add ios",
 		"ionic.build.ios": "ionic cordova build ios -- --buildFlag=\"-UseModernBuildSystem=0\"",
 		"ionic.build.android": "ionic cordova build android",
+		"ionic.release.android": "ionic cordova build android --prod --release",
 		"ionic.run.android": "ionic cordova run android",
 		"resources": "ionic cordova resources --cordova-res"
 	},
