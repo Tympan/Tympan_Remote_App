@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { TympanRemote } from '../../providers/tympan-remote';
 import { Logger } from '../../providers/logger';
+import { ButtonComponent } from './presetcomponents/button/button.component';
 
 @Component({
   selector: 'app-tab2',
@@ -9,7 +10,7 @@ import { Logger } from '../../providers/logger';
 })
 export class PresetsPage {
 
-    constructor(public remote: TympanRemote, public logger:Logger) {
+    constructor(public remote: TympanRemote, public logger:Logger, public buttonComp: ButtonComponent) {
     }
 
     cmd(s: string) {

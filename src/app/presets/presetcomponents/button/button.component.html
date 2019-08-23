@@ -1,0 +1,10 @@
+<ion-card *ngFor="let card of remote.pages[0].cards; let cardIdx = index" class="sliderCard">
+  <ion-card-header class="sliderCardHeader">{{card.name}}</ion-card-header>
+    <ion-card-content *ngIf="!!card.buttons">
+      <ion-row>
+        <ion-col size="6" *ngFor="let btn of card.buttons; let j = index"  class="ion-no-padding">
+        <ion-button expand="block" strong=true [color]="remote.btn[btn.id].color" (click)="cmd(btn.cmd)">{{btn.label}}</ion-button>
+          </ion-col>
+      </ion-row>
+    </ion-card-content>
+  </ion-card>
