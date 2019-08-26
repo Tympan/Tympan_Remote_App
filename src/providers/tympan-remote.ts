@@ -77,11 +77,22 @@ const DEFAULT_CONFIG = {
           ]
         }
       ]
-    }
+    },
+    { 
+      'title':'Prescription', 
+      'cards':[
+        {
+          'name': 'Additional Pages',
+          'buttons': [
+            {'label': '~A', 'cmd': 'd', 'id': 'algA'},
+          ]
+        }
+      ]
+    },
   ]
 };
 
-const BOYSTOWN_PAGE = {
+const BOYSTOWN_PAGE_DSL = {
   'title': 'BoysTown Algorithm',
   'cards': [
     {
@@ -104,6 +115,12 @@ const BOYSTOWN_PAGE = {
       ],      
       'submitButton': {'prefix': 'dsl'}
     },
+  ],
+};
+
+const BOYSTOWN_PAGE_WDRC = {
+      'title': 'BoysTown Algorithm',
+      'cards': [
     {
       'name': 'WDRC',
       'inputs': [
@@ -123,7 +140,22 @@ const BOYSTOWN_PAGE = {
   ],
 };
 
-let ADD_BOYSTOWN: boolean = false;
+const BOYSTOWN_PAGE_PLOT = {
+      'title': 'BoysTown Algorithm',
+      'cards': [
+    {
+      'name': 'plot',
+     'inputs': [
+       {'label': 'Attack', 'type': 'float', 'value': 5},
+      ],
+      'submitButton': {'prefix': 'wdrc'}
+    },
+  ],
+};
+
+let ADD_BOYSTOWN_DSL: boolean = false;
+let ADD_BOYSTOWN_WDRC: boolean = false;
+let ADD_BOYSTOWN_PLOT: boolean = false;
 
 
 /*
@@ -446,16 +478,24 @@ export class TympanRemote {
     }
   }
 
-  public addBoysTownPage() {
-    if (ADD_BOYSTOWN === false) {
-      ADD_BOYSTOWN = true;
-      this.pages = this.pages.concat(BOYSTOWN_PAGE); 
+  public addBoysTownPage(ADD_BOYSTOWN_DSL) {
+    if (ADD_BOYSTOWN_DSL === false) {
+      ADD_BOYSTOWN_DSL = true;
+      this.pages = this.pages.concat(BOYSTOWN_PAGE_DSL); 
+    }
+    if (ADD_BOYSTOWN_WDRC === false) {
+      ADD_BOYSTOWN_WDRC = true;
+      this.pages = this.pages.concat(BOYSTOWN_PAGE_DSL, BOYSTOWN_PAGE_WDRC); 
     }
   }  
 
   public removeBoysTownPage() {
-    if (ADD_BOYSTOWN) {
-      ADD_BOYSTOWN = false;
+    if (ADD_BOYSTOWN_DSL) {
+      ADD_BOYSTOWN_DSL = false;
+      this.pages = DEFAULT_CONFIG.pages;
+    }
+    if (ADD_BOYSTOWN_WDRC) {
+      ADD_BOYSTOWN_WDRC = false;
       this.pages = DEFAULT_CONFIG.pages;
     }
   }    
