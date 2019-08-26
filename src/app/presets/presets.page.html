@@ -1,8 +1,25 @@
 <ion-content>
-  <p class="pageTitle">{{remote.pages[0].title}}</p>
+  <ion-slides>
+    <ion-slide *ngFor="let page of remote.pages; let pageIdx = index">
+    <div style="width:100% !important; margin:4px">
+      <p class="pageTitle">{{page.title}}</p>
     
       <!-- BUTTON CONTENT: -->
-    <app-button></app-button>
+      <ion-card *ngFor="let card of page.cards; let cardIdx = index" class="sliderCard">
+          <ion-card-header class="sliderCardHeader">{{card.name}}</ion-card-header>
+            <ion-card-content *ngIf="!!card.buttons">
+              <ion-row>
+                <ion-col size="6" *ngFor="let btn of card.buttons; let j = index"  class="ion-no-padding">
+                <ion-button expand="block" strong=true [color]="remote.btn[btn.id].color" (click)="cmd(btn.cmd)">{{btn.label}}</ion-button>
+                  </ion-col>
+              </ion-row>
+            </ion-card-content>
+        </ion-card>
+
+    </div>
+    </ion-slide>
+  </ion-slides>
+  <ion-note></ion-note>
 </ion-content>
 
 <ion-footer *ngIf="remote.showLogs" style="height:100px !important">
