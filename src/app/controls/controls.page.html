@@ -1,19 +1,19 @@
 <ion-content>
   <ion-slides>
-    <ion-slide *ngFor="let page of remote.pages.slice(1); let pageIdx = index">
+    <ion-slide *ngFor="let page of remote.pages.slice(2); let pageIdx = index">
       <div style="width:100% !important; margin:4px">
         <p class="pageTitle">{{page.title}}</p>
         <ion-card *ngFor="let card of page.cards; let cardIdx = index" class="sliderCard">
           <ion-card-header class="sliderCardHeader">{{card.name}}</ion-card-header>
 
             <!-- BUTTON CONTENT: -->
-            <ion-card-content *ngIf="!!card.buttons">
+            <!-- <ion-card-content *ngIf="!!card.buttons">
               <ion-row>
                 <ion-col size="6" *ngFor="let btn of card.buttons; let j = index"  class="ion-no-padding">
                   <ion-button expand="block" strong=true [color]="remote.btn[btn.id].color" (click)="cmd(btn.cmd)">{{btn.label}}</ion-button>
                 </ion-col>
               </ion-row>
-            </ion-card-content>
+            </ion-card-content> -->
 
             <!-- INPUTS CONTENT: -->
             <ion-card-content *ngIf="!!card.inputs">
