@@ -36,6 +36,10 @@ const DATASTREAM_END_CHAR = String.fromCharCode(0x04);
 const BUTTON_STYLE_ON = {color: 'success', isOn: true};
 const BUTTON_STYLE_OFF = {color: 'medium', isOn: false};
 
+let ADD_BOYSTOWN_DSL: boolean = false;
+let ADD_BOYSTOWN_WDRC: boolean = false;
+let ADD_BOYSTOWN_PLOT: boolean = false;
+
 const DEFAULT_CONFIG = {
   'icon': 'creare.png',
   'pages': [
@@ -83,10 +87,13 @@ const DEFAULT_CONFIG = {
       'cards':[
         {
           'name': 'Additional Pages',
-          'buttons': [
-            {'label': '~A', 'cmd': 'd', 'id': 'algA'},
-          ]
-        }
+          'toggles': [
+            {'label': 'Boys Town DSL', "id": ADD_BOYSTOWN_DSL},
+            {'label': 'Boys Town WDRC', "id": ADD_BOYSTOWN_WDRC},
+            {'label': 'Boys Town Plot', "id": ADD_BOYSTOWN_PLOT},
+          ],
+          'submitButton': {'prefix': 'Add Pages'}
+        },
       ]
     },
   ]
@@ -145,17 +152,10 @@ const BOYSTOWN_PAGE_PLOT = {
       'cards': [
     {
       'name': 'plot',
-     'inputs': [
-       {'label': 'Attack', 'type': 'float', 'value': 5},
-      ],
-      'submitButton': {'prefix': 'wdrc'}
     },
   ],
 };
 
-let ADD_BOYSTOWN_DSL: boolean = false;
-let ADD_BOYSTOWN_WDRC: boolean = false;
-let ADD_BOYSTOWN_PLOT: boolean = false;
 
 
 /*
