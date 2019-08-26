@@ -1,6 +1,6 @@
 <ion-content>
   <ion-slides>
-    <ion-slide *ngFor="let page of remote.pages; let pageIdx = index">
+    <ion-slide *ngFor="let page of remote.pages.slice(0,2); let pageIdx = index">
     <div style="width:100% !important; margin:4px; height: 1000px;">
       <p class="pageTitle">{{page.title}}</p>
     
