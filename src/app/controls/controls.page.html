@@ -1,7 +1,7 @@
 <ion-content>
   <ion-slides>
     <ion-slide *ngFor="let page of remote.pages.slice(2); let pageIdx = index">
-      <div style="width:100% !important; margin:4px">
+      <div style="width:100% !important; margin:4px; height: 1000px">
         <p class="pageTitle">{{page.title}}</p>
         <ion-card *ngFor="let card of page.cards; let cardIdx = index" class="sliderCard">
           <ion-card-header class="sliderCardHeader">{{card.name}}</ion-card-header>
