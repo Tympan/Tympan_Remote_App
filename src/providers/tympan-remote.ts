@@ -151,7 +151,8 @@ const BOYSTOWN_PAGE_PLOT = {
       'title': 'BoysTown Algorithm',
       'cards': [
     {
-      'name': 'plot',
+      'name': 'Frequency v. Output Level',
+      'plot':{}
     },
   ],
 };
@@ -182,6 +183,7 @@ const DEFAULT_CONFIG = {
   providedIn: 'root'
 })
 export class TympanRemote {
+  
   public btSerial: BluetoothSerial;
   public allDevices: iDevice[];
   public _activeDeviceId: string;
@@ -192,7 +194,7 @@ export class TympanRemote {
   private _devIcon: string;
   public showLogs: boolean = false;
   public showDevOptions: boolean = false;
-
+  
   get activeDevice() {
     if (this.connected) {
       let f = this.findDeviceWithId(this._activeDeviceId);
@@ -485,7 +487,7 @@ export class TympanRemote {
     }
     if (ADD_BOYSTOWN_WDRC === false) {
       ADD_BOYSTOWN_WDRC = true;
-      this.pages = this.pages.concat(BOYSTOWN_PAGE_DSL, BOYSTOWN_PAGE_WDRC); 
+      this.pages = this.pages.concat(BOYSTOWN_PAGE_DSL, BOYSTOWN_PAGE_WDRC, BOYSTOWN_PAGE_PLOT); 
     }
   }  
 
