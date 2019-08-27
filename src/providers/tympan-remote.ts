@@ -40,65 +40,6 @@ let ADD_BOYSTOWN_DSL: boolean = false;
 let ADD_BOYSTOWN_WDRC: boolean = false;
 let ADD_BOYSTOWN_PLOT: boolean = false;
 
-const DEFAULT_CONFIG = {
-  'icon': 'creare.png',
-  'pages': [
-    { 
-      'title':'Presets', 
-      'cards':[
-        {
-          'name': 'Algorithm',
-          'buttons': [
-            {'label': '~A', 'cmd': 'd', 'id': 'algA'},
-            {'label': '~B', 'cmd': 'D', 'id': 'algB'},
-            {'label': '~C', 'cmd': 'c', 'id': 'algC'}
-          ]
-        }
-      ]
-    },
-    { 
-      'title':'Gain Settings', 
-      'cards':[
-        {
-          'name': 'High Gain',
-          'buttons': [
-            {'label': '~-', 'cmd': '#', 'id': 'hi'},
-            {'label': '~+', 'cmd': '3', 'id': 'rest'}
-          ]
-        },
-        {
-          'name': 'Mid Gain',
-          'buttons': [
-            {'label': '~-', 'cmd': '@', 'id': 'rest'},
-            {'label': '~+', 'cmd': '2', 'id': 'rest'}
-          ]
-        },
-        {
-          'name': 'Low Gain',
-          'buttons': [
-            {'label': '~-', 'cmd': '!'},
-            {'label': '~+', 'cmd': '1'}
-          ]
-        }
-      ]
-    },
-    { 
-      'title':'Prescription', 
-      'cards':[
-        {
-          'name': 'Additional Pages',
-          'toggles': [
-            {'label': 'Boys Town DSL', "id": ADD_BOYSTOWN_DSL},
-            {'label': 'Boys Town WDRC', "id": ADD_BOYSTOWN_WDRC},
-            {'label': 'Boys Town Plot', "id": ADD_BOYSTOWN_PLOT},
-          ],
-          'submitButton': {'prefix': 'Add Pages'}
-        },
-      ]
-    },
-  ]
-};
-
 const BOYSTOWN_PAGE_DSL = {
   'title': 'BoysTown Algorithm',
   'cards': [
@@ -158,6 +99,64 @@ const BOYSTOWN_PAGE_PLOT = {
 };
 
 
+const DEFAULT_CONFIG = {
+  'icon': 'creare.png',
+  'pages': [
+    { 
+      'title':'Presets', 
+      'cards':[
+        {
+          'name': 'Algorithm',
+          'buttons': [
+            {'label': '~A', 'cmd': 'd', 'id': 'algA'},
+            {'label': '~B', 'cmd': 'D', 'id': 'algB'},
+            {'label': '~C', 'cmd': 'c', 'id': 'algC'}
+          ]
+        }
+      ]
+    },
+    { 
+      'title':'Gain Settings', 
+      'cards':[
+        {
+          'name': 'High Gain',
+          'buttons': [
+            {'label': '~-', 'cmd': '#', 'id': 'hi'},
+            {'label': '~+', 'cmd': '3', 'id': 'rest'}
+          ]
+        },
+        {
+          'name': 'Mid Gain',
+          'buttons': [
+            {'label': '~-', 'cmd': '@', 'id': 'rest'},
+            {'label': '~+', 'cmd': '2', 'id': 'rest'}
+          ]
+        },
+        {
+          'name': 'Low Gain',
+          'buttons': [
+            {'label': '~-', 'cmd': '!'},
+            {'label': '~+', 'cmd': '1'}
+          ]
+        }
+      ]
+    },
+    { 
+      'title':'Prescription', 
+      'cards':[
+        {
+          'name': 'Additional Pages',
+          'toggles': [
+            {'label': 'Boys Town DSL', 'pagename': BOYSTOWN_PAGE_DSL, "id": ADD_BOYSTOWN_DSL},
+            {'label': 'Boys Town WDRC', 'pagename': BOYSTOWN_PAGE_WDRC, "id": ADD_BOYSTOWN_WDRC},
+            {'label': 'Boys Town Plot', 'pagename': BOYSTOWN_PAGE_PLOT, "id": ADD_BOYSTOWN_PLOT},
+          ],
+          'submitButton': {'prefix': 'Add Pages'}
+        },
+      ]
+    },
+  ]
+};
 
 /*
 const DEFAULT_CONFIG = {
@@ -501,6 +500,18 @@ export class TympanRemote {
       this.pages = DEFAULT_CONFIG.pages;
     }
   }    
+
+  public setUpPages() {
+    // this.pages = DEFAULT_CONFIG.pages;
+    let pagesToAdd = []
+    for (var page of this.pages)
+    for (var card of page.cards)
+    for (var tog in card.toggles)
+    if (card.toggles[tog].id){
+      pagesToAdd.push(card.toggles[tog].pagename)
+    }
+    this.pages = this.pages.concat(pagesToAdd)
+  }
 
   public send(s: string) {
     if (BLUETOOTH) {

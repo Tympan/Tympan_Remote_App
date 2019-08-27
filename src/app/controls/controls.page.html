@@ -10,9 +10,9 @@
             <ion-card-content *ngIf="!!card.toggles">
                 <ion-item *ngFor="let tog of card.toggles; let j = index"  class="ion-no-padding">
                   <ion-label>{{tog.label}}</ion-label>
-                  <ion-checkbox (click)= remote.togglecheckbox()></ion-checkbox>
+                  <ion-checkbox></ion-checkbox>
                 </ion-item>
-                <ion-button expand="block" *ngIf="card.submitButton" (click)="remote.togglePages()">Add Pages</ion-button>
+                <ion-button expand="block" *ngIf="card.submitButton" (click)="remote.setUpPages()">Add Pages</ion-button>
                 <!-- (click)="cmd(tog.cmd)" -->
               <ion-item>
                   <ion-label>Show Boys Town Algorithm</ion-label>
