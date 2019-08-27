@@ -50,6 +50,14 @@
               <ion-button expand="block" *ngIf="card.submitButton" (click)="sendInputCard(card)">SUBMIT {{card.name}}</ion-button>
             </ion-card-content>
 
+            <!-- PLOT CONTENT -->
+              <ion-card-content *ngIf=!!card.plot>
+                  <ion-card-content>
+                    <canvas #lineCanvas height="250px"></canvas>
+                  </ion-card-content>
+                  <ion-button (click)="makeLineChart()">Load Graph</ion-button>
+                </ion-card-content>
+
         </ion-card>
       </div>
     </ion-slide>    
