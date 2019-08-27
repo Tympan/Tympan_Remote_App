@@ -339,6 +339,10 @@ export class TympanRemote {
     }
   }
 
+  public toggleState(id){
+    id=!id
+  }
+
   public setActiveDevice(id: string) {
 
     this.logger.log(`remote.setActiveDevice: setting device with id ${id} as active.`);
@@ -502,7 +506,7 @@ export class TympanRemote {
   }    
 
   public setUpPages() {
-    // this.pages = DEFAULT_CONFIG.pages;
+    this.pages = DEFAULT_CONFIG.pages;
     let pagesToAdd = []
     for (var page of this.pages)
     for (var card of page.cards)
