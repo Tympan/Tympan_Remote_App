@@ -530,6 +530,32 @@ export class TympanRemote {
     }
   }
 
+  public formatData(){
+    var card = BOYSTOWN_PAGE_DSL.cards[0]
+    let TKGainData = [];
+    let TKData = [];
+    let BOLTData = [];
+    var val;
+    var xval;
+    var yval;
+    var graphData;
+    for (val in card.inputs[5].columns[0].values){
+      xval = card.inputs[5].columns[0].values[val]
+      yval = card.inputs[5].columns[2].values[val]
+      TKGainData.push({x: xval, y: yval})
+
+      xval = card.inputs[5].columns[0].values[val]
+      yval = card.inputs[5].columns[5].values[val]
+      TKData.push({x: xval, y: yval})
+
+      xval = card.inputs[5].columns[0].values[val]
+      yval = card.inputs[5].columns[6].values[val]
+      BOLTData.push({x: xval, y: yval})
+    }
+    graphData = [TKGainData, TKData, BOLTData];
+    return graphData;
+ }
+
   public sendInputCard(card: any) {
     console.log('sending...');
     console.log(card);
