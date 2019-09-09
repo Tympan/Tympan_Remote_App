@@ -41,7 +41,7 @@ let ADD_BOYSTOWN_WDRC: boolean = false;
 let ADD_BOYSTOWN_PLOT: boolean = false;
 
 const BOYSTOWN_PAGE_DSL = {
-  'title': 'BoysTown Algorithm',
+  'title': 'Boys Town Algorithm',
   'cards': [
     {
       'name': 'DSL',
@@ -67,7 +67,7 @@ const BOYSTOWN_PAGE_DSL = {
 };
 
 const BOYSTOWN_PAGE_WDRC = {
-      'title': 'BoysTown Algorithm',
+      'title': 'Boys Town Algorithm',
       'cards': [
     {
       'name': 'WDRC',
@@ -89,7 +89,7 @@ const BOYSTOWN_PAGE_WDRC = {
 };
 
 const BOYSTOWN_PAGE_PLOT = {
-      'title': 'BoysTown Algorithm',
+      'title': 'Boys Town Algorithm',
       'cards': [
     {
       'name': 'Frequency v. Output Level',
