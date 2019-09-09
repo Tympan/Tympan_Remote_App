@@ -68,10 +68,21 @@ export class ControlsPage{
         options: {
           scales: {
             xAxes: [{
+              type: 'logarithmic',
+              ticks: {
+                min: 0,
+                max: 20000,
+                callback: function (value) {
+                    if(value==10 || value==50 ||value==100 || value==500 ||value==1000 || value==5000 ||value==10000){
+                        // return value;
+                    return Number(value.toString());
+                    }
+                  }
+            },
               display: true,
               scaleLabel: {
                 display: true,
-                labelString: 'Frequency (kHz)'
+                labelString: 'Frequency (Hz)'
               }
             }],
             yAxes: [{
