@@ -316,11 +316,8 @@ export class TympanRemote {
   constructor(private zone: NgZone, private logger: Logger) {
     this.btSerial = new BluetoothSerial();
     this.allDevices = [];
-    this.allDevices.push(DEVICE_1);
-    this.allDevices.push(DEVICE_2);
     this.pages = DEFAULT_CONFIG.pages;
     this.devIcon = DEFAULT_CONFIG.icon;
-    this.setActiveDevice(DEVICE_1.id);
 
     this.logger.log('hello');
     this.updateDeviceList();
@@ -336,6 +333,18 @@ export class TympanRemote {
       return dev.id == id;
     });
     return device;
+  }
+
+  public showMocks() {
+    this.allDevices.push(DEVICE_1);
+    this.allDevices.push(DEVICE_2);
+    this.setActiveDevice(DEVICE_1.id);
+    this.updateDeviceList();
+  }
+
+  public hideMocks() {
+    this.allDevices = [];
+    this.updateDeviceList();
   }
 
   /*

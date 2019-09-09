@@ -39,13 +39,18 @@
     <ion-card-header>Developer Options</ion-card-header>
     <ion-card-content>
       <ion-item>
+          <ion-label>Enable Mocks</ion-label>
+          <ion-button strong=true (click)="remote.showMocks()">ENABLE</ion-button>
+          <ion-button strong=true (click)="remote.hideMocks()">DISABLE</ion-button>
+        </ion-item>
+      <ion-item>
         <ion-label>Test</ion-label>
         <ion-button item-end strong=true (click)="remote.testFn()">TEST</ion-button>
       </ion-item>
       <ion-item>
         <ion-input item-start placeholder="Send Single Character" [(ngModel)]="SingleCharInput"></ion-input>
         <ion-button item-end strong=true (click)="remote.send(SingleCharInput)">Send</ion-button>
-        </ion-item>
+      </ion-item>
     </ion-card-content>
   </ion-card>
 
