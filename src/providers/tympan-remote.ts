@@ -565,17 +565,18 @@ export class TympanRemote {
     var xval;
     var yval;
     var graphData;
-    for (val in card.inputs[5].columns[0].values){
-      xval = card.inputs[5].columns[0].values[val]
-      yval = card.inputs[5].columns[2].values[val]
+    console.log(card.inputs[4])
+    for (val in card.inputs[4].columns[0].values){
+      xval = card.inputs[4].columns[0].values[val]
+      yval = card.inputs[4].columns[3].values[val]
       TKGainData.push({x: xval, y: yval})
 
-      xval = card.inputs[5].columns[0].values[val]
-      yval = card.inputs[5].columns[5].values[val]
+      xval = card.inputs[4].columns[0].values[val]
+      yval = card.inputs[4].columns[2].values[val]
       TKData.push({x: xval, y: yval})
 
-      xval = card.inputs[5].columns[0].values[val]
-      yval = card.inputs[5].columns[6].values[val]
+      xval = card.inputs[4].columns[0].values[val]
+      yval = card.inputs[4].columns[6].values[val]
       BOLTData.push({x: xval, y: yval})
     }
     graphData = [TKGainData, TKData, BOLTData];
