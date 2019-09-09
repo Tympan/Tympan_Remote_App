@@ -38,6 +38,7 @@ const BUTTON_STYLE_OFF = {color: 'medium', isOn: false};
 
 let ADD_BOYSTOWN_DSL: boolean = false;
 let ADD_BOYSTOWN_WDRC: boolean = false;
+let ADD_BOYSTOWN_AFC: boolean = false;
 let ADD_BOYSTOWN_PLOT: boolean = false;
 
 const BOYSTOWN_PAGE_DSL = {
@@ -60,7 +61,7 @@ const BOYSTOWN_PAGE_DSL = {
                 {'label': 'Limiter: Threshold (dB SPL)', 'type': 'float', 'values': [90., 90., 90., 90., 90., 91., 92., 93.]},
         ]},
       ],      
-      'submitButton': {'prefix': 'dsl'}
+      'submitButton': {'prefix': 'Multiband Compression'}
     },
   ],
 };
@@ -80,7 +81,25 @@ const BOYSTOWN_PAGE_WDRC = {
         {'label': 'Compression: Ratio', 'type': 'float', 'value': 1.},
         {'label': 'Limiter: Threshold (dB SPL)', 'type': 'float', 'value': 98.0},
       ],
-      'submitButton': {'prefix': 'wdrc'}
+      'submitButton': {'prefix': 'Broadband Output Compression'}
+    },
+  ],
+};
+
+const BOYSTOWN_PAGE_AFC = {
+      'title': 'Boys Town Algorithm',
+      'cards': [
+    {
+      'name': 'Adaptive Feedback Cancelation',
+      'inputs': [
+        {'label': 'Enable (1=yes, 0=no)', 'type': 'int', 'value': 1},
+        {'label': 'Filter Length (samples, 0-256)', 'type': 'int', 'value': 100},
+        {'label': 'Adaptation Factor (mu, 0.0-1.0)', 'type': 'float', 'value': 0.00100},
+        {'label': 'Smoothing Factor (rho, 0.0-1.0)', 'type': 'float', 'value': 0.90},
+        {'label': 'Min Allowed Envelope (eps, 0-1.0)', 'type': 'float', 'value': 0.008},
+
+      ],
+      'submitButton': {'prefix': 'Adaptive Feedback Cancelation'}
     },
   ],
 };
@@ -144,8 +163,9 @@ const DEFAULT_CONFIG = {
         {
           'name': 'Additional Pages',
           'toggles': [
-            {'label': 'Boys Town DSL', 'pagename': BOYSTOWN_PAGE_DSL, "id": ADD_BOYSTOWN_DSL},
-            {'label': 'Boys Town WDRC', 'pagename': BOYSTOWN_PAGE_WDRC, "id": ADD_BOYSTOWN_WDRC},
+            {'label': 'Boys Town Multiband Compression', 'pagename': BOYSTOWN_PAGE_DSL, "id": ADD_BOYSTOWN_DSL},
+            {'label': 'Boys Town Broadband Output Compression', 'pagename': BOYSTOWN_PAGE_WDRC, "id": ADD_BOYSTOWN_WDRC},
+            {'label': 'Boys Town Adaptive Feedback Cancelation', 'pagename': BOYSTOWN_PAGE_AFC, "id": ADD_BOYSTOWN_AFC},
             {'label': 'Boys Town Plot', 'pagename': BOYSTOWN_PAGE_PLOT, "id": ADD_BOYSTOWN_PLOT},
           ],
           'submitButton': {'prefix': 'Add Pages'}
