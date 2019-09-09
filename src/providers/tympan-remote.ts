@@ -103,7 +103,7 @@ const DEFAULT_CONFIG = {
   'icon': 'creare.png',
   'pages': [
     { 
-      'title':'Presets', 
+      'title':'Global', 
       'cards':[
         {
           'name': 'Algorithm',
