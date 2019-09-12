@@ -16,13 +16,13 @@ interface iDevice {
 const DEVICE_1: iDevice = {
   id: 'mo:ck:01',
   name: 'mock1',
-  emulated: true
+  emulated: false
 };
 
 const DEVICE_2: iDevice = {
   id: 'mo:ck:02',
   name: 'mock2',
-  emulated: true
+  emulated: false
 };
 
 const BLUETOOTH:boolean = true;
@@ -316,8 +316,11 @@ export class TympanRemote {
   constructor(private zone: NgZone, private logger: Logger) {
     this.btSerial = new BluetoothSerial();
     this.allDevices = [];
+    this.allDevices.push(DEVICE_1);
+    this.allDevices.push(DEVICE_2);
     this.pages = DEFAULT_CONFIG.pages;
     this.devIcon = DEFAULT_CONFIG.icon;
+    this.setActiveDevice(DEVICE_1.id);
 
     this.logger.log('hello');
     this.updateDeviceList();
@@ -336,14 +339,9 @@ export class TympanRemote {
   }
 
   public showMocks() {
-    this.allDevices.push(DEVICE_1);
-    this.allDevices.push(DEVICE_2);
+    DEVICE_1.emulated = true;
+    DEVICE_2.emulated = true;
     this.setActiveDevice(DEVICE_1.id);
-    this.updateDeviceList();
-  }
-
-  public hideMocks() {
-    this.allDevices = [];
     this.updateDeviceList();
   }
 
@@ -509,27 +507,27 @@ export class TympanRemote {
     }
   }
 
-  public addBoysTownPage(ADD_BOYSTOWN_DSL) {
-    if (ADD_BOYSTOWN_DSL === false) {
-      ADD_BOYSTOWN_DSL = true;
-      this.pages = this.pages.concat(BOYSTOWN_PAGE_DSL); 
-    }
-    if (ADD_BOYSTOWN_WDRC === false) {
-      ADD_BOYSTOWN_WDRC = true;
-      this.pages = this.pages.concat(BOYSTOWN_PAGE_DSL, BOYSTOWN_PAGE_WDRC, BOYSTOWN_PAGE_PLOT); 
-    }
-  }  
+  // public addBoysTownPage(ADD_BOYSTOWN_DSL) {
+  //   if (ADD_BOYSTOWN_DSL === false) {
+  //     ADD_BOYSTOWN_DSL = true;
+  //     this.pages = this.pages.concat(BOYSTOWN_PAGE_DSL); 
+  //   }
+  //   if (ADD_BOYSTOWN_WDRC === false) {
+  //     ADD_BOYSTOWN_WDRC = true;
+  //     this.pages = this.pages.concat(BOYSTOWN_PAGE_DSL, BOYSTOWN_PAGE_WDRC, BOYSTOWN_PAGE_PLOT); 
+  //   }
+  // }  
 
-  public removeBoysTownPage() {
-    if (ADD_BOYSTOWN_DSL) {
-      ADD_BOYSTOWN_DSL = false;
-      this.pages = DEFAULT_CONFIG.pages;
-    }
-    if (ADD_BOYSTOWN_WDRC) {
-      ADD_BOYSTOWN_WDRC = false;
-      this.pages = DEFAULT_CONFIG.pages;
-    }
-  }    
+  // public removeBoysTownPage() {
+  //   if (ADD_BOYSTOWN_DSL) {
+  //     ADD_BOYSTOWN_DSL = false;
+  //     this.pages = DEFAULT_CONFIG.pages;
+  //   }
+  //   if (ADD_BOYSTOWN_WDRC) {
+  //     ADD_BOYSTOWN_WDRC = false;
+  //     this.pages = DEFAULT_CONFIG.pages;
+  //   }
+  // }    
 
   public setUpPages() {
     this.pages = DEFAULT_CONFIG.pages;
@@ -563,25 +561,64 @@ export class TympanRemote {
     let BOLTData = [];
     var val;
     var xval;
-    var yval;
+    var yval1;
+    var yval2;
+    var yval3;
     var graphData;
     console.log(card.inputs[4])
     for (val in card.inputs[4].columns[0].values){
       xval = card.inputs[4].columns[0].values[val]
-      yval = card.inputs[4].columns[3].values[val]
-      TKGainData.push({x: xval, y: yval})
+      yval1 = card.inputs[4].columns[3].values[val]
+      TKGainData.push({x: xval, y: yval1})
 
       xval = card.inputs[4].columns[0].values[val]
-      yval = card.inputs[4].columns[2].values[val]
-      TKData.push({x: xval, y: yval})
+      yval2 = card.inputs[4].columns[2].values[val]
+      TKData.push({x: xval, y: yval2})
 
       xval = card.inputs[4].columns[0].values[val]
-      yval = card.inputs[4].columns[6].values[val]
-      BOLTData.push({x: xval, y: yval})
+      yval3 = card.inputs[4].columns[6].values[val]
+      BOLTData.push({x: xval, y: yval3})
     }
+    TKGainData.push({x: 12000, y: yval1})
+    TKData.push({x: 12000, y: yval2})
+    BOLTData.push({x: 12000, y: yval3})
+
     graphData = [TKGainData, TKData, BOLTData];
     return graphData;
  }
+
+// public formatData(){
+//   var card = BOYSTOWN_PAGE_DSL.cards[0]
+//   let TKGainData = [];
+//   let TKData = [];
+//   let BOLTData = [];
+//   let xData = []
+//   var val;
+//   var xval;
+//   var yval1;
+//   var yval2;
+//   var yval3;
+//   var Data;
+//   for (val in card.inputs[4].columns[0].values){
+//     yval1 = card.inputs[4].columns[3].values[val]
+//     TKGainData.push(yval1)
+
+//     yval2 = card.inputs[4].columns[2].values[val]
+//     TKData.push(yval2)
+
+//     yval3 = card.inputs[4].columns[6].values[val]
+//     BOLTData.push(yval3)
+
+//     xval = card.inputs[4].columns[0].values[val]
+//     xData.push(xval)
+//   }
+//     TKGainData.push({x: 12000, y: yval1})
+//     TKData.push({x: 12000, y: yval2})
+//     BOLTData.push({x: 12000, y: yval3})
+//   Data = [TKGainData, TKData, BOLTData, xData];
+//   console.log(Data)
+//   return Data;
+// }
 
   public sendInputCard(card: any) {
     console.log('sending...');
