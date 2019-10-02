@@ -29,9 +29,13 @@ const BLUETOOTH:boolean = true;
 
 enum ByteOrder {MSB, LSB};
 
+/* Some definitions that need to be the same in the app and in the Tympan code: */
 const DATASTREAM_START_CHAR = String.fromCharCode(0x02);
 const DATASTREAM_SEPARATOR = String.fromCharCode(0x03);
 const DATASTREAM_END_CHAR = String.fromCharCode(0x04);
+const DATASTREAM_PREFIX_GHA = 'gha';
+const DATASTREAM_PREFIX_DSL = 'dsl';
+const DATASTREAM_PREFIX_AFC = 'afc';
 
 const BUTTON_STYLE_ON = {color: 'success', isOn: true};
 const BUTTON_STYLE_OFF = {color: 'medium', isOn: false};
@@ -61,7 +65,7 @@ const BOYSTOWN_PAGE_DSL = {
                 {'label': 'Limiter: Threshold (dB SPL)', 'type': 'float', 'values': [90., 90., 90., 90., 90., 91., 92., 93.]},
         ]},
       ],      
-      'submitButton': {'prefix': 'Multiband Compression'}
+      'submitButton': {'prefix': DATASTREAM_PREFIX_DSL}
     },
   ],
 };
@@ -81,7 +85,7 @@ const BOYSTOWN_PAGE_WDRC = {
         {'label': 'Compression: Ratio', 'type': 'float', 'value': 1.},
         {'label': 'Limiter: Threshold (dB SPL)', 'type': 'float', 'value': 98.0},
       ],
-      'submitButton': {'prefix': 'Broadband Output Compression'}
+      'submitButton': {'prefix': DATASTREAM_PREFIX_GHA}
     },
   ],
 };
@@ -99,7 +103,7 @@ const BOYSTOWN_PAGE_AFC = {
         {'label': 'Min Allowed Envelope (eps, 0-1.0)', 'type': 'float', 'value': 0.008},
 
       ],
-      'submitButton': {'prefix': 'Adaptive Feedback Cancelation'}
+      'submitButton': {'prefix': DATASTREAM_PREFIX_AFC}
     },
   ],
 };
