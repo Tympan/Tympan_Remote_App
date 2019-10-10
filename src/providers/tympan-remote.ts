@@ -534,16 +534,26 @@ export class TympanRemote {
   // }    
 
   public setUpPages() {
-    this.pages = DEFAULT_CONFIG.pages;
+    // let defaultConnectedPages = [this.pages[0], this.pages[1], this.pages[2]];
+    // this.pages = defaultConnectedPages;
+    // this.pages = DEFAULT_CONFIG.pages;
     let pagesToAdd = []
     for (var page of this.pages)
     for (var card of page.cards)
-    for (var tog in card.toggles)
-    if (card.toggles[tog].id){
-      pagesToAdd.push(card.toggles[tog].pagename)
+    for (var tog in card.toggles){
+    if (card.toggles[tog].id != false){
+      if (!this.pages.includes(card.toggles[tog].pagename)){
+        pagesToAdd.push(card.toggles[tog].pagename)
+      }
+      card.toggles[tog].id = true;
     }
-    this.pages = this.pages.concat(pagesToAdd)   
+    else if (this.pages.includes(card.toggles[tog].pagename)){
+      let ind = this.pages.indexOf(card.toggles[tog].pagename);
+      this.pages.splice(ind)
+    }
   }
+  this.pages = this.pages.concat(pagesToAdd)  
+}
 
   public send(s: string) {
     if (BLUETOOTH) {
