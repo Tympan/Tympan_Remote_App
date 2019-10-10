@@ -542,7 +542,7 @@ export class TympanRemote {
     if (card.toggles[tog].id){
       pagesToAdd.push(card.toggles[tog].pagename)
     }
-    this.pages = this.pages.concat(pagesToAdd)
+    this.pages = this.pages.concat(pagesToAdd)   
   }
 
   public send(s: string) {
