@@ -45,7 +45,7 @@ export class TympanRemote {
   public allDevices: iDevice[];
   public _activeDeviceId: string;
   private _config: any = {};
-  public emulate: boolean = false;
+  public _emulate: boolean = false;
   public connected: boolean = false;
   public btn: any = {};
   private _devIcon: string;
@@ -83,6 +83,20 @@ export class TympanRemote {
       }
     }
     return deviceIds;
+  }
+
+  get emulate(): boolean {
+    return this._emulate;
+  }
+
+  set emulate(tf: boolean) {
+    console.log(`setting emulate to ${tf}`);
+    if (tf) {
+        this.showMocks();        
+    } else {
+        this.disconnect();
+    }
+    this._emulate = tf;
   }
 
   get devices(): any {

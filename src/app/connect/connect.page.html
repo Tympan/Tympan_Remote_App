@@ -39,14 +39,13 @@
     <ion-card-header>Developer Options</ion-card-header>
     <ion-card-content>
       <ion-item>
-          <ion-label>Enable Mocks</ion-label>
-          <ion-button strong=true (click)="remote.showMocks()">ENABLE</ion-button>
-          <ion-button strong=true (click)="remote.disconnect()">DISABLE</ion-button>
+        <ion-label>Enable mock devices</ion-label>
+        <ion-toggle [(ngModel)]="remote.emulate"></ion-toggle>
       </ion-item>
       <ion-item>
         <ion-label>Show serial monitor</ion-label>
         <ion-toggle [(ngModel)]="remote.showSerialMonitorPage"></ion-toggle>
-        </ion-item>
+      </ion-item>
       <ion-item>
         <ion-label>Test</ion-label>
         <ion-button item-end strong=true (click)="remote.testFn()">TEST</ion-button>
