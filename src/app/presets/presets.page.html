@@ -1,11 +1,11 @@
 <ion-content>
   <ion-slides pager="true" class="custom-bullets">
-    <ion-slide *ngFor="let page of remote.pages.slice(0,2); let pageIdx = index">
-    <div style="width:100% !important; margin:4px; height: 1000px;">
-      <p class="pageTitle">{{page.title}}</p>
-    
-      <!-- BUTTON CONTENT: -->
-      <ion-card *ngFor="let card of page.cards; let cardIdx = index" class="sliderCard">
+    <ion-slide *ngFor="let page of remote.pages; let pageIdx = index">
+      <div style="width:100% !important; margin:4px; height: 1000px;">
+        <p class="pageTitle">{{page.title}}</p>
+      
+        <!-- BUTTON CONTENT: -->
+        <ion-card *ngFor="let card of page.cards; let cardIdx = index" class="sliderCard">
           <ion-card-header class="sliderCardHeader">{{card.name}}</ion-card-header>
             <ion-card-content *ngIf="!!card.buttons">
               <ion-row>

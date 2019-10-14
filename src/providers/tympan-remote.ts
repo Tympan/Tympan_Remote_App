@@ -138,6 +138,70 @@ export class TympanRemote {
     });
   }
 
+  set prescriptionPages(presc: any) {
+    this.zone.run(()=>{
+        this._config.prescription = presc;
+    });
+  }
+
+  get prescriptionPages() {
+    let pages = [];
+    if (this._config.prescription && this._config.prescription.type == 'BoysTown') {
+        for (let pageName of this._config.prescription.pages) {
+            console.log(pageName);
+            switch (pageName) {
+                case 'multiband': {
+                    console.log('mb');
+                    pages.push(BOYSTOWN_PAGE_DSL);
+                    break;
+                }
+                case 'broadband': {
+                    console.log('bb');
+                    pages.push(BOYSTOWN_PAGE_WDRC);
+                    break;
+                }
+                case 'afc': {
+                    console.log('afc');
+                    pages.push(BOYSTOWN_PAGE_AFC);
+                    break;
+                }
+                case 'plot': {
+                    console.log('plot');
+                    pages.push(BOYSTOWN_PAGE_PLOT);
+                    break;
+                }
+            }
+        }
+    } else {
+        pages = [{
+            'title':'prescriptions',
+            'cards':[{'name': 'No Prescription', 'buttons': []}]
+        }];
+    }
+    console.log("returning these pages:");
+    console.log(pages);
+
+    // Create variables to control cycling through tables:
+    for (let page of pages) {
+      if (page.cards) {
+        for (let card of page.cards) {
+          if (card.inputs) {
+            for (let input of card.inputs) {
+              if (input.type==='grid') {
+                input['rowNums'] = Array(input.numRows).fill(0).map((x,i)=>i);
+                input['currentCol'] = 0;
+              }
+            }            
+          }
+        }        
+      }
+    }
+    //console.log(this._config.pages);
+    //pages = pages.concat(this._config.pages);
+    //console.log(pages);
+    return pages; //this._config.pages;
+  }
+
   set devIcon(filename: string) {
     this.zone.run(()=>{
       this._devIcon = '/assets/devIcon/' + filename; 
@@ -160,6 +224,7 @@ export class TympanRemote {
     this.allDevices.push(DEVICE_1);
     this.allDevices.push(DEVICE_2);
     this.pages = DEFAULT_CONFIG.pages;
+    this.prescriptionPages = DEFAULT_CONFIG.prescription;
     this.devIcon = DEFAULT_CONFIG.icon;
     this.setActiveDevice(DEVICE_1.id);
 
@@ -331,9 +396,9 @@ export class TympanRemote {
 
   public async updateDeviceList () {
     this.logger.log('Getting device list:');
+    this.allDevices = [];
     if (BLUETOOTH) {
       this.btSerial.list().then((devices)=>{
-        this.allDevices = [];
         for (let idx = 0; idx<devices.length; idx++) {
           let device = devices[idx];
           this.logger.log(`Found device ${device.name}`);
@@ -374,23 +439,25 @@ export class TympanRemote {
     // let defaultConnectedPages = [this.pages[0], this.pages[1], this.pages[2]];
     // this.pages = defaultConnectedPages;
     // this.pages = DEFAULT_CONFIG.pages;
-    let pagesToAdd = []
-    for (var page of this.pages)
-    for (var card of page.cards)
-    for (var tog in card.toggles){
-    if (card.toggles[tog].id != false){
-      if (!this.pages.includes(card.toggles[tog].pagename)){
-        pagesToAdd.push(card.toggles[tog].pagename)
+    let pagesToAdd = [];
+    for (var page of this.pages) {
+      for (var card of page.cards) {
+        for (var tog in card.toggles) {
+          if (card.toggles[tog].id != false){
+            if (!this.pages.includes(card.toggles[tog].pagename)){
+              pagesToAdd.push(card.toggles[tog].pagename)
+            }
+            card.toggles[tog].id = true;
+          }
+          else if (this.pages.includes(card.toggles[tog].pagename)){
+            let ind = this.pages.indexOf(card.toggles[tog].pagename);
+            this.pages.splice(ind)
+          }
+        }
       }
-      card.toggles[tog].id = true;
     }
-    else if (this.pages.includes(card.toggles[tog].pagename)){
-      let ind = this.pages.indexOf(card.toggles[tog].pagename);
-      this.pages.splice(ind)
-    }
+    this.pages = this.pages.concat(pagesToAdd)  
   }
-  this.pages = this.pages.concat(pagesToAdd)  
-}
 
   public send(s: string) {
     if (BLUETOOTH) {
@@ -401,7 +468,7 @@ export class TympanRemote {
         this.logger.log(`Failed to send ${s}`);
       });
     } else {
-      this.logger.log('INACTIVE.  SEND FAIL.');
+      this.logger.log('BLUETOOTH INACTIVE.  SEND FAIL.');
     }
   }
 
