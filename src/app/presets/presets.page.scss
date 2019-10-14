@@ -1,3 +1,8 @@
 .custom-bullets {
 	--bullet-background:black;
 }
+
+.log-card {
+	max-height: 75%;
+	overflow-y: scroll;
+}

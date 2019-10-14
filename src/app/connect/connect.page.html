@@ -28,7 +28,7 @@
           <ion-toggle [(ngModel)]="remote.showLogs"></ion-toggle>
         </ion-item>
         <ion-item>
-            <ion-label>Developer Options</ion-label>
+            <ion-label>Developer options</ion-label>
             <ion-toggle [(ngModel)]="remote.showDevOptions"></ion-toggle>
           </ion-item>
       </ion-list>
@@ -42,6 +42,10 @@
           <ion-label>Enable Mocks</ion-label>
           <ion-button strong=true (click)="remote.showMocks()">ENABLE</ion-button>
           <ion-button strong=true (click)="remote.disconnect()">DISABLE</ion-button>
+      </ion-item>
+      <ion-item>
+        <ion-label>Show serial monitor</ion-label>
+        <ion-toggle [(ngModel)]="remote.showSerialMonitorPage"></ion-toggle>
         </ion-item>
       <ion-item>
         <ion-label>Test</ion-label>

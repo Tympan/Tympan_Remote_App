@@ -51,6 +51,7 @@ export class TympanRemote {
   private _devIcon: string;
   public showLogs: boolean = false;
   public showDevOptions: boolean = false;
+  public showSerialMonitorPage: boolean = false;
   
   get activeDevice() {
     if (this.connected) {
@@ -229,6 +230,9 @@ export class TympanRemote {
     this.setActiveDevice(DEVICE_1.id);
 
     this.logger.log('hello');
+    for (let i=0; i<300; i++) {
+        this.logger.log('Log number '+i);
+    }
     this.updateDeviceList();
   }
 
