@@ -320,6 +320,23 @@ export class TympanRemote {
     }
   }
 
+  public adjustComponentById(id: string, field: string, property: any) {
+    let adjustableFields = ['label'];
+    if (!adjustableFields.includes(field)) {
+      console.log(`Cannot set the ${field} of ${id}: invalid field`);
+      return;
+    }
+    for (let page of this._config.pages) {
+      for (let card of page.cards) {
+        for (let btn of card.buttons) {
+          if (btn.id == id) {
+            btn[field] = property;
+          }
+        }
+      }
+    }
+  }
+
   public testFn() {
     /*
     this.btSerial.isEnabled().then(()=>{this.logger.log('Is Enabled.');},()=>{this.logger.log('Is Not Enabled.');});
@@ -327,6 +344,7 @@ export class TympanRemote {
     this.updateDeviceList();
     */
 
+    /*
     this.send(DATASTREAM_START_CHAR);
     this.send(this.numberAsCharStr(13,'int32'));
     this.send(DATASTREAM_SEPARATOR);
@@ -335,6 +353,10 @@ export class TympanRemote {
     this.send(this.numberAsCharStr(17501197,'int32'));
     this.send(this.numberAsCharStr(3.14,'float'));
     this.send(DATASTREAM_END_CHAR);
+    */
+   
+    console.log('testing');
+    this.adjustComponentById('algA','label','6^');
   }
 
   public subscribe() {
