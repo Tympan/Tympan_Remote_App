@@ -11,7 +11,11 @@
             <ion-card-content *ngIf="!!card.buttons">
               <ion-row>
                 <ion-col *ngFor="let btn of card.buttons; let j = index" [size]="btn.width" class="ion-no-padding">
-                  <ion-button expand="block" strong=true [color]="remote.btn[btn.id].color" (click)="cmd(btn.cmd)">{{btn.label}}</ion-button>
+                  <!--
+                  <ion-button expand="block" strong=true [color]="btn.style.color" [disabled]="!btn.cmd" (click)="cmd(btn.cmd)">{{btn.label}}</ion-button>
+                  -->
+                  <ion-button expand="block" strong=true [ngClass]="btn.style.class" [disabled]="!btn.cmd" (click)="cmd(btn.cmd)">{{btn.label}}</ion-button>
+                  
                 </ion-col>
               </ion-row>
             </ion-card-content>

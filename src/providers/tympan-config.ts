@@ -34,8 +34,9 @@ export const DATASTREAM_PREFIX_GHA = 'gha';
 export const DATASTREAM_PREFIX_DSL = 'dsl';
 export const DATASTREAM_PREFIX_AFC = 'afc';
 
-export const BUTTON_STYLE_ON = {color: 'success', isOn: true};
-export const BUTTON_STYLE_OFF = {color: 'medium', isOn: false};
+export const BUTTON_STYLE_ON = {color: 'success', isOn: true, class: 'button-on'};
+export const BUTTON_STYLE_OFF = {color: 'medium', isOn: false, class: 'button-off'};
+export const BUTTON_STYLE_NONE = {color: 'unset', isOn: undefined, class: 'button-none'};
 
 export const BOYSTOWN_PAGE_DSL = {
   'title': 'Boys Town Algorithm',
@@ -121,9 +122,16 @@ export const DEFAULT_CONFIG = {
         {
           'name': 'Algorithm',
           'buttons': [
-            {'label': '~A', 'cmd': 'd', 'id': 'algA', 'width': 2},
-            {'label': '~B', 'cmd': 'D', 'id': 'algB', 'width': 3},
-            {'label': '~C', 'cmd': 'c', 'id': 'algC', 'width': 8}
+            {'label': '~A', 'cmd': 'd', 'id': 'algA', 'width': 4},
+            {'label': '~B', 'id': 'algB', 'width': 3},
+            {'label': '~C', 'cmd': 'c', 'id': 'algC', 'width': 4}
+          ]
+        },
+        {
+          'name': 'Other',
+          'buttons': [
+            {'label': '~-', 'cmd': '#', 'id': 'hi', 'width': 4},
+            {'label': '~+', 'cmd': '3', 'id': 'rest', 'width': 7}
           ]
         }
       ]
@@ -134,8 +142,8 @@ export const DEFAULT_CONFIG = {
         {
           'name': 'High Gain',
           'buttons': [
-            {'label': '~-', 'cmd': '#', 'id': 'hi'},
-            {'label': '~+', 'cmd': '3', 'id': 'rest'}
+            {'label': '~-', 'cmd': '#', 'id': 'hi', 'width': 4},
+            {'label': '~+', 'cmd': '3', 'id': 'rest', 'width': 7}
           ]
         },
         {

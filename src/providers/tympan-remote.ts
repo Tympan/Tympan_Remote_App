@@ -15,6 +15,7 @@ import {
   DATASTREAM_PREFIX_AFC,
   BUTTON_STYLE_ON,
   BUTTON_STYLE_OFF,
+  BUTTON_STYLE_NONE,
   BOYSTOWN_PAGE_DSL,
   BOYSTOWN_PAGE_WDRC,
   BOYSTOWN_PAGE_AFC,
@@ -120,6 +121,11 @@ export class TympanRemote {
         for (let card of page.cards) {
           if (card.buttons) {
             for (let button of card.buttons) {
+              if (!button.cmd) {
+                button.style = BUTTON_STYLE_NONE;
+              } else {
+                button.style = BUTTON_STYLE_OFF;
+              }
               if (button.id) {
                 btnStyle[button.id] = BUTTON_STYLE_OFF;
               } else {
@@ -321,7 +327,7 @@ export class TympanRemote {
   }
 
   public adjustComponentById(id: string, field: string, property: any) {
-    let adjustableFields = ['label'];
+    let adjustableFields = ['label','style'];
     if (!adjustableFields.includes(field)) {
       console.log(`Cannot set the ${field} of ${id}: invalid field`);
       return;
@@ -357,6 +363,8 @@ export class TympanRemote {
    
     console.log('testing');
     this.adjustComponentById('algA','label','6^');
+    this.adjustComponentById('algB','label','37!!');
+    this.adjustComponentById('algC','style',BUTTON_STYLE_ON);
   }
 
   public subscribe() {
