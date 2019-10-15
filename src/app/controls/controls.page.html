@@ -31,7 +31,7 @@
                     <ion-row>
                       <ion-col size="3" class="gridHeader ion-text-left">{{input.indexLabel}}</ion-col>
                       <ion-col size="2"><ion-button (click)="moveLeft(input)" expand="full" color="primary"><ion-icon name="arrow-dropleft"></ion-icon></ion-button></ion-col>
-                      <ion-col size="5" class="gridHeader">{{input.columns}}"input.columns[input.currentCol].label"{{input.currentCol}}</ion-col>
+                      <ion-col size="5" class="gridHeader">{{input.columns[input.currentCol].label}}</ion-col>
                       <ion-col size="2"><ion-button (click)="moveRight(input)" expand="full" color="primary"><ion-icon name="arrow-dropright"></ion-icon></ion-button></ion-col>
                     </ion-row>
                     <ion-row *ngFor="let tmp of input.rowNums; let band = index"  class="ion-no-padding">

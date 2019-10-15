@@ -374,6 +374,8 @@ export class TympanRemote {
         this.parseConfigStringFromDevice(data);
       } else if (data.length>6 && data.slice(0,6)=='STATE=') {
         this.parseStateStringFromDevice(data);
+      } else if (data.length>6 && data.slice(0,5)=='TEXT=') {
+        this.parseTextStringFromDevice(data);
       }
     });
   }
@@ -433,6 +435,30 @@ export class TympanRemote {
       }
       catch(err) {
         this.logger.log(`Invalid state string: ${err}`);
+      }      
+    });
+  }
+
+  public parseTextStringFromDevice(data: string) {
+    //this.logger.log('Found state string from arduino:');
+    let textStr = data.slice(5);
+    //this.logger.log(stateStr);
+    let parts = textStr.split(':');
+    let featType = parts[0];
+    let id = parts[1];
+    let val = parts[2];
+    /* We're splitting on ":", but maybe the user wanted to display a message that included a colon? */
+    for (let idx = 3; idx<featType.length; idx++) {
+      val += ':';
+      val += parts[idx];
+    }
+    this.zone.run(()=>{
+      try {
+        this.adjustComponentById(id,'label',val);
+        //this.logger.log('Updating pages...');
+      }
+      catch(err) {
+        this.logger.log(`Invalid text string: ${err}`);
       }      
     });
   }
