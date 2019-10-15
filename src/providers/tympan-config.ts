@@ -121,9 +121,9 @@ export const DEFAULT_CONFIG = {
         {
           'name': 'Algorithm',
           'buttons': [
-            {'label': '~A', 'cmd': 'd', 'id': 'algA'},
-            {'label': '~B', 'cmd': 'D', 'id': 'algB'},
-            {'label': '~C', 'cmd': 'c', 'id': 'algC'}
+            {'label': '~A', 'cmd': 'd', 'id': 'algA', 'width': 2},
+            {'label': '~B', 'cmd': 'D', 'id': 'algB', 'width': 3},
+            {'label': '~C', 'cmd': 'c', 'id': 'algC', 'width': 8}
           ]
         }
       ]
