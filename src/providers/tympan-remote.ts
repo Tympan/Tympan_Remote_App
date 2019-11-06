@@ -48,13 +48,13 @@ export class TympanRemote {
   public showDevOptions: boolean = false;
   public showSerialMonitorPage: boolean = false;
   // properties related to the connected device:
-  private _allDevices: iDevice = [];
+  private _allDevices: iDevice[];
   private _activeDeviceIdx: number;
   private _config: any = {};
   
   get activeDevice() {
     if (this.connected && this._activeDeviceIdx>=0) {
-      return this._allDevices[this._activeDeviceId];
+      return this._allDevices[this._activeDeviceIdx];
     } else {
       return undefined;
     }
@@ -179,7 +179,7 @@ export class TympanRemote {
   }
 
   public getDeviceWithId(id: string) {
-    let device = this.allDevices.find((dev)=>{
+    let device = this._allDevices.find((dev)=>{
       return dev.id == id;
     });
     return device;
@@ -311,7 +311,7 @@ export class TympanRemote {
       this.logger.log(`setAD: connecting to ${dev.name} (${dev.id})`); //  `
       this.btSerial.connect(dev.id).subscribe(()=>{
         this.logger.log('CONNECTED');
-        this.activeDeviceId = id;
+        this.activeDeviceIdx = this.getDeviceIdxWithId(dev.id);
         this.connected = true;
         this.subscribe();
         this.sayHello();

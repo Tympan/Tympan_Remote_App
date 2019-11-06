@@ -6,7 +6,7 @@ import { ButtonComponent } from './presetcomponents/button/button.component';
 @Component({
   selector: 'app-tab2',
   templateUrl: 'presets.page.html',
-  styleUrls: ['presets.page.scss', '../controls/controls.page.scss']
+  styleUrls: ['presets.page.scss', '../prescription/prescription.page.scss']
 })
 export class PresetsPage {
 

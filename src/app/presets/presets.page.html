@@ -1,7 +1,7 @@
 <ion-content>
   <ion-slides pager="true" class="custom-bullets">
     <!-- CUSTOM SLIDES, FROM THE TYMPAN: -->
-    <ion-slide *ngFor="let page of remote.pages; let pageIdx = index">
+    <ion-slide *ngFor="let page of remote.globalPages; let pageIdx = index">
       <div style="width:100% !important; margin:4px; height: 1000px;">
         <p class="pageTitle">{{page.title}}</p>
       
@@ -24,7 +24,7 @@
     </ion-slide>
     <!-- SERIAL MONITOR SLIDE, IF REQUESTED IN 'DEVELOPER SETTINGS'-->
     <ion-slide *ngIf="remote.showSerialMonitorPage" class="sliderCard">
-      <div style="width:100% !important; margin:4px; height: 1000px;">
+      <div style="width:100% !important; margin:4px; height: 500px;">
         <p class="pageTitle">Full Logs</p>
         <ion-card>
           <ion-item>

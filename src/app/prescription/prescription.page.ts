@@ -6,11 +6,11 @@ import { tick } from '@angular/core/testing';
 
 @Component({
   selector: 'app-tab1',
-  templateUrl: 'controls.page.html',
-  styleUrls: ['controls.page.scss']
+  templateUrl: 'prescription.page.html',
+  styleUrls: ['prescription.page.scss']
 })
 
-export class ControlsPage{
+export class PrescriptionPage{
     @ViewChild("lineCanvas") lineCanvas;
     public lineChart: CharacterData;
     constructor(public remote: TympanRemote, public logger:Logger) {
