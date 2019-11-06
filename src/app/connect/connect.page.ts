@@ -24,9 +24,14 @@ export class ConnectPage {
         alert(err);
       });
     }
-    public setActive(id: string) {
-      this.logger.log(`Setting ${id} as active`);
-      this.remote.setActiveDevice(id);
+    public toggleActive(id: string) {
+      if (this.remote.isActiveId(id)) {
+        this.logger.log(`Setting ${id} as inactive`);
+        this.remote.disconnect();
+      } else {
+        this.logger.log(`Setting ${id} as active`);
+        this.remote.connectToId(id);        
+      }
     }
 
 }

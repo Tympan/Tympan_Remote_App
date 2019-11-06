@@ -8,7 +8,7 @@
   <ion-card>
     <ion-card-header style="padding-bottom: 8px; padding-top: 8px">Paired Devices</ion-card-header>
     <ion-card-content>
-      <ion-item *ngFor="let dev of remote.devices" (click)=setActive(dev.id) [color]="remote.isActiveId(dev.id) ? 'primary' : 'light'">
+      <ion-item *ngFor="let dev of remote.devices" (click)=toggleActive(dev.id) [color]="remote.isActiveId(dev.id) ? 'primary' : 'light'">
         <ion-col size-xs="6">{{ dev.name }}</ion-col>
         <ion-col size-xs="6">{{ dev.id==remote.activeDeviceId?"Connected!":" "}}</ion-col>
       </ion-item>
