@@ -1,4 +1,5 @@
 import { Injectable, NgZone } from '@angular/core';
+import { Platform } from '@ionic/angular';
 import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
 import { Logger } from './logger';
 import ieee754 from 'ieee754';
@@ -25,8 +26,6 @@ import {
 
 export enum BluetoothType {BLUETOOTH_SERIAL, BLE};
 
-const BLUETOOTH:boolean = false;
-
 enum ByteOrder {MSB, LSB};
 
 let ADD_BOYSTOWN_DSL: boolean = false;
@@ -41,6 +40,7 @@ let ADD_BOYSTOWN_PLOT: boolean = false;
   providedIn: 'root'
 })
 export class TympanRemote {
+	public bluetooth: boolean = true;
   public btSerial: BluetoothSerial;
   public _emulate: boolean = false; // show emulated devices?
   public connected: boolean = false;
@@ -132,7 +132,7 @@ export class TympanRemote {
     })
   }
 
-  constructor(private zone: NgZone, private logger: Logger) {
+  constructor(private platform: Platform, private zone: NgZone, private logger: Logger) {
     this.btSerial = new BluetoothSerial();
     this._emulate = false;
     this.connected = false;
@@ -143,15 +143,14 @@ export class TympanRemote {
     this._activeDeviceIdx = -1;
     this._config = {};
 
+    this.checkBluetoothStatus();
+
     this.addDevice(DEVICE_1);
     this.addDevice(DEVICE_2);
 
     this.disconnect(); // start by being disconnected
 
     this.logger.log('hello');
-    for (let i=0; i<30; i++) {
-        this.logger.log('Log number '+i);
-    }
     this.updateDeviceList();
   }
 
@@ -280,11 +279,30 @@ export class TympanRemote {
     // Should reset the bluetooth connection, disconnecting from any connected device.
   }
 
+  public async checkBluetoothStatus() {
+  	this.logger.log('Checking BT status...');
+  	if (!this.platform.is('cordova')) {
+  		this.logger.log('Bluetooth is unavailable; not a cordova platform');
+  		this.bluetooth = false
+  		return;
+  	}
+
+		this.btSerial.isEnabled().then(()=>{
+	  	this.logger.log('Bluetooth is available');
+	  	this.bluetooth = true;
+  		return;
+  	},()=>{
+  		this.logger.log('Bluetooth is unavailable; not enabled on device');
+  		this.bluetooth = false;
+	  	return;
+  	});
+  }
+
   public disconnect() {
     this._activeDeviceIdx = -1;
     this.connected = false;
     this.setConfig(DEFAULT_CONFIG);
-    if (BLUETOOTH) {
+    if (this.bluetooth) {
       this.btSerial.disconnect();
     }
   }
@@ -377,8 +395,9 @@ export class TympanRemote {
       }
     });
     */
-		if (this.btSerial) {
-			this.btSerial.subscribe('\n').subscribe(this.interpretDataFromDevice);
+		if (this.bluetooth && this.btSerial) {
+			this.logger.log('subscribingx');
+			this.btSerial.subscribe('\n').subscribe((data)=>{this.interpretDataFromDevice(data);});
 		}
   }
 
@@ -478,14 +497,14 @@ export class TympanRemote {
   }
 
   public async updateDeviceList() {
-    this.logger.log('Getting device list:');
-    if (BLUETOOTH) {
+    this.logger.log('Updating device list:');
+    if (this.bluetooth) {
       this.btSerial.list().then((btDevices)=>{
       	let activeBtDeviceIds = btDevices.map((d)=>{return d.id;});
       	// First, get rid of all devices that have lost bluetooth:
       	for (let i = this._allDevices.length-1; i>=0; i--) {
       		let storedDevice = this._allDevices[i];
-      		if (!activeBtDeviceIds.contains(storedDevice.id) && !storedDevice.emulated) {
+      		if (!activeBtDeviceIds.includes(storedDevice.id) && !storedDevice.emulated) {
       			this.removeDeviceWithId(storedDevice.id);
       		}
       	}
@@ -532,13 +551,14 @@ export class TympanRemote {
 
   public send(s: string) {
     this.logger.log(`Sending ${s} to ${this.activeDevice.name}`);  
-    if (BLUETOOTH) {
+    if (this.bluetooth) {
       this.btSerial.write(s).then(()=>{
-        //this.logger.log(`Successfully sent ${s}`);
+        this.logger.log(`Successfully sent ${s}`);
       }).catch(()=>{
         this.logger.log(`Failed to send ${s}`);
       });
     } else {
+    	this.logger.log('mock sending.');
     	//this.mockSend(s);
     }
   }
@@ -634,7 +654,7 @@ export class TympanRemote {
 
     let charStr = DATASTREAM_START_CHAR + this.numberAsCharStr(dataStr.length,'int32') + DATASTREAM_SEPARATOR + dataStr + DATASTREAM_END_CHAR;
 
-    if (BLUETOOTH) {
+    if (this.bluetooth) {
       this.btSerial.write(charStr).then(()=>{
         //this.logger.log(`Successfully sent ${charStr}`);
       }).catch(()=>{
