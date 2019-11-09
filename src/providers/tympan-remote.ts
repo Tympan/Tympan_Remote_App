@@ -24,7 +24,7 @@ import {
   DEFAULT_CONFIG,
 } from './tympan-config';
 
-export enum BluetoothType {BLUETOOTH_SERIAL, BLE};
+//export enum BluetoothType {BLUETOOTH_SERIAL, BLE};
 
 enum ByteOrder {MSB, LSB};
 
