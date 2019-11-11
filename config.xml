@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="8" id="com.creare.tympanRemote" version="0.1.2" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>Tympan Remote</name>
+<widget android-versionCode="1" id="com.creare.tympanRemoteDev" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Tympan RD</name>
     <description>A BLE controller for a Tympan device.</description>
     <author email="kxm@creare.com" href="https://shop.tympan.org/">The Tympan Team</author>
     <content src="index.html" />
