@@ -347,7 +347,7 @@ export class TympanRemote {
       console.log(`Cannot set the ${field} of ${id}: invalid field`);
       return;
     }
-    for (let page of this._config.pages) {
+    for (let page of this._config.global.pages) {
       for (let card of page.cards) {
         for (let btn of card.buttons) {
           if (btn.id == id) {
@@ -445,9 +445,9 @@ export class TympanRemote {
         switch (featType) {
           case 'BTN':
             if (val[0]==='0') {
-              //this.btn[id] = BUTTON_STYLE_OFF;
+              this.adjustComponentById(id,'style',BUTTON_STYLE_OFF);
             } else if (val[0]==='1') {
-              //this.btn[id] = BUTTON_STYLE_ON;
+              this.adjustComponentById(id,'style',BUTTON_STYLE_ON);
             } else {
               throw 'Button state must be 0 or 1';
             }
@@ -550,6 +550,11 @@ export class TympanRemote {
   }
 
   public send(s: string) {
+    if (!this.connected) {
+      this.logger.log('Not connected to a device.');
+      return;
+    }
+
     this.logger.log(`Sending ${s} to ${this.activeDevice.name}`);  
     if (this.bluetooth) {
       this.btSerial.write(s).then(()=>{
@@ -630,6 +635,11 @@ export class TympanRemote {
 // }
 
   public sendInputCard(card: any) {
+    if (!this.connected) {
+      this.logger.log('Not connected to a device.');
+      return;
+    }
+
     console.log('sending...');
     console.log(card);
 
