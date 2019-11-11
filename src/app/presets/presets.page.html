@@ -28,8 +28,8 @@
         <p class="pageTitle">Full Logs</p>
         <ion-card>
           <ion-item>
-            <ion-input item-start placeholder="Text to send" [(ngModel)]="SingleCharInput"></ion-input>
-            <ion-button item-end strong=true (click)="remote.send(SingleCharInput)">Send</ion-button>
+            <ion-input item-start placeholder="Text to send" [(ngModel)]="textInput"></ion-input>
+            <ion-button item-end strong=true (click)="remote.send(textInput)">Send</ion-button>
           </ion-item>
         </ion-card>
         <ion-card class="log-card" id="full-log">

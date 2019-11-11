@@ -50,10 +50,6 @@
         <ion-label>Test</ion-label>
         <ion-button item-end strong=true (click)="remote.testFn()">TEST</ion-button>
       </ion-item>
-      <ion-item>
-        <ion-input item-start placeholder="Send Single Character" [(ngModel)]="SingleCharInput"></ion-input>
-        <ion-button item-end strong=true (click)="remote.send(SingleCharInput)">Send</ion-button>
-      </ion-item>
     </ion-card-content>
   </ion-card>
 
