@@ -20,7 +20,8 @@ export class ConnectPage {
       this.appVersion.getVersionNumber().then(value => {
         this.VersionNumber = value;
       }).catch(err => {
-        alert(err);
+        this.logger.log('Error getting app version number.');
+        this.logger.log(err);
       });
     }
     public toggleActive(id: string) {
