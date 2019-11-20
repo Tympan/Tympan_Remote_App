@@ -1,18 +1,18 @@
 <ion-content>
-  <ion-slides>
-    <ion-slide *ngFor="let page of remote.pages.slice(1); let pageIdx = index">
-      <div style="width:100% !important; margin:4px">
+  <ion-slides pager="true" class="custom-bullets">
+    <ion-slide *ngFor="let page of remote.prescriptionPages; let pageIdx = index">
+      <div style="width:100% !important; margin:4px;">
         <p class="pageTitle">{{page.title}}</p>
         <ion-card *ngFor="let card of page.cards; let cardIdx = index" class="sliderCard">
           <ion-card-header class="sliderCardHeader">{{card.name}}</ion-card-header>
 
-            <!-- BUTTON CONTENT: -->
-            <ion-card-content *ngIf="!!card.buttons">
-              <ion-row>
-                <ion-col size="6" *ngFor="let btn of card.buttons; let j = index"  class="ion-no-padding">
-                  <ion-button expand="block" strong=true [color]="remote.btn[btn.id].color" (click)="cmd(btn.cmd)">{{btn.label}}</ion-button>
-                </ion-col>
-              </ion-row>
+            <!-- TOGGLE CONTENT: -->
+            <ion-card-content *ngIf="!!card.toggles">
+                <ion-item *ngFor="let tog of card.toggles; let j = index"  class="ion-no-padding">
+                  <ion-label>{{tog.label}}</ion-label>
+                  <ion-checkbox [(ngModel)]="tog.id" (click)="remote.toggleState(tog.id)"></ion-checkbox>
+                </ion-item>
+                <ion-button expand="block" *ngIf="card.submitButton" (click)="remote.setUpPages()">Add Pages</ion-button>
             </ion-card-content>
 
             <!-- INPUTS CONTENT: -->
@@ -43,6 +43,14 @@
               </ion-item>
               <ion-button expand="block" *ngIf="card.submitButton" (click)="sendInputCard(card)">SUBMIT {{card.name}}</ion-button>
             </ion-card-content>
+
+            <!-- PLOT CONTENT -->
+              <ion-card-content *ngIf=!!card.plot>
+                  <ion-card-content>
+                    <canvas #lineCanvas height="200px"></canvas>
+                  </ion-card-content>
+                  <ion-button (click)="makeLineChart()">Load Graph</ion-button>
+                </ion-card-content>
 
         </ion-card>
       </div>

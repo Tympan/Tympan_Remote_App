@@ -1,0 +1,45 @@
+.button {
+	height:5vh;
+}
+
+.sliderCard {
+	border: thin solid gray;
+	margin: 5px 5px 0px 0px;
+	padding: 10px;
+}
+
+.sliderCardHeader {
+	padding-bottom: 8px; 
+	padding-top: 8px;
+	font-size: 24px;
+	text-align: center;
+}
+
+.gridHeader {
+	padding-bottom: 8px;
+	padding-top: 8px;
+	font-size: 20px;
+	text-align: center;
+}
+
+.gridData {
+	/* font-size: 20px; */
+	text-align: center;
+	background-color: lightgray;
+}
+
+.gridColFrozen {
+	/* font-size: 20px; */
+	text-align: center;
+}
+
+logHeader {
+	margin: 4px;
+	text-align: center;	
+	font-size: 16px;
+}
+
+.logText {
+	margin: 4px;
+	text-align: left;
+}

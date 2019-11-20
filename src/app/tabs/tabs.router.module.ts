@@ -17,11 +17,11 @@ const routes: Routes = [
         ]
       },
       {
-        path: 'controls',
+        path: 'prescription',
         children: [
           {
             path: '',
-            loadChildren: '../controls/controls.module#ControlsPageModule'
+            loadChildren: '../prescription/prescription.module#PrescriptionPageModule'
           }
         ]
       },

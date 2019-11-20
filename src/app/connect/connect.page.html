@@ -6,18 +6,15 @@
   </ion-row>
 
   <ion-card>
-    <ion-button strong=true (click)="remote.updateDeviceList()">
-      Rescan for Devices
-    </ion-button>
-  </ion-card>
-
-  <ion-card>
     <ion-card-header style="padding-bottom: 8px; padding-top: 8px">Paired Devices</ion-card-header>
     <ion-card-content>
-      <ion-item *ngFor="let dev of remote.devices" (click)=setActive(dev.id) [color]="remote.isActiveId(dev.id) ? 'primary' : 'light'">
+      <ion-item *ngFor="let dev of remote.devices" (click)=toggleActive(dev.id) [color]="remote.isActiveId(dev.id) ? 'primary' : 'light'">
         <ion-col size-xs="6">{{ dev.name }}</ion-col>
         <ion-col size-xs="6">{{ dev.id==remote.activeDeviceId?"Connected!":" "}}</ion-col>
       </ion-item>
+      <ion-button strong=true (click)="remote.updateDeviceList()">
+        Rescan for Devices
+      </ion-button>
     </ion-card-content>
   </ion-card>
 
@@ -30,15 +27,30 @@
           <ion-label>Show logs on all tabs</ion-label>
           <ion-toggle [(ngModel)]="remote.showLogs"></ion-toggle>
         </ion-item>
+        <ion-item>
+            <ion-label>Developer options</ion-label>
+            <ion-toggle [(ngModel)]="remote.showDevOptions"></ion-toggle>
+          </ion-item>
       </ion-list>
-
     </ion-card-content>
   </ion-card>
 
-  <ion-card>
-    <ion-button strong=true (click)="remote.testFn()">
-      TEST
-    </ion-button>
+  <ion-card *ngIf="remote.showDevOptions">
+    <ion-card-header>Developer Options</ion-card-header>
+    <ion-card-content>
+      <ion-item>
+        <ion-label>Enable mock devices</ion-label>
+        <ion-toggle [(ngModel)]="remote.emulate"></ion-toggle>
+      </ion-item>
+      <ion-item>
+        <ion-label>Show serial monitor</ion-label>
+        <ion-toggle [(ngModel)]="remote.showSerialMonitorPage"></ion-toggle>
+      </ion-item>
+      <ion-item>
+        <ion-label>Test</ion-label>
+        <ion-button item-end strong=true (click)="remote.testFn()">TEST</ion-button>
+      </ion-item>
+    </ion-card-content>
   </ion-card>
 
   <ion-card>
@@ -46,7 +58,7 @@
     <ion-card-header>Logs</ion-card-header>
     <p *ngFor="let msg of logger.logArray.slice(-4); let i = index" class="logText">{{msg}}</p>
   </ion-card>
-
+<ion-note>Version: {{VersionNumber}}</ion-note>
 </ion-content>
 
 

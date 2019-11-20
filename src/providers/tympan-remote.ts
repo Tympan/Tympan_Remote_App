@@ -1,147 +1,37 @@
 import { Injectable, NgZone } from '@angular/core';
+import { Platform } from '@ionic/angular';
 import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
 import { Logger } from './logger';
 import ieee754 from 'ieee754';
 
-interface iDevice {
-  id: string;
-  name: string;
-  uuid?: string;
-  class?: number;
-  address?: string;
-  rssi?: number;
-  emulated?: boolean;
-}
+import {
+  iDevice,
+  DEVICE_1,
+  DEVICE_2,
+  DATASTREAM_START_CHAR,
+  DATASTREAM_SEPARATOR,
+  DATASTREAM_END_CHAR,
+  DATASTREAM_PREFIX_GHA,
+  DATASTREAM_PREFIX_DSL,
+  DATASTREAM_PREFIX_AFC,
+  BUTTON_STYLE_ON,
+  BUTTON_STYLE_OFF,
+  BUTTON_STYLE_NONE,
+  BOYSTOWN_PAGE_DSL,
+  BOYSTOWN_PAGE_WDRC,
+  BOYSTOWN_PAGE_AFC,
+  BOYSTOWN_PAGE_PLOT,
+  DEFAULT_CONFIG,
+} from './tympan-config';
 
-const DEVICE_1: iDevice = {
-  id: 'mo:ck:01',
-  name: 'mock1',
-  emulated: true
-};
-
-const DEVICE_2: iDevice = {
-  id: 'mo:ck:02',
-  name: 'mock2',
-  emulated: true
-};
-
-const BLUETOOTH:boolean = true;
+//export enum BluetoothType {BLUETOOTH_SERIAL, BLE};
 
 enum ByteOrder {MSB, LSB};
 
-const DATASTREAM_START_CHAR = String.fromCharCode(0x02);
-const DATASTREAM_SEPARATOR = String.fromCharCode(0x03);
-const DATASTREAM_END_CHAR = String.fromCharCode(0x04);
-
-const BUTTON_STYLE_ON = {color: 'success', isOn: true};
-const BUTTON_STYLE_OFF = {color: 'medium', isOn: false};
-
-const DEFAULT_CONFIG = {
-  'icon': 'creare.png',
-  'pages': [
-    { 
-      'title':'Presets', 
-      'cards':[
-        {
-          'name': 'Algorithm',
-          'buttons': [
-            {'label': '~A', 'cmd': 'd', 'id': 'algA'},
-            {'label': '~B', 'cmd': 'D', 'id': 'algB'},
-            {'label': '~C', 'cmd': 'c', 'id': 'algC'}
-          ]
-        }
-      ]
-    },
-    { 
-      'title':'Gain Settings', 
-      'cards':[
-        {
-          'name': 'High Gain',
-          'buttons': [
-            {'label': '~-', 'cmd': '#', 'id': 'hi'},
-            {'label': '~+', 'cmd': '3', 'id': 'rest'}
-          ]
-        },
-        {
-          'name': 'Mid Gain',
-          'buttons': [
-            {'label': '~-', 'cmd': '@', 'id': 'rest'},
-            {'label': '~+', 'cmd': '2', 'id': 'rest'}
-          ]
-        },
-        {
-          'name': 'Low Gain',
-          'buttons': [
-            {'label': '~-', 'cmd': '!'},
-            {'label': '~+', 'cmd': '1'}
-          ]
-        }
-      ]
-    }
-  ]
-};
-
-const BOYSTOWN_PAGE = {
-  'title': 'BoysTown Algorithm',
-  'cards': [
-    {
-      'name': 'DSL',
-      'inputs': [
-        {'label': 'Attack', 'type': 'float', 'value': 30},
-        {'label': 'Release', 'type': 'float', 'value': 300},
-        {'label': 'maxdB', 'type': 'float', 'value': 115},
-        {'label': 'speaker', 'type': 'int', 'value': 0},
-        {'label': 'numChannels', 'type': 'int', 'value': 8, 'disabled': true},
-        {'label': 'Band Data', 'type': 'grid', 'numRows': 8, 'indexLabel': 'Band', 'columns': [
-                {'label': 'Frequency', 'type': 'float', 'values': [0, 317.1666, 502.9734, 797.6319, 1264.9, 2005.9, 3181.1, 5044.7]},
-                {'label': 'Low SPL Compression Ratio', 'type': 'float', 'values': [0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57]},
-                {'label': 'Compression Start Gain', 'type': 'float', 'values': [20., 20., 25., 30., 30., 30., 30., 30.]},
-                {'label': 'Compression Start Knee', 'type': 'float', 'values': [20., 20., 25., 30., 30., 30., 30., 30.]},
-                {'label': 'Compression Ratio', 'type': 'float', 'values': [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5]},
-                {'label': 'Expansion End Knee', 'type': 'float', 'values': [45.0, 45.0, 33.0, 32.0, 36.0, 34.0, 36.0, 40.0]},
-                {'label': 'Threshold', 'type': 'float', 'values': [90., 90., 90., 90., 90., 91., 92., 93.]},
-        ]},
-      ],      
-      'submitButton': {'prefix': 'dsl'}
-    },
-    {
-      'name': 'WDRC',
-      'inputs': [
-        {'label': 'Attack', 'type': 'float', 'value': 5},
-        {'label': 'Release', 'type': 'float', 'value': 300},
-        {'label': 'Sample Rate', 'type': 'float', 'value': 24000},
-        {'label': 'maxdB', 'type': 'float', 'value': 115},
-        {'label': 'Low SPL Compression Ratio', 'type': 'float', 'value': 1.0},
-        {'label': 'Compression Start Gain', 'type': 'float', 'value': 0.},
-        {'label': 'Compression Start Knee', 'type': 'float', 'value': 115.},
-        {'label': 'Compression Ratio', 'type': 'float', 'value': 1.},
-        {'label': 'Expansion End Knee', 'type': 'float', 'value': 0.0},
-        {'label': 'Threshold', 'type': 'float', 'value': 98.0},
-      ],
-      'submitButton': {'prefix': 'wdrc'}
-    },
-  ],
-};
-
-const ADD_BOYSTOWN: boolean = true;
-
-
-/*
-const DEFAULT_CONFIG = {
-  'icon':'tympan.png',
-  'pages':[
-    {'title':'Presets','cards':[
-      {'name':'Record Mics to SD Card','buttons':[{'label': 'Start', 'cmd': 'r', 'id':'recordStart'},{'label': 'Stop', 'cmd': 's'}]}
-    ]},
-    {'title':'Tuner','cards':[
-      {'name':'Select Input','buttons':[{'label': 'Headset Mics', 'cmd': 'W', 'id':'configHeadset'},{'label': 'PCB Mics', 'cmd': 'w', 'id': 'configPCB'}]},
-      {'name':'Input Gain', 'buttons':[{'label': 'Less', 'cmd' :'I'},{'label': 'More', 'cmd': 'i'}]},
-      {'name':'Record Mics to SD Card','buttons':[{'label': 'Start', 'cmd': 'r', 'id':'recordStart'},{'label': 'Stop', 'cmd': 's'}]},
-      {'name':'CPU Reporting', 'buttons':[{'label': 'Start', 'cmd' :'c','id':'cpuStart'},{'label': 'Stop', 'cmd': 'C'}]}
-    ]}                            
-  ]
-};
-*/
+let ADD_BOYSTOWN_DSL: boolean = false;
+let ADD_BOYSTOWN_WDRC: boolean = false;
+let ADD_BOYSTOWN_AFC: boolean = false;
+let ADD_BOYSTOWN_PLOT: boolean = false;
 
 /**
  * This class contains the variables and methods for the Tympan Remote app.
@@ -150,80 +40,211 @@ const DEFAULT_CONFIG = {
   providedIn: 'root'
 })
 export class TympanRemote {
+	public bluetooth: boolean = true;
   public btSerial: BluetoothSerial;
-  public allDevices: iDevice[];
-  public _activeDeviceId: string;
-  private _config: any = {};
-  public emulate: boolean = false;
+  public _emulate: boolean = false; // show emulated devices?
   public connected: boolean = false;
-  public btn: any = {};
-  private _devIcon: string;
   public showLogs: boolean = false;
-
+  public showDevOptions: boolean = false;
+  public showSerialMonitorPage: boolean = false;
+  // properties related to the connected device:
+  private _allDevices: iDevice[];
+  private _activeDeviceIdx: number;
+  private _config: any = {};
+  
   get activeDevice() {
-    if (this.connected) {
-      let f = this.findDeviceWithId(this._activeDeviceId);
-      return f;
+    if (this.connected && this._activeDeviceIdx>=0) {
+      return this._allDevices[this._activeDeviceIdx];
     } else {
       return undefined;
     }
   }
 
   get activeDeviceId() {
-    if (this.connected) {
-      return this._activeDeviceId;
+    if (this.connected && this._activeDeviceIdx>=0) {
+      return this._allDevices[this._activeDeviceIdx].id;
     } else {
-      return '';
+      return undefined;
     }
   }
 
   get deviceIds(): string[] {
     // Should only return emulated devices if emulate
     let deviceIds: string[] = [];
-    for (let dev of this.allDevices) {
+    for (let i=0; i<this._allDevices.length; i++) {
+    	let dev = this._allDevices[i];
       //this.logger.log(dev);
-      if (dev.emulated && !this.emulate) {
+      if (dev.emulated && !this._emulate) {
         // do nothing
+        console.log('doing nothing');
       } else {
         this.logger.log(`Pushing ${dev.id}`);
         deviceIds.push(dev.id);
       }
     }
+    console.log('Device ids:');
+    console.log(deviceIds);
     return deviceIds;
   }
 
+  get emulate(): boolean {
+    return this._emulate;
+  }
+
+  set emulate(tf: boolean) {
+    console.log(`setting emulate to ${tf}`);
+    if ((tf === false) && this.activeDevice && (this.activeDevice.emulated===true)) {
+      this.disconnect();
+    }
+    console.log(this._allDevices);
+    this.zone.run(()=>{
+	    this._emulate = tf;
+    });
+  }
+
   get devices(): any {
-    return this.allDevices;
+  	if (this._emulate) {
+	    return this._allDevices;
+  	} else {
+  		return this._allDevices.filter(dev=>!dev.emulated);
+  	}
   }
 
-  get pages() {
-    return this._config.pages;
+  get globalPages() {
+    return this._config.global.pages;
   }
 
-  set pages(pages: any) {
-    // Add the Boystown page?
-    if (ADD_BOYSTOWN) {
-      pages = pages.concat(BOYSTOWN_PAGE);
-    }
+  get prescriptionPages() {
+    return this._config.prescription.pages;
+  }
 
-    // Set styles for all buttons on pages:
-    let btnStyle = {};
-    for (let page of pages) {
-      if (page.cards) {
-        for (let card of page.cards) {
-          if (card.buttons) {
-            for (let button of card.buttons) {
-              if (button.id) {
-                btnStyle[button.id] = BUTTON_STYLE_OFF;
-              } else {
-                button['id'] = 'default';
-                btnStyle['default'] = BUTTON_STYLE_OFF;
-              }
-            }            
+  get devIcon(): string {
+  	return this._config.prescription.devIcon;
+  }
+
+  get activeDeviceIdx() {
+  	return this._activeDeviceIdx;
+  }
+
+  set activeDeviceIdx(idx: number) {
+    this.zone.run(()=>{
+      this._activeDeviceIdx = idx;
+    })
+  }
+
+  constructor(private platform: Platform, private zone: NgZone, private logger: Logger) {
+    this.btSerial = new BluetoothSerial();
+    this._emulate = false;
+    this.connected = false;
+    this.showLogs = false;
+    this.showDevOptions = false;
+    this.showSerialMonitorPage = false;
+    this._allDevices = [];
+    this._activeDeviceIdx = -1;
+    this._config = {};
+
+    this.checkBluetoothStatus();
+
+    this.addDevice(DEVICE_1);
+    this.addDevice(DEVICE_2);
+
+    this.disconnect(); // start by being disconnected
+
+    this.logger.log('hello');
+    this.updateDeviceList();
+  }
+
+  private getDeviceIdxWithId(id: string) {
+  	return this._allDevices.findIndex((dev)=>{return dev.id === id;});
+  }
+
+  public addDevice(dev: iDevice) {
+  	let idx = this.getDeviceIdxWithId(dev.id);
+  	if (idx<0) {
+  		this._allDevices.push(dev);
+  	} else {
+  		// Update the device in some way?
+  	}
+  }
+
+  public removeDeviceWithId(devId: string) {
+  	if (this._allDevices.hasOwnProperty(devId)) {
+  		delete this._allDevices[devId];
+  	}
+  }
+
+  public isActiveId(id: string) {
+    return id == this.activeDeviceId;
+  }
+
+  public getDeviceWithId(id: string) {
+    let device = this._allDevices.find((dev)=>{
+      return dev.id == id;
+    });
+    return device;
+  }
+
+  public buildPrescriptionPages(presc: any): any {
+
+    let pages = [];
+
+    if (presc && presc.type == 'BoysTown') {
+      for (let pageName of presc.pages) {
+        console.log(pageName);
+        switch (pageName) {
+          case 'multiband': {
+            pages.push(BOYSTOWN_PAGE_DSL);
+            break;
           }
-        }        
+          case 'broadband': {
+            pages.push(BOYSTOWN_PAGE_WDRC);
+            break;
+          }
+          case 'afc': {
+            pages.push(BOYSTOWN_PAGE_AFC);
+            break;
+          }
+          case 'plot': {
+            pages.push(BOYSTOWN_PAGE_PLOT);
+            break;
+          }
+        }
       }
+    } else {
+      pages = [{
+        'title':'prescriptions',
+        'cards':[{'name': 'No Prescription', 'buttons': []}]
+      }];
     }
+
+    this.initializePages(pages);
+    return pages;
+  }
+
+  public setConfig(cfgObj: any) {
+    this.logger.log('Updating pages...');
+
+  	let newConfig = {};
+
+    if (cfgObj.icon) {
+      newConfig['devIcon'] = '/assets/devIcon/' + cfgObj.icon;
+    }
+    if (cfgObj.pages) {
+    	this.initializePages(cfgObj.pages);
+    	newConfig['global'] = {'pages': cfgObj.pages};
+    }
+    if (cfgObj.prescription) {
+    	newConfig['prescription'] = cfgObj.prescription;
+    	newConfig['prescription'].pages = this.buildPrescriptionPages(cfgObj.prescription);
+    }
+
+    this.zone.run(()=>{
+      this._config = newConfig;
+      //this.btn = btnStyle;      
+    });  	
+  }
+
+  public initializePages(pages: any) {
     // Create variables to control cycling through tables:
     for (let page of pages) {
       if (page.cards) {
@@ -236,55 +257,18 @@ export class TympanRemote {
               }
             }            
           }
+          if (card.buttons) {
+            for (let button of card.buttons) {
+              if (!button.cmd) {
+                button.style = BUTTON_STYLE_NONE;
+              } else {
+                button.style = BUTTON_STYLE_OFF;
+              }
+            }            
+          }
         }        
       }
     }
-    // Update the styles:
-    this.zone.run(()=>{
-      this._config.pages = pages;
-      this.btn = btnStyle;      
-    });
-  }
-
-  set devIcon(filename: string) {
-    this.zone.run(()=>{
-      this._devIcon = '/assets/devIcon/' + filename; 
-    });
-  }
-
-  get devIcon(): string {
-    return this._devIcon;
-  } 
-
-  set activeDeviceId(id: string) {
-    this.zone.run(()=>{
-      this._activeDeviceId = id;
-    })
-  }
-
-  constructor(private zone: NgZone, private logger: Logger) {
-    this.btSerial = new BluetoothSerial();
-    this.allDevices = [];
-    this.allDevices.push(DEVICE_1);
-    this.allDevices.push(DEVICE_2);
-    this.pages = DEFAULT_CONFIG.pages;
-    this.devIcon = DEFAULT_CONFIG.icon;
-    this.setActiveDevice(DEVICE_1.id);
-
-    this.logger.log('hello');
-    this.updateDeviceList();
-  }
-
-  public isActiveId(id: string) {
-    return id == this._activeDeviceId;
-  }
-
-  public findDeviceWithId(id: string) {
-    let device = this.allDevices.find((dev)=>{
-      //this.logger.log(`Comparing ${id} with ${dev.id}`);
-      return dev.id == id;
-    });
-    return device;
   }
 
   /*
@@ -295,42 +279,82 @@ export class TympanRemote {
     // Should reset the bluetooth connection, disconnecting from any connected device.
   }
 
+  public async checkBluetoothStatus() {
+  	this.logger.log('Checking BT status...');
+  	if (!this.platform.is('cordova')) {
+  		this.logger.log('Bluetooth is unavailable; not a cordova platform');
+  		this.bluetooth = false
+  		return;
+  	}
+
+		this.btSerial.isEnabled().then(()=>{
+	  	this.logger.log('Bluetooth is available');
+	  	this.bluetooth = true;
+  		return;
+  	},()=>{
+  		this.logger.log('Bluetooth is unavailable; not enabled on device');
+  		this.bluetooth = false;
+	  	return;
+  	});
+  }
+
   public disconnect() {
-    this._activeDeviceId = '';
+    this._activeDeviceIdx = -1;
     this.connected = false;
-    this.pages = DEFAULT_CONFIG.pages;
-    this.devIcon = DEFAULT_CONFIG.icon;
-    if (BLUETOOTH) {
+    this.setConfig(DEFAULT_CONFIG);
+    if (this.bluetooth) {
       this.btSerial.disconnect();
     }
   }
 
-  public setActiveDevice(id: string) {
+  public toggleState(id){
+    id=!id
+  }
 
-    this.logger.log(`remote.setActiveDevice: setting device with id ${id} as active.`);
+  public connectToId(id: string) {
+
+    this.logger.log(`remote.connectToId: setting device with id ${id} as active.`);
     this.disconnect();
-    let dev = this.findDeviceWithId(id);
-    if (dev==null) {
+    let devIdx = this.getDeviceIdxWithId(id);
+    let dev = this._allDevices[devIdx];
+    if (devIdx<0) {
       this.logger.log('Could not find device.');
-      this._activeDeviceId = '';
+      this._activeDeviceIdx = -1;
       return;
     }
     if (dev.emulated) {
-      this.activeDeviceId = id;
+      this.activeDeviceIdx = devIdx;
       this.connected = true;
     } else {
       this.logger.log(`setAD: connecting to ${dev.name} (${dev.id})`); //  `
       this.btSerial.connect(dev.id).subscribe(()=>{
         this.logger.log('CONNECTED');
-        this.activeDeviceId = id;
+        this.activeDeviceIdx = this.getDeviceIdxWithId(dev.id);
         this.connected = true;
         this.subscribe();
         this.sayHello();
       },()=>{
         this.logger.log('CONNECTION FAIL');
-        this.activeDeviceId = '';
+        this.activeDeviceIdx = -1;
         this.connected = false;
       });      
+    }
+  }
+
+  public adjustComponentById(id: string, field: string, property: any) {
+    let adjustableFields = ['label','style'];
+    if (!adjustableFields.includes(field)) {
+      console.log(`Cannot set the ${field} of ${id}: invalid field`);
+      return;
+    }
+    for (let page of this._config.global.pages) {
+      for (let card of page.cards) {
+        for (let btn of card.buttons) {
+          if (btn.id == id) {
+            btn[field] = property;
+          }
+        }
+      }
     }
   }
 
@@ -341,6 +365,7 @@ export class TympanRemote {
     this.updateDeviceList();
     */
 
+    /*
     this.send(DATASTREAM_START_CHAR);
     this.send(this.numberAsCharStr(13,'int32'));
     this.send(DATASTREAM_SEPARATOR);
@@ -349,17 +374,42 @@ export class TympanRemote {
     this.send(this.numberAsCharStr(17501197,'int32'));
     this.send(this.numberAsCharStr(3.14,'float'));
     this.send(DATASTREAM_END_CHAR);
+    */
+   
+    console.log('testing');
+    this.adjustComponentById('algA','label','6^');
+    this.adjustComponentById('algB','label','37!!');
+    this.adjustComponentById('algC','style',BUTTON_STYLE_ON);
   }
 
   public subscribe() {
+  	/*
     this.btSerial.subscribe('\n').subscribe((data)=>{
       this.logger.log(`>${data}`);
       if (data.length>5 && data.slice(0,5)=='JSON=') {
         this.parseConfigStringFromDevice(data);
       } else if (data.length>6 && data.slice(0,6)=='STATE=') {
         this.parseStateStringFromDevice(data);
+      } else if (data.length>6 && data.slice(0,5)=='TEXT=') {
+        this.parseTextStringFromDevice(data);
       }
     });
+    */
+		if (this.bluetooth && this.btSerial) {
+			this.logger.log('subscribingx');
+			this.btSerial.subscribe('\n').subscribe((data)=>{this.interpretDataFromDevice(data);});
+		}
+  }
+
+  public interpretDataFromDevice(data: string) {
+    this.logger.log(`>${data}`);
+    if (data.length>5 && data.slice(0,5)=='JSON=') {
+      this.parseConfigStringFromDevice(data);
+    } else if (data.length>6 && data.slice(0,6)=='STATE=') {
+      this.parseStateStringFromDevice(data);
+    } else if (data.length>6 && data.slice(0,5)=='TEXT=') {
+      this.parseTextStringFromDevice(data);
+    }
   }
 
   public parseConfigStringFromDevice(data: string) {
@@ -368,11 +418,7 @@ export class TympanRemote {
     this.logger.log(cfgStr);
     try {
       let cfgObj = JSON.parse(cfgStr);
-      this.pages = cfgObj.pages;
-      this.logger.log('Updating pages...');
-      if (cfgObj.icon) {
-        this.devIcon = cfgObj.icon;
-      }
+      this.setConfig(cfgObj);
     } catch(err) {
       this.logger.log(`Invalid json string: ${err}`);
       for (let idx = 0; idx<cfgStr.length; idx=idx+20) {
@@ -399,9 +445,9 @@ export class TympanRemote {
         switch (featType) {
           case 'BTN':
             if (val[0]==='0') {
-              this.btn[id] = BUTTON_STYLE_OFF;
+              this.adjustComponentById(id,'style',BUTTON_STYLE_OFF);
             } else if (val[0]==='1') {
-              this.btn[id] = BUTTON_STYLE_ON;
+              this.adjustComponentById(id,'style',BUTTON_STYLE_ON);
             } else {
               throw 'Button state must be 0 or 1';
             }
@@ -421,23 +467,53 @@ export class TympanRemote {
     });
   }
 
+  public parseTextStringFromDevice(data: string) {
+    //this.logger.log('Found state string from arduino:');
+    let textStr = data.slice(5);
+    //this.logger.log(stateStr);
+    let parts = textStr.split(':');
+    let featType = parts[0];
+    let id = parts[1];
+    let val = parts[2];
+    /* We're splitting on ":", but maybe the user wanted to display a message that included a colon? */
+    for (let idx = 3; idx<featType.length; idx++) {
+      val += ':';
+      val += parts[idx];
+    }
+    this.zone.run(()=>{
+      try {
+        this.adjustComponentById(id,'label',val);
+        //this.logger.log('Updating pages...');
+      }
+      catch(err) {
+        this.logger.log(`Invalid text string: ${err}`);
+      }      
+    });
+  }
+
   public sayHello() {    
     this.send('h');
     this.send('J');
   }
 
-  public async updateDeviceList () {
-    this.logger.log('Getting device list:');
-    if (BLUETOOTH) {
-      this.btSerial.list().then((devices)=>{
-        this.allDevices = [];
-        for (let idx = 0; idx<devices.length; idx++) {
-          let device = devices[idx];
+  public async updateDeviceList() {
+    this.logger.log('Updating device list:');
+    if (this.bluetooth) {
+      this.btSerial.list().then((btDevices)=>{
+      	let activeBtDeviceIds = btDevices.map((d)=>{return d.id;});
+      	// First, get rid of all devices that have lost bluetooth:
+      	for (let i = this._allDevices.length-1; i>=0; i--) {
+      		let storedDevice = this._allDevices[i];
+      		if (!activeBtDeviceIds.includes(storedDevice.id) && !storedDevice.emulated) {
+      			this.removeDeviceWithId(storedDevice.id);
+      		}
+      	}
+      	// Then add new devices:
+        for (let idx = 0; idx<btDevices.length; idx++) {
+          let device = btDevices[idx];
           this.logger.log(`Found device ${device.name}`);
-          //if (!this.allDevices[device.id]) {
-            device.emulated = false;
-            this.allDevices.push(device);
-          //}
+          device.emulated = false;
+          this.addDevice(device);
         }
       },()=>{
         this.logger.log(`failed to get device list`);
@@ -445,20 +521,125 @@ export class TympanRemote {
     }
   }
 
+  public setUpPages() {
+    // let defaultConnectedPages = [this.pages[0], this.pages[1], this.pages[2]];
+    // this.pages = defaultConnectedPages;
+    // this.pages = DEFAULT_CONFIG.pages;
+    /* 
+    
+    let pagesToAdd = [];
+    for (var page of this.pages) {
+      for (var card of page.cards) {
+        for (var tog in card.toggles) {
+          if (card.toggles[tog].id != false){
+            if (!this.pages.includes(card.toggles[tog].pagename)){
+              pagesToAdd.push(card.toggles[tog].pagename)
+            }
+            card.toggles[tog].id = true;
+          }
+          else if (this.pages.includes(card.toggles[tog].pagename)){
+            let ind = this.pages.indexOf(card.toggles[tog].pagename);
+            this.pages.splice(ind)
+          }
+        }
+      }
+    }
+    this.pages = this.pages.concat(pagesToAdd)
+
+    */
+  }
+
   public send(s: string) {
-    if (BLUETOOTH) {
-      this.logger.log(`Sending ${s} to ${this.activeDevice.name}`);  
+    if (!this.connected) {
+      this.logger.log('Not connected to a device.');
+      return;
+    }
+
+    this.logger.log(`Sending ${s} to ${this.activeDevice.name}`);  
+    if (this.bluetooth) {
       this.btSerial.write(s).then(()=>{
-        //this.logger.log(`Successfully sent ${s}`);
+        this.logger.log(`Successfully sent ${s}`);
       }).catch(()=>{
         this.logger.log(`Failed to send ${s}`);
       });
     } else {
-      this.logger.log('INACTIVE.  SEND FAIL.');
+    	this.logger.log('mock sending.');
+    	//this.mockSend(s);
     }
   }
 
+  public formatData(){
+    var card = BOYSTOWN_PAGE_DSL.cards[0]
+    let TKGainData = [];
+    let TKData = [];
+    let BOLTData = [];
+    var val;
+    var xval;
+    var yval1;
+    var yval2;
+    var yval3;
+    var graphData;
+    console.log(card.inputs[4])
+    for (val in card.inputs[4].columns[0].values){
+      xval = card.inputs[4].columns[0].values[val];
+      yval1 = card.inputs[4].columns[3].values[val];
+      TKGainData.push({x: xval, y: yval1});
+
+      xval = card.inputs[4].columns[0].values[val];
+      yval2 = card.inputs[4].columns[2].values[val];
+      TKData.push({x: xval, y: yval2});
+
+      xval = card.inputs[4].columns[0].values[val];
+      yval3 = card.inputs[4].columns[6].values[val];
+      BOLTData.push({x: xval, y: yval3});
+    }
+    TKGainData.push({x: 12000, y: yval1});
+    TKData.push({x: 12000, y: yval2});
+    BOLTData.push({x: 12000, y: yval3});
+
+    graphData = [TKGainData, TKData, BOLTData];
+    return graphData;
+  }
+
+// public formatData(){
+//   var card = BOYSTOWN_PAGE_DSL.cards[0]
+//   let TKGainData = [];
+//   let TKData = [];
+//   let BOLTData = [];
+//   let xData = []
+//   var val;
+//   var xval;
+//   var yval1;
+//   var yval2;
+//   var yval3;
+//   var Data;
+//   for (val in card.inputs[4].columns[0].values){
+//     yval1 = card.inputs[4].columns[3].values[val]
+//     TKGainData.push(yval1)
+
+//     yval2 = card.inputs[4].columns[2].values[val]
+//     TKData.push(yval2)
+
+//     yval3 = card.inputs[4].columns[6].values[val]
+//     BOLTData.push(yval3)
+
+//     xval = card.inputs[4].columns[0].values[val]
+//     xData.push(xval)
+//   }
+//     TKGainData.push({x: 12000, y: yval1})
+//     TKData.push({x: 12000, y: yval2})
+//     BOLTData.push({x: 12000, y: yval3})
+//   Data = [TKGainData, TKData, BOLTData, xData];
+//   console.log(Data)
+//   return Data;
+// }
+
   public sendInputCard(card: any) {
+    if (!this.connected) {
+      this.logger.log('Not connected to a device.');
+      return;
+    }
+
     console.log('sending...');
     console.log(card);
 
@@ -483,7 +664,7 @@ export class TympanRemote {
 
     let charStr = DATASTREAM_START_CHAR + this.numberAsCharStr(dataStr.length,'int32') + DATASTREAM_SEPARATOR + dataStr + DATASTREAM_END_CHAR;
 
-    if (BLUETOOTH) {
+    if (this.bluetooth) {
       this.btSerial.write(charStr).then(()=>{
         //this.logger.log(`Successfully sent ${charStr}`);
       }).catch(()=>{
@@ -512,11 +693,11 @@ export class TympanRemote {
           byteArray[i] = rem & 0xFF;
           rem = rem >> 8;
         }
-        for (let i=0; i<4; i++) {        
+        for (let i=0; i<4; i++) {
           str += String.fromCharCode(byteArray[i]);
           hex += ('00' + byteArray[i].toString(16)).slice(-2);
         }
-        this.logger.log('int check: ' + num + ' => ' + str + '(' + hex + ')');          
+        this.logger.log('int check: ' + num + ' => ' + str + '(' + hex + ')');
         break;
       case 'float': // float32
       case 'float32':
@@ -529,12 +710,12 @@ export class TympanRemote {
         this.logger.log('ieee754 check: ' + num + ' => ' + str + '(' + hex + ')');
         break;
     }
-    if (BO == ByteOrder.LSB) {
+    if (BO === ByteOrder.LSB) {
       return str.split('').reverse().join('');
     } else {
       return str;
     }
-  };
+  }
 
   public isNumeric(s: string) {
     const numerics = ['int', 'float'];
