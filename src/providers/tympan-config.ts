@@ -34,9 +34,9 @@ export const DATASTREAM_PREFIX_GHA = 'gha';
 export const DATASTREAM_PREFIX_DSL = 'dsl';
 export const DATASTREAM_PREFIX_AFC = 'afc';
 
-export const BUTTON_STYLE_ON = {color: 'success', isOn: true, class: 'button-on'};
-export const BUTTON_STYLE_OFF = {color: 'medium', isOn: false, class: 'button-off'};
-export const BUTTON_STYLE_NONE = {color: 'unset', isOn: undefined, class: 'button-none'};
+export const BUTTON_STYLE_ON = {color: 'success', isOn: true, class: 'btn-on'};
+export const BUTTON_STYLE_OFF = {color: 'medium', isOn: false, class: 'btn-off'};
+export const BUTTON_STYLE_NONE = {color: 'unset', isOn: undefined, class: 'btn-none'};
 
 export const BOYSTOWN_PAGE_DSL = {
   'title': 'Boys Town Algorithm',
