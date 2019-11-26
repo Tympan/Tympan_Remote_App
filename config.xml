@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="105" id="com.creare.tympanRemote" version="0.2.2" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="106" id="com.creare.tympanRemote" version="0.2.3" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Tympan Remote</name>
     <description>A BLE controller for a Tympan device.</description>
     <author email="kxm@creare.com" href="https://shop.tympan.org/">The Tympan Team</author>
