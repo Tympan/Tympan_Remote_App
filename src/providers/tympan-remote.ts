@@ -407,8 +407,10 @@ export class TympanRemote {
       this.parseConfigStringFromDevice(data);
     } else if (data.length>6 && data.slice(0,6)=='STATE=') {
       this.parseStateStringFromDevice(data);
-    } else if (data.length>6 && data.slice(0,5)=='TEXT=') {
+    } else if (data.length>5 && data.slice(0,5)=='TEXT=') {
       this.parseTextStringFromDevice(data);
+    } else if (data.length>6 && data.slice(0,6)=='PRESC=') {
+      this.parsePrescriptionStringFromDevice(data);
     }
   }
 
@@ -436,7 +438,7 @@ export class TympanRemote {
     let id = parts[1];
     let val = parts[2];
     /* We're splitting on ":", but maybe the user wanted to display a message that included a colon? */
-    for (let idx = 3; idx<featType.length; idx++) {
+    for (let idx = 3; idx<parts.length; idx++) {
       val += ':';
       val += parts[idx];
     }
@@ -476,7 +478,7 @@ export class TympanRemote {
     let id = parts[1];
     let val = parts[2];
     /* We're splitting on ":", but maybe the user wanted to display a message that included a colon? */
-    for (let idx = 3; idx<featType.length; idx++) {
+    for (let idx = 3; idx<parts.length; idx++) {
       val += ':';
       val += parts[idx];
     }
@@ -487,6 +489,60 @@ export class TympanRemote {
       }
       catch(err) {
         this.logger.log(`Invalid text string: ${err}`);
+      }      
+    });
+  }
+
+  public parsePrescriptionStringFromDevice(data: string) {
+    //this.logger.log('Found state string from arduino:');
+    let prescStr = data.slice(6);
+    //this.logger.log(prescStr);
+    let parts = prescStr.split(':');
+    let prescType = parts[0];
+    let val = parts[1];
+    /* We're splitting on ":", but maybe the user wanted to display a message that included a colon? */
+    for (let idx = 2; idx<parts.length; idx++) {
+      val += ':';
+      val += parts[idx];
+    }
+    this.logger.log(`Parsing ${prescType} prescription.`);
+
+    this.zone.run(()=>{
+      try {
+        switch (prescType) {
+          case 'DSL':
+            let ctr = 0;
+            let dsl = {};
+            dsl['attack'] = this.charStrToNumber(val, ctr, 'float32'); ctr = ctr+4;
+            dsl['release'] = this.charStrToNumber(val, ctr, 'float32'); ctr = ctr+4;
+            dsl['maxdB'] = this.charStrToNumber(val, ctr, 'float32'); ctr = ctr+4;
+            dsl['LR'] = this.charStrToNumber(val, ctr, 'int32'); ctr = ctr+4;
+            dsl['channels'] = this.charStrToNumber(val, ctr, 'int32'); ctr = ctr+4;
+            dsl['table'] = [];
+            for (let r=0; r<7; r++) {
+              dsl['table'][r] = [];
+              for (let c=0; c<7; c++) {
+                dsl['table'][r][c] = this.charStrToNumber(val, ctr, 'float32'); ctr = ctr+4;
+              }
+            }
+            this.logger.log(`dsl:`);
+            this.logger.log('attack:' + dsl['attack']);
+            this.logger.log('release:' + dsl['release']);
+            this.logger.log('maxdB:' + dsl['maxdB']);
+            this.logger.log('LR:' + dsl['LR']);
+            this.logger.log('channels:' + dsl['channels']);
+            console.log(dsl);
+            break;
+          case 'ADC':
+            break;
+          case 'GHA':
+            break;
+        }
+        //this._config.prescriptionPages()
+        //this.logger.log('Updating pages...');
+      }
+      catch(err) {
+        this.logger.log(`Invalid state string: ${err}`);
       }      
     });
   }
@@ -715,6 +771,36 @@ export class TympanRemote {
     } else {
       return str;
     }
+  }
+
+  public charStrToNumber(data: string, idx: number, numType: string): number {
+    let dataLen = 0;
+    let num = 0;
+    let BO: ByteOrder = ByteOrder.LSB;
+
+    let isLE = (BO === ByteOrder.LSB);
+
+    switch (numType) {
+      case 'int':
+      case 'int32':
+        dataLen = 4;
+        num = 0;
+        for (let i=idx+dataLen-1; i >= idx; i--) {
+          num = (num<<8) | data.charCodeAt(i);
+        }
+        break;
+      case 'float':
+      case 'float32':
+        dataLen = 4;
+        let buf = new Uint8Array(dataLen);
+        for (let i=0; i<dataLen; i++) {
+          buf[i] = data.charCodeAt(idx+i);
+        }
+        num = ieee754.read(buf,0,isLE,23,4);
+        break;
+    }
+    this.logger.log(`${num}`);
+    return num;
   }
 
   public isNumeric(s: string) {
