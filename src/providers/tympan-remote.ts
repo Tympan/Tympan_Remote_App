@@ -279,22 +279,22 @@ export class TympanRemote {
     // Should reset the bluetooth connection, disconnecting from any connected device.
   }
 
-  public async checkBluetoothStatus() {
+  public async checkBluetoothStatus(): Promise<any> {
   	this.logger.log('Checking BT status...');
   	if (!this.platform.is('cordova')) {
   		this.logger.log('Bluetooth is unavailable; not a cordova platform');
-  		this.bluetooth = false
-  		return;
+  		this.bluetooth = false;
+  		return Promise.resolve(false);
   	}
 
-		this.btSerial.isEnabled().then(()=>{
+		return this.btSerial.enable().then(()=>{
 	  	this.logger.log('Bluetooth is available');
 	  	this.bluetooth = true;
-  		return;
+  		return true;
   	},()=>{
   		this.logger.log('Bluetooth is unavailable; not enabled on device');
   		this.bluetooth = false;
-	  	return;
+	  	return false;
   	});
   }
 
