@@ -36,6 +36,17 @@
           <p *ngFor="let msg of logger.logArray.slice(-80); let i = index" class="logText">{{msg}}</p>
         </ion-card>
       </div>
+    </ion-slide>
+    <!-- SERIAL PLOTTER SLIDE, IF REQUESTED IN 'DEVELOPER SETTINGS'-->
+    <ion-slide *ngIf="remote.showSerialPlotter" class="sliderCard">
+        <div style="width:100% !important; margin:4px; height: 500px;">
+      <p class="pageTitle">Serial Plotter</p>
+      <ion-button strong=true (click)="makeSerialPlot()">Start Plot</ion-button>
+      <canvas #lineCanvas id='myChart' height=300px></canvas>
+        <!-- <input type="text" name="1"><ion-button onclick()="updateLabels(name)"></ion-button>
+        <input type="text" name="2"><ion-button onclick()="updateLabels(name)"></ion-button>
+        <input type="text" name="3"><ion-button onclick()="updateLabels(name)"></ion-button> -->
+      </div>
     </ion-slide>    
   </ion-slides>
 </ion-content>

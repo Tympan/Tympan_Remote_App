@@ -47,6 +47,7 @@ export class TympanRemote {
   public showLogs: boolean = false;
   public showDevOptions: boolean = false;
   public showSerialMonitorPage: boolean = false;
+  public showSerialPlotter: boolean = false;
   // properties related to the connected device:
   private _allDevices: iDevice[];
   private _activeDeviceIdx: number;
@@ -139,6 +140,7 @@ export class TympanRemote {
     this.showLogs = false;
     this.showDevOptions = false;
     this.showSerialMonitorPage = false;
+    this.showSerialPlotter = false;
     this._allDevices = [];
     this._activeDeviceIdx = -1;
     this._config = {};
@@ -411,6 +413,18 @@ export class TympanRemote {
       this.parseTextStringFromDevice(data);
     } else if (data.length>6 && data.slice(0,6)=='PRESC=') {
       this.parsePrescriptionStringFromDevice(data);
+    } else if (data.length>1 && data.slice(0,1)=='P') {
+      this.parsePlotterStringFromDevice(data);
+    }
+  }
+
+  public parsePlotterStringFromDevice(data: string) {
+    this.logger.log('Found serial plotting data from arduino:');
+    let serialData = data.split(',')
+    serialData[0] = serialData[0].slice(1)
+    let serialPlotData = []
+    for (var n in serialData) {
+      serialPlotData[n] = parseFloat(serialData[n])
     }
   }
 
@@ -614,6 +628,12 @@ export class TympanRemote {
     this.logger.log(`Sending ${s} to ${this.activeDevice.name}`);  
     if (this.bluetooth) {
       this.btSerial.write(s).then(()=>{
+        if (s == ']'){
+          this.showSerialPlotter = true;
+        }
+        if (s == '}'){
+          this.showSerialPlotter = false;
+        }
         this.logger.log(`Successfully sent ${s}`);
       }).catch(()=>{
         this.logger.log(`Failed to send ${s}`);
