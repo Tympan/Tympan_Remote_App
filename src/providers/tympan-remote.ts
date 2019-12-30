@@ -30,13 +30,6 @@ import {
   DSL
 } from './prescriptions';
 
-//export enum BluetoothType {BLUETOOTH_SERIAL, BLE};
-
-let ADD_BOYSTOWN_DSL: boolean = false;
-let ADD_BOYSTOWN_WDRC: boolean = false;
-let ADD_BOYSTOWN_AFC: boolean = false;
-let ADD_BOYSTOWN_PLOT: boolean = false;
-
 /**
  * This class contains the variables and methods for the Tympan Remote app.
  */
