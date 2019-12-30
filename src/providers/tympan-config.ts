@@ -193,9 +193,10 @@ export function numberAsCharStr(num: number, numType: string): string {
       let byteArray = new Uint8Array(4);
       let rem = num;
       for (let i=3; i>=0; i--) {
-      //for (let i=0; i<4; i++) {
+        /* tslint:disable no-bitwise */
         byteArray[i] = rem & 0xFF;
         rem = rem >> 8;
+        /* tslint:enable no-bitwise */
       }
       for (let i=0; i<4; i++) {
         str += String.fromCharCode(byteArray[i]);
@@ -234,7 +235,9 @@ export function charStrToNumber(data: string, idx: number, numType: string): num
       dataLen = 4;
       num = 0;
       for (let i=idx+dataLen-1; i >= idx; i--) {
+        /* tslint:disable no-bitwise */
         num = (num<<8) | data.charCodeAt(i);
+        /* tslint:enable no-bitwise */
       }
       break;
     case 'float':
