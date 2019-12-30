@@ -210,6 +210,9 @@ export class TympanRemote {
             pages.push(BOYSTOWN_PAGE_PLOT);
             break;
           }
+          case 'serialMonitor': {
+            this.showSerialMonitorPage = true;
+          }
         }
       }
     } else {
