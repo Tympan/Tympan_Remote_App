@@ -3,6 +3,10 @@ import { TympanRemote } from '../../providers/tympan-remote';
 import { Logger } from '../../providers/logger';
 import { Chart } from 'chart.js';
 import { tick } from '@angular/core/testing';
+import { 
+  isNumeric,
+ } from '../../providers/tympan-config';
+
 
 @Component({
   selector: 'app-tab1',
@@ -12,7 +16,7 @@ import { tick } from '@angular/core/testing';
 
 export class PrescriptionPage{
     @ViewChild("lineCanvas") lineCanvas;
-    public lineChart: Chart; //CharacterData;
+    public lineChart: Chart;
     
     constructor(public remote: TympanRemote, public logger:Logger) {
     };
@@ -98,6 +102,10 @@ export class PrescriptionPage{
           },
         }
       });
+    }
+
+    public isNum(type: string): boolean {
+      return isNumeric(type);
     }
 
   }

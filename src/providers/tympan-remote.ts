@@ -2,7 +2,6 @@ import { Injectable, NgZone } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
 import { Logger } from './logger';
-import ieee754 from 'ieee754';
 
 import {
   iDevice,
@@ -22,11 +21,16 @@ import {
   BOYSTOWN_PAGE_AFC,
   BOYSTOWN_PAGE_PLOT,
   DEFAULT_CONFIG,
+  numberAsCharStr,
+  charStrToNumber,
+  isNumeric
 } from './tympan-config';
 
-//export enum BluetoothType {BLUETOOTH_SERIAL, BLE};
+import {
+  DSL
+} from './prescriptions';
 
-enum ByteOrder {MSB, LSB};
+//export enum BluetoothType {BLUETOOTH_SERIAL, BLE};
 
 let ADD_BOYSTOWN_DSL: boolean = false;
 let ADD_BOYSTOWN_WDRC: boolean = false;
@@ -369,17 +373,6 @@ export class TympanRemote {
     this.btSerial.isConnected().then(()=>{this.logger.log('Is Connected.');},()=>{this.logger.log('Is Not Connected.');});
     this.updateDeviceList();
     */
-
-    /*
-    this.send(DATASTREAM_START_CHAR);
-    this.send(this.numberAsCharStr(13,'int32'));
-    this.send(DATASTREAM_SEPARATOR);
-    this.send('test');
-    this.send(DATASTREAM_SEPARATOR);
-    this.send(this.numberAsCharStr(17501197,'int32'));
-    this.send(this.numberAsCharStr(3.14,'float'));
-    this.send(DATASTREAM_END_CHAR);
-    */
    
     console.log('testing');
     this.adjustComponentById('algA','label','6^');
@@ -388,18 +381,6 @@ export class TympanRemote {
   }
 
   public subscribe() {
-  	/*
-    this.btSerial.subscribe('\n').subscribe((data)=>{
-      this.logger.log(`>${data}`);
-      if (data.length>5 && data.slice(0,5)=='JSON=') {
-        this.parseConfigStringFromDevice(data);
-      } else if (data.length>6 && data.slice(0,6)=='STATE=') {
-        this.parseStateStringFromDevice(data);
-      } else if (data.length>6 && data.slice(0,5)=='TEXT=') {
-        this.parseTextStringFromDevice(data);
-      }
-    });
-    */
 		if (this.bluetooth && this.btSerial) {
 			this.logger.log('subscribingx');
 			this.btSerial.subscribe('\n').subscribe((data)=>{this.interpretDataFromDevice(data);});
@@ -528,26 +509,7 @@ export class TympanRemote {
       try {
         switch (prescType) {
           case 'DSL':
-            let ctr = 0;
-            let dsl = {};
-            dsl['attack'] = this.charStrToNumber(val, ctr, 'float32'); ctr = ctr+4;
-            dsl['release'] = this.charStrToNumber(val, ctr, 'float32'); ctr = ctr+4;
-            dsl['maxdB'] = this.charStrToNumber(val, ctr, 'float32'); ctr = ctr+4;
-            dsl['LR'] = this.charStrToNumber(val, ctr, 'int32'); ctr = ctr+4;
-            dsl['channels'] = this.charStrToNumber(val, ctr, 'int32'); ctr = ctr+4;
-            dsl['table'] = [];
-            for (let r=0; r<7; r++) {
-              dsl['table'][r] = [];
-              for (let c=0; c<7; c++) {
-                dsl['table'][r][c] = this.charStrToNumber(val, ctr, 'float32'); ctr = ctr+4;
-              }
-            }
-            this.logger.log(`dsl:`);
-            this.logger.log('attack:' + dsl['attack']);
-            this.logger.log('release:' + dsl['release']);
-            this.logger.log('maxdB:' + dsl['maxdB']);
-            this.logger.log('LR:' + dsl['LR']);
-            this.logger.log('channels:' + dsl['channels']);
+            let dsl = new DSL().fromDataStream(val);
             console.log(dsl);
             break;
           case 'ADC':
@@ -724,14 +686,14 @@ export class TympanRemote {
 
     let dataStr = card.submitButton.prefix + DATASTREAM_SEPARATOR;
     for (let input of card.inputs) {
-      if (this.isNumeric(input.type)) {
-        dataStr += this.numberAsCharStr(input.value, input.type);
+      if (isNumeric(input.type)) {
+        dataStr += numberAsCharStr(input.value, input.type);
         //dataStr += ',';
       } else if (input.type ==='grid') {
         for (let col of input.columns) {
           //dataStr += '[';
           for (let value of col.values) {
-            dataStr += this.numberAsCharStr(value, col.type);
+            dataStr += numberAsCharStr(value, col.type);
             //dataStr += ',';
           }
           //dataStr += '],';
@@ -741,7 +703,7 @@ export class TympanRemote {
 
     this.logger.log("Sending " + DATASTREAM_START_CHAR + ", length = " + dataStr.length.toString());
 
-    let charStr = DATASTREAM_START_CHAR + this.numberAsCharStr(dataStr.length,'int32') + DATASTREAM_SEPARATOR + dataStr + DATASTREAM_END_CHAR;
+    let charStr = DATASTREAM_START_CHAR + numberAsCharStr(dataStr.length,'int32') + DATASTREAM_SEPARATOR + dataStr + DATASTREAM_END_CHAR;
 
     if (this.bluetooth) {
       this.btSerial.write(charStr).then(()=>{
@@ -756,81 +718,6 @@ export class TympanRemote {
     this.logger.log("Sending " + DATASTREAM_START_CHAR + ", length = " + dataStr.length.toString());
   }
 
-  public numberAsCharStr(num: number, numType: string) {
-    let str = '';
-    let hex = '';
-    let BO: ByteOrder = ByteOrder.LSB;
-
-    switch (numType) {
-      case 'int':
-      case 'int32':
-        //str = num.toString();
-        let byteArray = new Uint8Array(4);
-        let rem = num;
-        for (let i=3; i>=0; i--) {
-        //for (let i=0; i<4; i++) {
-          byteArray[i] = rem & 0xFF;
-          rem = rem >> 8;
-        }
-        for (let i=0; i<4; i++) {
-          str += String.fromCharCode(byteArray[i]);
-          hex += ('00' + byteArray[i].toString(16)).slice(-2);
-        }
-        this.logger.log('int check: ' + num + ' => ' + str + '(' + hex + ')');
-        break;
-      case 'float': // float32
-      case 'float32':
-        let b2 = new Uint8Array(4);
-        ieee754.write(b2,num,0,false,23,4);
-        for (let i=0; i<4; i++) {
-          str += String.fromCharCode(b2[i]);
-          hex += ('00' + b2[i].toString(16)).slice(-2);
-        }
-        this.logger.log('ieee754 check: ' + num + ' => ' + str + '(' + hex + ')');
-        break;
-    }
-    if (BO === ByteOrder.LSB) {
-      return str.split('').reverse().join('');
-    } else {
-      return str;
-    }
-  }
-
-  public charStrToNumber(data: string, idx: number, numType: string): number {
-    let dataLen = 0;
-    let num = 0;
-    let BO: ByteOrder = ByteOrder.LSB;
-
-    let isLE = (BO === ByteOrder.LSB);
-
-    switch (numType) {
-      case 'int':
-      case 'int32':
-        dataLen = 4;
-        num = 0;
-        for (let i=idx+dataLen-1; i >= idx; i--) {
-          num = (num<<8) | data.charCodeAt(i);
-        }
-        break;
-      case 'float':
-      case 'float32':
-        dataLen = 4;
-        let buf = new Uint8Array(dataLen);
-        for (let i=0; i<dataLen; i++) {
-          buf[i] = data.charCodeAt(idx+i);
-        }
-        num = ieee754.read(buf,0,isLE,23,4);
-        break;
-    }
-    this.logger.log(`${num}`);
-    return num;
-  }
-
-  public isNumeric(s: string) {
-    const numerics = ['int', 'float'];
-    return numerics.includes(s);
-  }
 
 }
-
 
