@@ -30,8 +30,8 @@ export class PresetsPage {
       let lenDataset = undefined;
       let fullDatasets = []
       let myChart = undefined;
-      let xValue = 0
-      let layout3 = {}
+      let xValue = 0;
+      let layout3 = {};
       let layout2 = {
         type: 'line',
         data: {
@@ -63,24 +63,24 @@ export class PresetsPage {
         'rgb(54, 162, 235)',    //blue
         'rgb(153, 102, 255)',   //purple
         'rgb(201, 203, 207)'    //grey
-    ];
+      ];
 
       if (this.remote.bluetooth && this.remote.btSerial) {
         this.logger.log('subscribingx');
-        this.remote.btSerial.subscribe('\n').subscribe((data)=>{parsePlotterStringFromDevice(data, myChart)});
+        this.remote.btSerial.subscribe('\n').subscribe((data)=>{parsePlotterStringFromDevice(data, myChart);});
       }
 
       function parsePlotterStringFromDevice(data: string, myChart) {
-        console.log('data',data)
-        let serialData = data.split(',')
-        serialData[0] = serialData[0].slice(1)
-        let serialPlotData = []
+        console.log('data',data);
+        let serialData = data.split(',');
+        serialData[0] = serialData[0].slice(1);
+        let serialPlotData = [];
         for (var n in serialData) {
-          serialPlotData[n] = parseFloat(serialData[n])
+          serialPlotData[n] = parseFloat(serialData[n]);
         }
         if (myChart != undefined){
-          console.log('refreshing chart')
-          onRefresh(myChart, serialPlotData)
+          console.log('refreshing chart');
+          onRefresh(myChart, serialPlotData);
         }
         if (lenDataset == undefined) {
           lenDataset = serialPlotData.length;
@@ -99,15 +99,15 @@ export class PresetsPage {
             lineTension: 0,
             data: []
           };
-          fullDatasets.push(newDataset)
+          fullDatasets.push(newDataset);
         }
-        layout2.data.datasets = fullDatasets
-        layout3 = layout2
-        return
+        layout2.data.datasets = fullDatasets;
+        layout3 = layout2;
+        return;
       };
       
       function onRefresh(chart, sData) {
-        myChart = chart
+        myChart = chart;
         let set = 0;
         chart.config.data.datasets.forEach(function(dataset) {
           if (sData != undefined){
@@ -119,7 +119,7 @@ export class PresetsPage {
           set += 1;
         }});
         xValue += 1;
-        myChart.update({preservation: true})
+        myChart.update({preservation: true});
       }
 
       var fullLayout = {
