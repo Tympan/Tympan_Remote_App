@@ -12,7 +12,8 @@ import { tick } from '@angular/core/testing';
 
 export class PrescriptionPage{
     @ViewChild("lineCanvas") lineCanvas;
-    public lineChart: CharacterData;
+    public lineChart: Chart; //CharacterData;
+    
     constructor(public remote: TympanRemote, public logger:Logger) {
     };
 
