@@ -502,7 +502,8 @@ export class TympanRemote {
       try {
         switch (prescType) {
           case 'DSL':
-            let dsl = new DSL().fromDataStream(val);
+            let dsl = new DSL();
+            dsl.fromDataStream(val);
             console.log(dsl);
             break;
           case 'ADC':
