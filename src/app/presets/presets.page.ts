@@ -22,6 +22,7 @@ export class PresetsPage {
     }
 
     public makeSerialPlot() {
+      this.remote.send(']')
       let lineC = undefined
       let lenDataset = undefined;
       let fullDatasets = []
@@ -44,6 +45,7 @@ export class PresetsPage {
 
       function parsePlotterStringFromDevice(data: string, myChart) {
         console.log('data',data);
+        if (data[0] == 'P'){
         let serialData = data.split(',');
         serialData[0] = serialData[0].slice(1);
         let serialPlotData = [];
@@ -65,6 +67,7 @@ export class PresetsPage {
           }
         }
       }
+    }
       
       function addDatasets(data, labels = undefined) {
         for (let dset=0; dset<data; dset++) {
