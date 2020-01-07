@@ -210,6 +210,9 @@ export class TympanRemote {
           case 'serialMonitor': {
             this.showSerialMonitorPage = true;
           }
+          case 'serialPlotter': {
+            this.showSerialPlotter = true;
+          }
         }
       }
     } else {
