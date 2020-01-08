@@ -507,7 +507,14 @@ export class TympanRemote {
           case 'DSL':
             let dsl = new DSL();
             dsl.fromDataStream(val);
-            console.log(dsl);
+            let updatedPage = dsl.asPage();
+            this.initializePages([updatedPage]);
+            for (let pageNo in this._config.prescription.pages) {
+              let page = this._config.prescription.pages[pageNo];
+              if (page.id === 'dsl') {
+                this._config.prescription.pages[pageNo] = updatedPage;
+              }
+            }
             break;
           case 'ADC':
             break;

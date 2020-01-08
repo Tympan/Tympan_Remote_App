@@ -38,6 +38,7 @@ export const BUTTON_STYLE_NONE = {color: 'unset', isOn: undefined, class: 'btn-n
 
 export const BOYSTOWN_PAGE_DSL = {
   'title': 'Boys Town Algorithm',
+  'id': 'dsl',
   'cards': [
     {
       'name': 'Multiband Compression',
@@ -63,6 +64,7 @@ export const BOYSTOWN_PAGE_DSL = {
 
 export const BOYSTOWN_PAGE_WDRC = {
       'title': 'Boys Town Algorithm',
+      'id': 'gha',
       'cards': [
     {
       'name': 'Broadband Output Compression',
@@ -83,6 +85,7 @@ export const BOYSTOWN_PAGE_WDRC = {
 
 export const BOYSTOWN_PAGE_AFC = {
       'title': 'Boys Town Algorithm',
+      'id': 'afc',
       'cards': [
     {
       'name': 'Adaptive Feedback Cancelation',
