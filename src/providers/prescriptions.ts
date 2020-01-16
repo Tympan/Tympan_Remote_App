@@ -1,3 +1,5 @@
+import * as _ from 'lodash';
+
 import {
   DATASTREAM_PREFIX_DSL,
   numberAsCharStr,
@@ -54,7 +56,7 @@ export class DSL {
 
   public asPage(): any {
     const page = {
-      'title': '7oys Town Algorithm',
+      'title': 'Boys Town Algorithm',
       'id': 'dsl',
       'cards': [
         {
@@ -83,44 +85,45 @@ export class DSL {
   }
 
   public fromDataStream(stream: string) {
+    let newDSL = _.cloneDeep(this); // Create a new DSL, just in case there's an error in the stream somewhere.
     console.log('stream is:' + stream);
     const colon = stream.indexOf(':');
-    this.MXCH = parseInt(stream.slice(0,colon) , 10);
+    newDSL.MXCH = parseInt(stream.slice(0,colon) , 10);
     stream = stream.slice(colon+1);
 
     let valStrings = stream.split(',');
 
     let ctr = 0;
-    this.attack = parseFloat(valStrings[ctr]); ctr++;
-    this.release = parseFloat(valStrings[ctr]); ctr++;
-    this.maxdB = parseFloat(valStrings[ctr]); ctr++;
-    this.LR = parseInt(valStrings[ctr] , 10); ctr++;
-    this.nChan = parseInt(valStrings[ctr] , 10); ctr++;
+    newDSL.attack = parseFloat(valStrings[ctr]); ctr++;
+    newDSL.release = parseFloat(valStrings[ctr]); ctr++;
+    newDSL.maxdB = parseFloat(valStrings[ctr]); ctr++;
+    newDSL.LR = parseInt(valStrings[ctr] , 10); ctr++;
+    newDSL.nChan = parseInt(valStrings[ctr] , 10); ctr++;
     if (1) {
-      this.cross_freq = []; for (let c = 0; c<this.nChan; c++) { this.cross_freq[c] = parseFloat(valStrings[ctr]); ctr++; }
-      this.exp_cr = []; for (let c = 0; c<this.nChan; c++) { this.exp_cr[c] = parseFloat(valStrings[ctr]); ctr++; }
-      this.exp_end_knee = []; for (let c = 0; c<this.nChan; c++) { this.exp_end_knee[c] = parseFloat(valStrings[ctr]); ctr++; }
-      this.tkgain = []; for (let c = 0; c<this.nChan; c++) { this.tkgain[c] = parseFloat(valStrings[ctr]); ctr++; }
-      this.cr = []; for (let c = 0; c<this.nChan; c++) { this.cr[c] = parseFloat(valStrings[ctr]); ctr++; }
-      this.tk = []; for (let c = 0; c<this.nChan; c++) { this.tk[c] = parseFloat(valStrings[ctr]); ctr++; }
-      this.bolt = []; for (let c = 0; c<this.nChan; c++) { this.bolt[c] = parseFloat(valStrings[ctr]); ctr++; }
+      newDSL.cross_freq = []; for (let c = 0; c<newDSL.nChan; c++) { newDSL.cross_freq[c] = parseFloat(valStrings[ctr]); ctr++; }
+      newDSL.exp_cr = []; for (let c = 0; c<newDSL.nChan; c++) { newDSL.exp_cr[c] = parseFloat(valStrings[ctr]); ctr++; }
+      newDSL.exp_end_knee = []; for (let c = 0; c<newDSL.nChan; c++) { newDSL.exp_end_knee[c] = parseFloat(valStrings[ctr]); ctr++; }
+      newDSL.tkgain = []; for (let c = 0; c<newDSL.nChan; c++) { newDSL.tkgain[c] = parseFloat(valStrings[ctr]); ctr++; }
+      newDSL.cr = []; for (let c = 0; c<newDSL.nChan; c++) { newDSL.cr[c] = parseFloat(valStrings[ctr]); ctr++; }
+      newDSL.tk = []; for (let c = 0; c<newDSL.nChan; c++) { newDSL.tk[c] = parseFloat(valStrings[ctr]); ctr++; }
+      newDSL.bolt = []; for (let c = 0; c<newDSL.nChan; c++) { newDSL.bolt[c] = parseFloat(valStrings[ctr]); ctr++; }
     } else {
-      this.cross_freq =   parseManyFloats(valStrings, ctr, this.nChan); ctr = ctr + this.nChan;
-      this.exp_cr =       parseManyFloats(valStrings, ctr, this.nChan); ctr = ctr + this.nChan;
-      this.exp_end_knee = parseManyFloats(valStrings, ctr, this.nChan); ctr = ctr + this.nChan;
-      this.tkgain =       parseManyFloats(valStrings, ctr, this.nChan); ctr = ctr + this.nChan;
-      this.cr =           parseManyFloats(valStrings, ctr, this.nChan); ctr = ctr + this.nChan;
-      this.tk =           parseManyFloats(valStrings, ctr, this.nChan); ctr = ctr + this.nChan;
-      this.bolt =         parseManyFloats(valStrings, ctr, this.nChan); ctr = ctr + this.nChan;      
+      newDSL.cross_freq =   parseManyFloats(valStrings, ctr, newDSL.nChan); ctr = ctr + newDSL.nChan;
+      newDSL.exp_cr =       parseManyFloats(valStrings, ctr, newDSL.nChan); ctr = ctr + newDSL.nChan;
+      newDSL.exp_end_knee = parseManyFloats(valStrings, ctr, newDSL.nChan); ctr = ctr + newDSL.nChan;
+      newDSL.tkgain =       parseManyFloats(valStrings, ctr, newDSL.nChan); ctr = ctr + newDSL.nChan;
+      newDSL.cr =           parseManyFloats(valStrings, ctr, newDSL.nChan); ctr = ctr + newDSL.nChan;
+      newDSL.tk =           parseManyFloats(valStrings, ctr, newDSL.nChan); ctr = ctr + newDSL.nChan;
+      newDSL.bolt =         parseManyFloats(valStrings, ctr, newDSL.nChan); ctr = ctr + newDSL.nChan;      
     }
 
+    /* Check to see if the new DSL is valid: */
     let checkVal = parseInt(valStrings[ctr]); ctr++;
-    if (checkVal === this.MXCH) {
+    if (checkVal === newDSL.MXCH) {
       console.log('MXCH checks out.');
+      Object.assign(this, newDSL); // Can do a shallow copy, sine we already did a deep clone
     } else {
       console.log('DSL Transmission Error!');
     }
-
-    console.log(this);
   }
 }
