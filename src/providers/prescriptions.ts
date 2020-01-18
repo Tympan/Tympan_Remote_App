@@ -118,12 +118,174 @@ export class DSL {
     }
 
     /* Check to see if the new DSL is valid: */
-    let checkVal = parseInt(valStrings[ctr]); ctr++;
+    let checkVal = parseInt(valStrings[ctr], 10); ctr++;
     if (checkVal === newDSL.MXCH) {
       console.log('MXCH checks out.');
       Object.assign(this, newDSL); // Can do a shallow copy, sine we already did a deep clone
     } else {
       console.log('DSL Transmission Error!');
+    }
+  }
+}
+
+/**
+ * This class contains the variables and methods for the BoysTown WDRC (GHA) Prescription.
+ */
+export class WDRC {  
+  public name: string;
+  public attack: number;               // float.  attack time (ms), unused in this class
+  public release: number;              // float.  release time (ms), unused in this class
+  public fs: number;                   // float.  sampling rate (Hz), set through other means in this class
+  public maxdB: number;                // float.  maximum signal (dB SPL)...I think this is the SPL corresponding to signal with rms of 1.0
+  public exp_cr: number;               // float.  compression ratio for low-SPL region (ie, the expander)
+  public exp_end_knee: number;         // float.  expansion-end kneepoint
+  public tkgain: number;               // float.  compression-start gain
+  public tk: number;                   // float.  compression-start kneepoint
+  public cr: number;                   // float.  compression ratio
+  public bolt: number;                 // float.  broadband output limiting threshold
+  public submitPrefix: string;
+
+  constructor() {
+    this.name = 'Broadband Output Compression';
+    this.attack = 30;
+    this.release = 300;
+    this.fs = 24000; // ignored
+    this.maxdB = 115;
+    this.exp_cr = 1.0;
+    this.exp_end_knee = 0.0; // int32
+    this.tkgain = 0.0;
+    this.tk = 115.0;
+    this.cr = 1;
+    this.bolt = 98.0;
+    this.submitPrefix = DATASTREAM_PREFIX_GHA;
+  }
+
+  public asPage(): any {
+    const page = {
+      'title': 'Boys Town Algorithm',
+      'id': 'gha',
+      'cards': [
+        {
+          'name': this.name,
+          'inputs': [
+            {'label': 'Attack (msec)', 'type': 'float', 'value': this.attack},
+            {'label': 'Release (msec)', 'type': 'float', 'value': this.release),
+            {'label': 'Low SPL: Compression Ratio', 'type': 'float', 'value': this.exp_cr},
+            {'label': 'Low SPL: End Knee (dB SPL)', 'type': 'float', 'value': this.exp_end_knee},
+            {'label': 'Linear Region: Gain (dB)', 'type': 'float', 'value': this.tkgain},
+            {'label': 'Compression: Start Knee (dB SPL)', 'type': 'float', 'value': this.tk},
+            {'label': 'Compression: Ratio', 'type': 'float', 'value': this.cr},
+            {'label': 'Limiter: Threshold (dB SPL)', 'type': 'float', 'value': this.bolt},
+          ],
+          'submitButton': {'prefix': this.submitPrefix}
+        },
+      ]
+    };
+
+    return page;
+  }
+
+  public fromDataStream(stream: string) {
+    let newWDRC = _.cloneDeep(this); // Create a new WDRC, just in case there's an error in the stream somewhere.
+    console.log('stream is:' + stream);
+    const colon = stream.indexOf(':');
+    let checkVal1 = parseInt(stream.slice(0,colon) , 10);
+    stream = stream.slice(colon+1);
+
+    let valStrings = stream.split(',');
+
+    let ctr = 0;
+    newWDRC.attack = parseFloat(valStrings[ctr]); ctr++;
+    newWDRC.release = parseFloat(valStrings[ctr]); ctr++;
+    newWDRC.fs = parseFloat(valStrings[ctr]); ctr++;
+    newWDRC.maxdB = parseFloat(valStrings[ctr]); ctr++;
+
+    newWDRC.exp_cr = parseFloat(valStrings[ctr]); ctr++;
+    newWDRC.exp_end_knee = parseFloat(valStrings[ctr]); ctr++;
+    newWDRC.tkgain = parseFloat(valStrings[ctr]); ctr++;
+    newWDRC.tk = parseFloat(valStrings[ctr]); ctr++;
+    newWDRC.cr = parseFloat(valStrings[ctr]); ctr++;
+    newWDRC.bolt = parseFloat(valStrings[ctr]); ctr++;
+
+    /* Check to see if the new DSL is valid: */
+    let checkVal2 = parseInt(valStrings[ctr], 10); ctr++;
+    if (checkVal1 === checkVal2) {
+      console.log('WDRC prescription checks out.');
+      Object.assign(this, newWDRC); // Can do a shallow copy, sine we already did a deep clone
+    } else {
+      console.log('WDRC Transmission Error!');
+    }
+  }
+}
+
+
+/**
+ * This class contains the variables and methods for the BoysTown WDRC (GHA) Prescription.
+ */
+export class AFC {  
+  public name: string;
+  public default_to_active: number;     // int.  enable AFC at startup?  1=active. 0=disabled.
+  public afl: number;                   // int.  length (samples) of adaptive filter for modeling feedback path.
+  public mu: number;                    // float.  mu, scale factor for how fast the adaptive filter adapts (bigger is faster)
+  public rho: number;                   // float.  rho, smoothing factor for estimating audio envelope (bigger is a longer average)
+  public eps: number;                   // float.  eps, when est the audio envelope, this is the min allowed level (avoids divide-by-zero)
+  public submitPrefix: string;
+
+  constructor() {
+    this.name = 'Broadband Output Compression';
+    this.default_to_active = 0; 
+    this.afl = 100; 
+    this.mu = 1.0e-3; 
+    this.rho = 0.9; 
+    this.eps = 0.008;
+    this.submitPrefix = DATASTREAM_PREFIX_AFC;
+  }
+
+  public asPage(): any {
+    const page = {
+      'title': 'Boys Town Algorithm',
+      'id': 'afc',
+      'cards': [
+        {
+          'name': this.name,
+          'inputs': [
+            {'label': 'Enable (1=yes, 0=no)', 'type': 'int', 'value': this.default_to_active},
+            {'label': 'Filter Length (samples, 0-256)', 'type': 'int', 'value': this.afl},
+            {'label': 'Adaptation Factor (mu, 0.0-1.0)', 'type': 'float', 'value': this.mu},
+            {'label': 'Smoothing Factor (rho, 0.0-1.0)', 'type': 'float', 'value': this.rho},
+            {'label': 'Min Allowed Envelope (eps, 0-1.0)', 'type': 'float', 'value': this.eps},
+          ],
+          'submitButton': {'prefix': this.submitPrefix}
+        },
+      ]
+    };
+
+    return page;
+  }
+
+  public fromDataStream(stream: string) {
+    let newAFC = _.cloneDeep(this); // Create a new AFC, just in case there's an error in the stream somewhere.
+    console.log('stream is:' + stream);
+    const colon = stream.indexOf(':');
+    let checkVal1 = parseInt(stream.slice(0,colon) , 10);
+    stream = stream.slice(colon+1);
+
+    let valStrings = stream.split(',');
+
+    let ctr = 0;
+    newAFC.default_to_active = parseInt(valStrings[ctr] , 10); ctr++;
+    newAFC.afl = parseInt(valStrings[ctr] , 10); ctr++;
+    newAFC.mu = parseFloat(valStrings[ctr]); ctr++;
+    newAFC.rho = parseFloat(valStrings[ctr]); ctr++;
+    newAFC.eps = parseFloat(valStrings[ctr]); ctr++;
+
+    /* Check to see if the new DSL is valid: */
+    let checkVal2 = parseInt(valStrings[ctr], 10); ctr++;
+    if (checkVal1 === checkVal2) {
+      console.log('AFC prescription checks out.');
+      Object.assign(this, newAFC); // Can do a shallow copy, sine we already did a deep clone
+    } else {
+      console.log('AFC Transmission Error!');
     }
   }
 }

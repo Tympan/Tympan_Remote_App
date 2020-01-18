@@ -516,9 +516,29 @@ export class TympanRemote {
               }
             }
             break;
-          case 'ADC':
+          case 'AFC':
+            let afc = new AFC();
+            afc.fromDataStream(val);
+            let updatedPage = afc.asPage();
+            this.initializePages([updatedPage]);
+            for (let pageNo in this._config.prescription.pages) {
+              let page = this._config.prescription.pages[pageNo];
+              if (page.id === 'afc') {
+                this._config.prescription.pages[pageNo] = updatedPage;
+              }
+            }
             break;
           case 'GHA':
+            let gha = new WDRC();
+            gha.fromDataStream(val);
+            let updatedPage = gha.asPage();
+            this.initializePages([updatedPage]);
+            for (let pageNo in this._config.prescription.pages) {
+              let page = this._config.prescription.pages[pageNo];
+              if (page.id === 'gha') {
+                this._config.prescription.pages[pageNo] = updatedPage;
+              }
+            }
             break;
         }
         //this._config.prescriptionPages()
