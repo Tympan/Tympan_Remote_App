@@ -48,7 +48,7 @@ export const BOYSTOWN_PAGE_DSL = {
         {'label': 'Number of Channels (1-8)', 'type': 'int', 'value': 8, 'disabled': true},
         {'label': 'Output at Full Scale (db SPL)', 'type': 'float', 'value': 115},
         {'label': 'Band Data', 'type': 'grid', 'numRows': 8, 'indexLabel': 'Band', 'columns': [
-                {'label': 'Crossover Frequency (Hz)', 'type': 'int', 'values': [0, 317, 503, 798, 1265, 2006, 3181, 5045]},
+                {'label': 'Crossover Frequency (Hz)', 'type': 'float', 'values': [0, 317, 503, 798, 1265, 2006, 3181, 5045]},
                 {'label': 'Low SPL: Compression Ratio', 'type': 'float', 'values': [0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57]},
                 {'label': 'Low SPL: End Knee (dB SPL)', 'type': 'float', 'values': [45.0, 45.0, 33.0, 32.0, 36.0, 34.0, 36.0, 40.0]},
                 {'label': 'Linear Region: Gain (dB)', 'type': 'float', 'values': [20., 20., 25., 30., 30., 30., 30., 30.]},

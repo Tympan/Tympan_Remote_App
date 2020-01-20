@@ -2,6 +2,8 @@ import * as _ from 'lodash';
 
 import {
   DATASTREAM_PREFIX_DSL,
+  DATASTREAM_PREFIX_GHA,
+  DATASTREAM_PREFIX_AFC,
   numberAsCharStr,
   charStrToNumber,
   isNumeric
@@ -26,7 +28,7 @@ export class DSL {
   public nChan: number; // int
   public maxdB: number; // float
   public LR: number; // int; unused for now
-  public cross_freq: number[]; // int
+  public cross_freq: number[]; // float
   public exp_cr: number[]; // float
   public exp_end_knee: number[]; // float
   public tkgain: number[]; // float
@@ -43,7 +45,7 @@ export class DSL {
     this.maxdB = 115;
     this.LR = 0; // int32; unused
     this.nChan = 8; // int32
-    this.cross_freq = [0, 317, 503, 798, 1265, 2006, 3181, 5045];
+    this.cross_freq = [0., 317., 503., 798., 1265., 2006., 3181., 5045.];
     this.exp_cr = [0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57];
     this.exp_end_knee = [45.0, 45.0, 33.0, 32.0, 36.0, 34.0, 36.0, 40.0];
     this.tkgain = [20., 20., 25., 30., 30., 30., 30., 30.];
