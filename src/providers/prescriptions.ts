@@ -169,7 +169,7 @@ export class WDRC {
           'name': this.name,
           'inputs': [
             {'label': 'Attack (msec)', 'type': 'float', 'value': this.attack},
-            {'label': 'Release (msec)', 'type': 'float', 'value': this.release),
+            {'label': 'Release (msec)', 'type': 'float', 'value': this.release},
             {'label': 'Low SPL: Compression Ratio', 'type': 'float', 'value': this.exp_cr},
             {'label': 'Low SPL: End Knee (dB SPL)', 'type': 'float', 'value': this.exp_end_knee},
             {'label': 'Linear Region: Gain (dB)', 'type': 'float', 'value': this.tkgain},
