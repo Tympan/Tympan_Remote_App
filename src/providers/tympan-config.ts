@@ -1,12 +1,11 @@
-let ADD_BOYSTOWN_DSL: boolean = false;
-let ADD_BOYSTOWN_WDRC: boolean = false;
-let ADD_BOYSTOWN_AFC: boolean = false;
-let ADD_BOYSTOWN_PLOT: boolean = false;
+import ieee754 from 'ieee754';
 
+enum ByteOrder {MSB, LSB};
 
 export interface iDevice {
   id: string;
   name: string;
+  status: string;
   uuid?: string;
   class?: number;
   address?: string;
@@ -17,12 +16,14 @@ export interface iDevice {
 export const DEVICE_1: iDevice = {
   id: 'mo:ck:01',
   name: 'mock1',
+  status: '',
   emulated: true,
 };
 
 export const DEVICE_2: iDevice = {
   id: 'mo:ck:02',
   name: 'mock2',
+  status: '',
   emulated: true,
 };
 
@@ -40,6 +41,7 @@ export const BUTTON_STYLE_NONE = {color: 'unset', isOn: undefined, class: 'btn-n
 
 export const BOYSTOWN_PAGE_DSL = {
   'title': 'Boys Town Algorithm',
+  'id': 'dsl',
   'cards': [
     {
       'name': 'Multiband Compression',
@@ -49,7 +51,7 @@ export const BOYSTOWN_PAGE_DSL = {
         {'label': 'Number of Channels (1-8)', 'type': 'int', 'value': 8, 'disabled': true},
         {'label': 'Output at Full Scale (db SPL)', 'type': 'float', 'value': 115},
         {'label': 'Band Data', 'type': 'grid', 'numRows': 8, 'indexLabel': 'Band', 'columns': [
-                {'label': 'Crossover Frequency (Hz)', 'type': 'int', 'values': [0, 317, 503, 798, 1265, 2006, 3181, 5045]},
+                {'label': 'Crossover Frequency (Hz)', 'type': 'float', 'values': [0, 317, 503, 798, 1265, 2006, 3181, 5045]},
                 {'label': 'Low SPL: Compression Ratio', 'type': 'float', 'values': [0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57]},
                 {'label': 'Low SPL: End Knee (dB SPL)', 'type': 'float', 'values': [45.0, 45.0, 33.0, 32.0, 36.0, 34.0, 36.0, 40.0]},
                 {'label': 'Linear Region: Gain (dB)', 'type': 'float', 'values': [20., 20., 25., 30., 30., 30., 30., 30.]},
@@ -65,6 +67,7 @@ export const BOYSTOWN_PAGE_DSL = {
 
 export const BOYSTOWN_PAGE_WDRC = {
       'title': 'Boys Town Algorithm',
+      'id': 'gha',
       'cards': [
     {
       'name': 'Broadband Output Compression',
@@ -85,6 +88,7 @@ export const BOYSTOWN_PAGE_WDRC = {
 
 export const BOYSTOWN_PAGE_AFC = {
       'title': 'Boys Town Algorithm',
+      'id': 'afc',
       'cards': [
     {
       'name': 'Adaptive Feedback Cancelation',
@@ -182,4 +186,84 @@ const DEFAULT_CONFIG = {
   ]
 };
 */
+
+export function numberAsCharStr(num: number, numType: string): string {
+  let str = '';
+  let hex = '';
+  let BO: ByteOrder = ByteOrder.LSB;
+
+  switch (numType) {
+    case 'int':
+    case 'int32':
+      //str = num.toString();
+      let byteArray = new Uint8Array(4);
+      let rem = num;
+      for (let i=3; i>=0; i--) {
+        /* tslint:disable no-bitwise */
+        byteArray[i] = rem & 0xFF;
+        rem = rem >> 8;
+        /* tslint:enable no-bitwise */
+      }
+      for (let i=0; i<4; i++) {
+        str += String.fromCharCode(byteArray[i]);
+        hex += ('00' + byteArray[i].toString(16)).slice(-2);
+      }
+      //console.log('int check: ' + num + ' => ' + str + '(' + hex + ')');
+      break;
+    case 'float': // float32
+    case 'float32':
+      let b2 = new Uint8Array(4);
+      ieee754.write(b2,num,0,false,23,4);
+      for (let i=0; i<4; i++) {
+        str += String.fromCharCode(b2[i]);
+        hex += ('00' + b2[i].toString(16)).slice(-2);
+      }
+      //console.log('ieee754 check: ' + num + ' => ' + str + '(' + hex + ')');
+      break;
+  }
+  if (BO === ByteOrder.LSB) {
+    return str.split('').reverse().join('');
+  } else {
+    return str;
+  }
+}
+
+export function charStrToNumber(data: string, idx: number, numType: string): number {
+  let dataLen = 0;
+  let num = 0;
+  let BO: ByteOrder = ByteOrder.LSB;
+
+  let isLE = (BO === ByteOrder.LSB);
+
+  switch (numType) {
+    case 'int':
+    case 'int32':
+      dataLen = 4;
+      num = 0;
+      for (let i=idx+dataLen-1; i >= idx; i--) {
+        /* tslint:disable no-bitwise */
+        num = (num<<8) | data.charCodeAt(i);
+        /* tslint:enable no-bitwise */
+      }
+      break;
+    case 'float':
+    case 'float32':
+      dataLen = 4;
+      let buf = new Uint8Array(dataLen);
+      for (let i=0; i<dataLen; i++) {
+        buf[i] = data.charCodeAt(idx+i);
+      }
+      num = ieee754.read(buf,0,isLE,23,4);
+      break;
+  }
+  //console.log(`${num}`);
+  return num;
+}
+
+export function isNumeric(s: string): boolean {
+  const numerics = ['int', 'float'];
+  return numerics.includes(s);
+}
+
+
 

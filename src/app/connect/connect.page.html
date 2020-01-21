@@ -10,7 +10,7 @@
     <ion-card-content>
       <ion-item *ngFor="let dev of remote.devices" (click)=toggleActive(dev.id) [color]="remote.isActiveId(dev.id) ? 'primary' : 'light'">
         <ion-col size-xs="6">{{ dev.name }}</ion-col>
-        <ion-col size-xs="6">{{ dev.id==remote.activeDeviceId?"Connected!":" "}}</ion-col>
+        <ion-col size-xs="6">{{ dev.status }}</ion-col>
       </ion-item>
       <ion-button strong=true (click)="remote.updateDeviceList()">
         Rescan for Devices
