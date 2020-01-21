@@ -308,6 +308,9 @@ export class TympanRemote {
   public disconnect() {
     this._activeDeviceIdx = -1;
     this.connected = false;
+    for (let device of this._allDevices) {
+      device.status = '';
+    }
     this.setConfig(DEFAULT_CONFIG);
     if (this.bluetooth) {
       this.btSerial.disconnect();
@@ -332,18 +335,24 @@ export class TympanRemote {
     if (dev.emulated) {
       this.activeDeviceIdx = devIdx;
       this.connected = true;
+      dev.status = 'connected';
     } else {
       this.logger.log(`setAD: connecting to ${dev.name} (${dev.id})`); //  `
+      dev.status = 'Connecting...';
       this.btSerial.connect(dev.id).subscribe(()=>{
         this.logger.log('CONNECTED');
         this.activeDeviceIdx = this.getDeviceIdxWithId(dev.id);
         this.connected = true;
+        dev.status = "Connected";
         this.subscribe();
         this.sayHello();
       },()=>{
-        this.logger.log('CONNECTION FAIL');
-        this.activeDeviceIdx = -1;
-        this.connected = false;
+        this.zone.run(()=>{
+          this.logger.log('CONNECTION FAIL');
+          this.activeDeviceIdx = -1;
+          dev.status = 'Connection fail.';
+          this.connected = false;          
+        });
       });      
     }
   }
@@ -380,7 +389,7 @@ export class TympanRemote {
 
   public subscribe() {
 		if (this.bluetooth && this.btSerial) {
-			this.logger.log('subscribingx');
+			this.logger.log('subscribing');
 			this.btSerial.subscribe('\n').subscribe((data)=>{this.interpretDataFromDevice(data);});
 		}
   }

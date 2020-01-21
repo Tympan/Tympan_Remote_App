@@ -5,6 +5,7 @@ enum ByteOrder {MSB, LSB};
 export interface iDevice {
   id: string;
   name: string;
+  status: string;
   uuid?: string;
   class?: number;
   address?: string;
@@ -15,12 +16,14 @@ export interface iDevice {
 export const DEVICE_1: iDevice = {
   id: 'mo:ck:01',
   name: 'mock1',
+  status: '',
   emulated: true,
 };
 
 export const DEVICE_2: iDevice = {
   id: 'mo:ck:02',
   name: 'mock2',
+  status: '',
   emulated: true,
 };
 
