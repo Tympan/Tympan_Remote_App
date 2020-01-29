@@ -4,6 +4,7 @@ import { Logger } from '../../providers/logger';
 import { ButtonComponent } from './presetcomponents/button/button.component';
 import 'chartjs-plugin-streaming';
 import { Chart } from 'chart.js';
+import { File } from '@ionic-native/file/ngx';
 
 @Component({
   selector: 'app-tab2',
@@ -14,11 +15,15 @@ export class PresetsPage {
     @ViewChild("lineCanvas") lineCanvas;
     textInput: string;
 
-    constructor(public remote: TympanRemote, public logger:Logger, public buttonComp: ButtonComponent) {
+    constructor(private file: File, public remote: TympanRemote, public logger:Logger, public buttonComp: ButtonComponent) {
     }
 
     cmd(s: string) {
         this.remote.send(s);
+    }
+
+    public stopSerialPlot() {
+      this.remote.send('}')
     }
 
     public makeSerialPlot() {
@@ -26,6 +31,7 @@ export class PresetsPage {
       let lineC = undefined
       let lenDataset = undefined;
       let fullDatasets = []
+      let chartData = [];
       let myChart = undefined;
       var chartColors = [
         'rgb(255, 99, 132)',    //red
@@ -40,11 +46,13 @@ export class PresetsPage {
 
       if (this.remote.bluetooth && this.remote.btSerial) {
         this.logger.log('subscribingx');
-        this.remote.btSerial.subscribe('\n').subscribe((data)=>{parsePlotterStringFromDevice(data, myChart);});
+        this.remote.btSerial.subscribe('\n').subscribe((data)=>{if (this.remote.showSerialPlotter == false) {
+          this.exportChart(chartData);
+        }
+        parsePlotterStringFromDevice(data, myChart);});
       }
 
       function parsePlotterStringFromDevice(data: string, myChart) {
-        console.log('data',data);
         if (data[0] == 'P'){
         let serialData = data.split(',');
         serialData[0] = serialData[0].slice(1);
@@ -52,6 +60,7 @@ export class PresetsPage {
         for (var n in serialData) {
           serialPlotData[n] = parseFloat(serialData[n]);
         }
+        chartData.push(serialPlotData)
         if (myChart != undefined){
           console.log('refreshing chart');
           onRefresh(myChart, serialPlotData);
@@ -133,5 +142,22 @@ export class PresetsPage {
       }
 
       this.lineCanvas = lineC
+    }
+
+    saveChart() {
+      let chart = <HTMLCanvasElement> document.getElementById('myChart') 
+      var chartImage = chart.toDataURL('image/jpg')
+      document.getElementById('imgLocation').innerHTML = '<img src="'+ chartImage +'" width="100" height="100"/>'
+    }
+
+    exportChart(chartData = []) {
+      var csv = '';
+      chartData.forEach(function(row) {
+            csv += row.join(',');
+            csv += "\n";
+    });
+
+    this.file.createFile(this.file.externalDataDirectory, 'data.csv', false)
+    this.file.writeExistingFile(this.file.externalDataDirectory,'data.csv',csv)
     }
 }
