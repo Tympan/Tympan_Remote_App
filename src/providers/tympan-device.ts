@@ -10,6 +10,7 @@ import ieee754 from 'ieee754';
 export class TympanDevice {  
   public id: string;
   public name: string;
+  public status: string;
   uuid?: string;
   class?: number;
   address?: string;
@@ -21,6 +22,8 @@ export class TympanDevice {
     this.id = dev.id;
     this.name = dev.name;
     this.emulated = dev.emulated;
+    this.status = '';
     //this.btType = dev.btType;
   }
+
 }

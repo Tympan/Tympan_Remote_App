@@ -3,6 +3,10 @@ import { TympanRemote } from '../../providers/tympan-remote';
 import { Logger } from '../../providers/logger';
 import { Chart } from 'chart.js';
 import { tick } from '@angular/core/testing';
+import { 
+  isNumeric,
+ } from '../../providers/tympan-config';
+
 
 @Component({
   selector: 'app-tab1',
@@ -10,15 +14,16 @@ import { tick } from '@angular/core/testing';
   styleUrls: ['prescription.page.scss']
 })
 
-export class PrescriptionPage{
-    @ViewChild("lineCanvas") lineCanvas;
-    public lineChart: CharacterData;
+export class PrescriptionPage {
+    @ViewChild('lineCanvas') lineCanvas;
+    public lineChart: Chart;
+    
     constructor(public remote: TympanRemote, public logger:Logger) {
-    };
+    }
 
     cmd(s: string) {
         this.remote.send(s);
-    };
+    }
 
     sendInputCard(card: any) {
     	this.remote.sendInputCard(card);
@@ -37,33 +42,33 @@ export class PrescriptionPage{
     }
 
     public makeLineChart() {
-      var graphData = this.remote.formatData();
+      const graphData = this.remote.formatData();
       this.lineChart = new Chart(this.lineCanvas.nativeElement, {
-        type: "scatter",
+        type: 'scatter',
         data: {
           datasets: [{
-            label: "TKgain",
+            label: 'TKgain',
             data: graphData[0],
-            borderColor: "blue",
+            borderColor: 'blue',
             showLine: true,
-            backgroundColor: "rgba(0, 0, 0, 0)",
-            pointBackgroundColor: "blue"
+            backgroundColor: 'rgba(0, 0, 0, 0)',
+            pointBackgroundColor: 'blue'
           },
           {
-            label: "TK",
+            label: 'TK',
             data: graphData[1],
-            borderColor: "red",
+            borderColor: 'red',
             showLine: true,
-            backgroundColor: "rgba(0, 0, 0, 0)",
-            pointBackgroundColor: "red"
+            backgroundColor: 'rgba(0, 0, 0, 0)',
+            pointBackgroundColor: 'red'
           },     
           {
-            label: "BOLT",
+            label: 'BOLT',
             data: graphData[2],
-            borderColor: "green",
+            borderColor: 'green',
             showLine: true,
-            backgroundColor: "rgba(0, 0, 0, 0)",
-            pointBackgroundColor: "green"
+            backgroundColor: 'rgba(0, 0, 0, 0)',
+            pointBackgroundColor: 'green'
           },
         ],
         },
@@ -75,7 +80,7 @@ export class PrescriptionPage{
                 min: 0,
                 max: 20000,
                 callback: function (value) {
-                    if(value==10 || value==50 ||value==100 || value==500 ||value==1000 || value==5000 ||value==10000){
+                    if (value===10 || value===50 ||value===100 || value===500 ||value===1000 || value===5000 ||value===10000) {
                         // return value;
                     return Number(value.toString());
                     }
@@ -99,4 +104,7 @@ export class PrescriptionPage{
       });
     }
 
+    public isNum(type: string): boolean {
+      return isNumeric(type);
+    }
   }

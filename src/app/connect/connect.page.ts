@@ -16,7 +16,7 @@ export class ConnectPage {
       }
     }
 
-    public async runVersion(){
+    public async runVersion() {
       this.appVersion.getVersionNumber().then(value => {
         this.VersionNumber = value;
       }).catch(err => {

@@ -10,7 +10,7 @@
     <ion-card-content>
       <ion-item *ngFor="let dev of remote.devices" (click)=toggleActive(dev.id) [color]="remote.isActiveId(dev.id) ? 'primary' : 'light'">
         <ion-col size-xs="6">{{ dev.name }}</ion-col>
-        <ion-col size-xs="6">{{ dev.id==remote.activeDeviceId?"Connected!":" "}}</ion-col>
+        <ion-col size-xs="6">{{ dev.status }}</ion-col>
       </ion-item>
       <ion-button strong=true (click)="remote.updateDeviceList()">
         Rescan for Devices
@@ -53,12 +53,11 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card>
-    <!-- LOG CARD -->
-    <ion-card-header>Logs</ion-card-header>
-    <p *ngFor="let msg of logger.logArray.slice(-4); let i = index" class="logText">{{msg}}</p>
-  </ion-card>
 <ion-note>Version: {{VersionNumber}}</ion-note>
 </ion-content>
 
-
+<ion-footer *ngIf="remote.showLogs" style="height:100px !important">
+  <!-- LOG CARD -->
+  <p class="logHeader">Logs</p>
+  <p *ngFor="let msg of logger.logArray.slice(-2); let i = index" class="logText">{{msg}}</p>
+</ion-footer>

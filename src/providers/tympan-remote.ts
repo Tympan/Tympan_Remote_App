@@ -2,7 +2,6 @@ import { Injectable, NgZone } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
 import { Logger } from './logger';
-import ieee754 from 'ieee754';
 
 import {
   iDevice,
@@ -22,16 +21,16 @@ import {
   BOYSTOWN_PAGE_AFC,
   BOYSTOWN_PAGE_PLOT,
   DEFAULT_CONFIG,
+  numberAsCharStr,
+  charStrToNumber,
+  isNumeric
 } from './tympan-config';
 
-//export enum BluetoothType {BLUETOOTH_SERIAL, BLE};
-
-enum ByteOrder {MSB, LSB};
-
-let ADD_BOYSTOWN_DSL: boolean = false;
-let ADD_BOYSTOWN_WDRC: boolean = false;
-let ADD_BOYSTOWN_AFC: boolean = false;
-let ADD_BOYSTOWN_PLOT: boolean = false;
+import {
+  DSL,
+  WDRC,
+  AFC
+} from './prescriptions';
 
 /**
  * This class contains the variables and methods for the Tympan Remote app.
@@ -47,6 +46,7 @@ export class TympanRemote {
   public showLogs: boolean = false;
   public showDevOptions: boolean = false;
   public showSerialMonitorPage: boolean = false;
+  public showSerialPlotter: boolean = false;
   // properties related to the connected device:
   private _allDevices: iDevice[];
   private _activeDeviceIdx: number;
@@ -139,6 +139,7 @@ export class TympanRemote {
     this.showLogs = false;
     this.showDevOptions = false;
     this.showSerialMonitorPage = false;
+    this.showSerialPlotter = false;
     this._allDevices = [];
     this._activeDeviceIdx = -1;
     this._config = {};
@@ -207,6 +208,12 @@ export class TympanRemote {
           case 'plot': {
             pages.push(BOYSTOWN_PAGE_PLOT);
             break;
+          }
+          case 'serialMonitor': {
+            this.showSerialMonitorPage = true;
+          }
+          case 'serialPlotter': {
+            this.showSerialPlotter = true;
           }
         }
       }
@@ -279,28 +286,31 @@ export class TympanRemote {
     // Should reset the bluetooth connection, disconnecting from any connected device.
   }
 
-  public async checkBluetoothStatus() {
+  public async checkBluetoothStatus(): Promise<any> {
   	this.logger.log('Checking BT status...');
   	if (!this.platform.is('cordova')) {
   		this.logger.log('Bluetooth is unavailable; not a cordova platform');
-  		this.bluetooth = false
-  		return;
+  		this.bluetooth = false;
+  		return Promise.resolve(false);
   	}
 
-		this.btSerial.isEnabled().then(()=>{
+		return this.btSerial.enable().then(()=>{
 	  	this.logger.log('Bluetooth is available');
 	  	this.bluetooth = true;
-  		return;
+  		return true;
   	},()=>{
   		this.logger.log('Bluetooth is unavailable; not enabled on device');
   		this.bluetooth = false;
-	  	return;
+	  	return false;
   	});
   }
 
   public disconnect() {
     this._activeDeviceIdx = -1;
     this.connected = false;
+    for (let device of this._allDevices) {
+      device.status = '';
+    }
     this.setConfig(DEFAULT_CONFIG);
     if (this.bluetooth) {
       this.btSerial.disconnect();
@@ -325,18 +335,24 @@ export class TympanRemote {
     if (dev.emulated) {
       this.activeDeviceIdx = devIdx;
       this.connected = true;
+      dev.status = 'connected';
     } else {
       this.logger.log(`setAD: connecting to ${dev.name} (${dev.id})`); //  `
+      dev.status = 'Connecting...';
       this.btSerial.connect(dev.id).subscribe(()=>{
         this.logger.log('CONNECTED');
         this.activeDeviceIdx = this.getDeviceIdxWithId(dev.id);
         this.connected = true;
+        dev.status = "Connected";
         this.subscribe();
         this.sayHello();
       },()=>{
-        this.logger.log('CONNECTION FAIL');
-        this.activeDeviceIdx = -1;
-        this.connected = false;
+        this.zone.run(()=>{
+          this.logger.log('CONNECTION FAIL');
+          this.activeDeviceIdx = -1;
+          dev.status = 'Connection fail.';
+          this.connected = false;          
+        });
       });      
     }
   }
@@ -364,17 +380,6 @@ export class TympanRemote {
     this.btSerial.isConnected().then(()=>{this.logger.log('Is Connected.');},()=>{this.logger.log('Is Not Connected.');});
     this.updateDeviceList();
     */
-
-    /*
-    this.send(DATASTREAM_START_CHAR);
-    this.send(this.numberAsCharStr(13,'int32'));
-    this.send(DATASTREAM_SEPARATOR);
-    this.send('test');
-    this.send(DATASTREAM_SEPARATOR);
-    this.send(this.numberAsCharStr(17501197,'int32'));
-    this.send(this.numberAsCharStr(3.14,'float'));
-    this.send(DATASTREAM_END_CHAR);
-    */
    
     console.log('testing');
     this.adjustComponentById('algA','label','6^');
@@ -383,20 +388,8 @@ export class TympanRemote {
   }
 
   public subscribe() {
-  	/*
-    this.btSerial.subscribe('\n').subscribe((data)=>{
-      this.logger.log(`>${data}`);
-      if (data.length>5 && data.slice(0,5)=='JSON=') {
-        this.parseConfigStringFromDevice(data);
-      } else if (data.length>6 && data.slice(0,6)=='STATE=') {
-        this.parseStateStringFromDevice(data);
-      } else if (data.length>6 && data.slice(0,5)=='TEXT=') {
-        this.parseTextStringFromDevice(data);
-      }
-    });
-    */
 		if (this.bluetooth && this.btSerial) {
-			this.logger.log('subscribingx');
+			this.logger.log('subscribing');
 			this.btSerial.subscribe('\n').subscribe((data)=>{this.interpretDataFromDevice(data);});
 		}
   }
@@ -407,8 +400,22 @@ export class TympanRemote {
       this.parseConfigStringFromDevice(data);
     } else if (data.length>6 && data.slice(0,6)=='STATE=') {
       this.parseStateStringFromDevice(data);
-    } else if (data.length>6 && data.slice(0,5)=='TEXT=') {
+    } else if (data.length>5 && data.slice(0,5)=='TEXT=') {
       this.parseTextStringFromDevice(data);
+    } else if (data.length>6 && data.slice(0,6)=='PRESC=') {
+      this.parsePrescriptionStringFromDevice(data);
+    } else if (data.length>1 && data.slice(0,1)=='P') {
+      this.parsePlotterStringFromDevice(data);
+    }
+  }
+
+  public parsePlotterStringFromDevice(data: string) {
+    this.logger.log('Found serial plotting data from arduino:');
+    let serialData = data.split(',')
+    serialData[0] = serialData[0].slice(1)
+    let serialPlotData = []
+    for (var n in serialData) {
+      serialPlotData[n] = parseFloat(serialData[n])
     }
   }
 
@@ -436,7 +443,7 @@ export class TympanRemote {
     let id = parts[1];
     let val = parts[2];
     /* We're splitting on ":", but maybe the user wanted to display a message that included a colon? */
-    for (let idx = 3; idx<featType.length; idx++) {
+    for (let idx = 3; idx<parts.length; idx++) {
       val += ':';
       val += parts[idx];
     }
@@ -476,7 +483,7 @@ export class TympanRemote {
     let id = parts[1];
     let val = parts[2];
     /* We're splitting on ":", but maybe the user wanted to display a message that included a colon? */
-    for (let idx = 3; idx<featType.length; idx++) {
+    for (let idx = 3; idx<parts.length; idx++) {
       val += ':';
       val += parts[idx];
     }
@@ -487,6 +494,75 @@ export class TympanRemote {
       }
       catch(err) {
         this.logger.log(`Invalid text string: ${err}`);
+      }      
+    });
+  }
+
+  public parsePrescriptionStringFromDevice(data: string) {
+    //this.logger.log('Found state string from arduino:');
+    let prescStr = data.slice(6);
+    //this.logger.log(prescStr);
+    let parts = prescStr.split(':');
+    let prescType = parts[0];
+    let val = parts[1];
+    /* We're splitting on ":", but maybe the user wanted to display a message that included a colon? */
+    for (let idx = 2; idx<parts.length; idx++) {
+      val += ':';
+      val += parts[idx];
+    }
+    this.logger.log(`Parsing ${prescType} prescription.`);
+
+    this.zone.run(()=>{
+      try {
+        switch (prescType) {
+          case 'DSL': 
+            {
+              let dsl = new DSL();
+              dsl.fromDataStream(val);
+              let updatedPage = dsl.asPage();
+              this.initializePages([updatedPage]);
+              for (let pageNo in this._config.prescription.pages) {
+                let page = this._config.prescription.pages[pageNo];
+                if (page.id === 'dsl') {
+                  this._config.prescription.pages[pageNo] = updatedPage;
+                }
+              }
+            }
+            break;
+          case 'AFC': 
+            {
+              let afc = new AFC();
+              afc.fromDataStream(val);
+              let updatedPage = afc.asPage();
+              this.initializePages([updatedPage]);
+              for (let pageNo in this._config.prescription.pages) {
+                let page = this._config.prescription.pages[pageNo];
+                if (page.id === 'afc') {
+                  this._config.prescription.pages[pageNo] = updatedPage;
+                }
+              }
+            }
+            break;
+          case 'GHA': 
+            {
+              let gha = new WDRC();
+              gha.fromDataStream(val);
+              let updatedPage = gha.asPage();
+              this.initializePages([updatedPage]);
+              for (let pageNo in this._config.prescription.pages) {
+                let page = this._config.prescription.pages[pageNo];
+                if (page.id === 'gha') {
+                  this._config.prescription.pages[pageNo] = updatedPage;
+                }
+              }
+            }
+            break;
+        }
+        //this._config.prescriptionPages()
+        //this.logger.log('Updating pages...');
+      }
+      catch(err) {
+        this.logger.log(`Invalid state string: ${err}`);
       }      
     });
   }
@@ -558,6 +634,12 @@ export class TympanRemote {
     this.logger.log(`Sending ${s} to ${this.activeDevice.name}`);  
     if (this.bluetooth) {
       this.btSerial.write(s).then(()=>{
+        if (s == ']'){
+          this.showSerialPlotter = true;
+        }
+        if (s == '}'){
+          this.showSerialPlotter = false;
+        }
         this.logger.log(`Successfully sent ${s}`);
       }).catch(()=>{
         this.logger.log(`Failed to send ${s}`);
@@ -645,14 +727,14 @@ export class TympanRemote {
 
     let dataStr = card.submitButton.prefix + DATASTREAM_SEPARATOR;
     for (let input of card.inputs) {
-      if (this.isNumeric(input.type)) {
-        dataStr += this.numberAsCharStr(input.value, input.type);
+      if (isNumeric(input.type)) {
+        dataStr += numberAsCharStr(input.value, input.type);
         //dataStr += ',';
       } else if (input.type ==='grid') {
         for (let col of input.columns) {
           //dataStr += '[';
           for (let value of col.values) {
-            dataStr += this.numberAsCharStr(value, col.type);
+            dataStr += numberAsCharStr(value, col.type);
             //dataStr += ',';
           }
           //dataStr += '],';
@@ -662,7 +744,7 @@ export class TympanRemote {
 
     this.logger.log("Sending " + DATASTREAM_START_CHAR + ", length = " + dataStr.length.toString());
 
-    let charStr = DATASTREAM_START_CHAR + this.numberAsCharStr(dataStr.length,'int32') + DATASTREAM_SEPARATOR + dataStr + DATASTREAM_END_CHAR;
+    let charStr = DATASTREAM_START_CHAR + numberAsCharStr(dataStr.length,'int32') + DATASTREAM_SEPARATOR + dataStr + DATASTREAM_END_CHAR;
 
     if (this.bluetooth) {
       this.btSerial.write(charStr).then(()=>{
@@ -677,51 +759,6 @@ export class TympanRemote {
     this.logger.log("Sending " + DATASTREAM_START_CHAR + ", length = " + dataStr.length.toString());
   }
 
-  public numberAsCharStr(num: number, numType: string) {
-    let str = '';
-    let hex = '';
-    let BO: ByteOrder = ByteOrder.LSB;
-
-    switch (numType) {
-      case 'int':
-      case 'int32':
-        //str = num.toString();
-        let byteArray = new Uint8Array(4);
-        let rem = num;
-        for (let i=3; i>=0; i--) {
-        //for (let i=0; i<4; i++) {
-          byteArray[i] = rem & 0xFF;
-          rem = rem >> 8;
-        }
-        for (let i=0; i<4; i++) {
-          str += String.fromCharCode(byteArray[i]);
-          hex += ('00' + byteArray[i].toString(16)).slice(-2);
-        }
-        this.logger.log('int check: ' + num + ' => ' + str + '(' + hex + ')');
-        break;
-      case 'float': // float32
-      case 'float32':
-        let b2 = new Uint8Array(4);
-        ieee754.write(b2,num,0,false,23,4);
-        for (let i=0; i<4; i++) {
-          str += String.fromCharCode(b2[i]);
-          hex += ('00' + b2[i].toString(16)).slice(-2);
-        }
-        this.logger.log('ieee754 check: ' + num + ' => ' + str + '(' + hex + ')');
-        break;
-    }
-    if (BO === ByteOrder.LSB) {
-      return str.split('').reverse().join('');
-    } else {
-      return str;
-    }
-  }
-
-  public isNumeric(s: string) {
-    const numerics = ['int', 'float'];
-    return numerics.includes(s);
-  }
 
 }
-
 
