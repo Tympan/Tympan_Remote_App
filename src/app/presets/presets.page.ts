@@ -155,9 +155,13 @@ export class PresetsPage {
       chartData.forEach(function(row) {
             csv += row.join(',');
             csv += "\n";
-    });
+      });
 
-    this.file.createFile(this.file.externalDataDirectory, 'data.csv', false)
-    this.file.writeExistingFile(this.file.externalDataDirectory,'data.csv',csv)
+      let filename = "tr-log-"+(new Date()).toISOString()+".csv";
+      filename=filename.replace(/:/g,'-'); // ':' is a forbidden filesystem character.
+
+
+      this.file.createFile(this.file.externalDataDirectory, filename, false);
+      this.file.writeExistingFile(this.file.externalDataDirectory,filename,csv);
     }
 }
