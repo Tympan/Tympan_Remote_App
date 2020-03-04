@@ -123,6 +123,7 @@ export class Plotter {
     if (chart != undefined) {
       this.myChart = chart;
     }
+    if (this.myChart != undefined) {
     let set = 0;
     this.myChart.config.data.datasets.forEach(function(dataset) {
       if (sData != undefined){
@@ -133,6 +134,7 @@ export class Plotter {
       set += 1;
     }});
     this.myChart.update({preservation: true});
+  }
   }
 
 }
