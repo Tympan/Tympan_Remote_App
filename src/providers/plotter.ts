@@ -54,7 +54,7 @@ export class Plotter {
       console.log(this);
       if (this.myChart != undefined){
         console.log('refreshing chart');
-        this.onRefresh(serialPlotData);
+        this.onRefresh(undefined,serialPlotData);
       }
       if (this.lenDataset == undefined) {
         this.lenDataset = serialPlotData.length;
@@ -87,17 +87,21 @@ export class Plotter {
       this.fullDatasets.push(newDataset);
     }
 
+    let p = this;
+    console.log('Adding data sets:');
+    console.log(p);
+
     var fullLayout = {
       type: 'line',
       data: {
-        datasets: this.fullDatasets
+        datasets: p.fullDatasets
       },
       options: {
         scales: {
           xAxes: [{
             type: 'realtime',
             realtime: {
-              onRefresh: this.onRefresh,
+              onRefresh: (c)=>{p.onRefresh(c,undefined);},
               ttl: 60000
             }
           }],
@@ -115,7 +119,10 @@ export class Plotter {
     this.lineC = new Chart(canvas, fullLayout);
   };
       
-  private onRefresh(sData) {
+  private onRefresh(chart, sData) {
+    if (chart != undefined) {
+      this.myChart = chart;
+    }
     let set = 0;
     this.myChart.config.data.datasets.forEach(function(dataset) {
       if (sData != undefined){
