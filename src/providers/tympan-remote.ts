@@ -4,6 +4,7 @@ import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
 import { File } from '@ionic-native/file/ngx';
 import { Logger } from './logger';
+import { Plotter } from './plotter';
 
 import {
   iDevice,
@@ -134,7 +135,7 @@ export class TympanRemote {
     })
   }
 
-  constructor(private platform: Platform, private zone: NgZone, private logger: Logger, private androidPermissions: AndroidPermissions, private file: File) {
+  constructor(private platform: Platform, private zone: NgZone, private logger: Logger, private plotter: Plotter, private androidPermissions: AndroidPermissions, private file: File) {
     this.btSerial = new BluetoothSerial();
     this._emulate = false;
     this.connected = false;
@@ -390,6 +391,9 @@ export class TympanRemote {
   }
 
   public testFn() {
+    console.log("Running the test function...");
+    var canvas = <HTMLCanvasElement> document.getElementById('myChart');
+    console.log(canvas);
     /*
     this.btSerial.isEnabled().then(()=>{this.logger.log('Is Enabled.');},()=>{this.logger.log('Is Not Enabled.');});
     this.btSerial.isConnected().then(()=>{this.logger.log('Is Connected.');},()=>{this.logger.log('Is Not Connected.');});
@@ -410,7 +414,7 @@ export class TympanRemote {
   }
 
   public interpretDataFromDevice(data: string) {
-    this.logger.log(`>${data}`);
+    //this.logger.log(`>${data}`);
     if (data.length>5 && data.slice(0,5)=='JSON=') {
       this.parseConfigStringFromDevice(data);
     } else if (data.length>6 && data.slice(0,6)=='STATE=') {
@@ -425,13 +429,8 @@ export class TympanRemote {
   }
 
   public parsePlotterStringFromDevice(data: string) {
-    this.logger.log('Found serial plotting data from arduino:');
-    let serialData = data.split(',')
-    serialData[0] = serialData[0].slice(1)
-    let serialPlotData = []
-    for (var n in serialData) {
-      serialPlotData[n] = parseFloat(serialData[n])
-    }
+    //this.logger.log('Found serial plotting data from arduino:');
+    this.plotter.parsePlotterStringFromDevice(data);
   }
 
   public parseConfigStringFromDevice(data: string) {
