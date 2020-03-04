@@ -24,6 +24,8 @@ export class Plotter {
       'rgb(201, 203, 207)',   //grey
       'rgb(0, 0, 0)'          //black
     ];
+    public _canvas = undefined;
+    public _fullLayout = undefined;
 
   constructor(private zone: NgZone) {
   }
@@ -50,10 +52,7 @@ export class Plotter {
         serialPlotData[n] = parseFloat(serialData[n]);
       }
       this.chartData.push(serialPlotData);
-      console.log('SD:');
-      console.log(this);
       if (this.myChart != undefined){
-        console.log('refreshing chart');
         this.onRefresh(undefined,serialPlotData);
       }
       if (this.lenDataset == undefined) {
@@ -91,7 +90,7 @@ export class Plotter {
     console.log('Adding data sets:');
     console.log(p);
 
-    var fullLayout = {
+    this._fullLayout = {
       type: 'line',
       data: {
         datasets: p.fullDatasets
@@ -114,27 +113,37 @@ export class Plotter {
       }
     };
 
-    var canvas = <HTMLCanvasElement> document.getElementById('myChart');
-    var ctx = canvas.getContext('2d');
-    this.lineC = new Chart(canvas, fullLayout);
+    if (this._canvas != undefined) {
+      this.lineC = new Chart(this._canvas, this._fullLayout);
+    }
+  }
+
+
+  public setCanvas(id: string) {
+    this._canvas = <HTMLCanvasElement> document.getElementById(id);
+    //var ctx = canvas.getContext('2d');
+    if (this._fullLayout) {
+      this.lineC = new Chart(this._canvas, this._fullLayout);
+    }
   };
+
       
   private onRefresh(chart, sData) {
     if (chart != undefined) {
       this.myChart = chart;
     }
     if (this.myChart != undefined) {
-    let set = 0;
-    this.myChart.config.data.datasets.forEach(function(dataset) {
-      if (sData != undefined){
-      dataset.data.push({
-        x: Date.now(),
-        y: sData[set]
-      });
-      set += 1;
-    }});
-    this.myChart.update({preservation: true});
-  }
+      let set = 0;
+      this.myChart.config.data.datasets.forEach(function(dataset) {
+        if (sData != undefined){
+        dataset.data.push({
+          x: Date.now(),
+          y: sData[set]
+        });
+        set += 1;
+      }});
+      this.myChart.update({preservation: true});      
+    }
   }
 
 }

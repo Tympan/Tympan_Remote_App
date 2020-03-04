@@ -25,8 +25,9 @@ export class PresetsPage {
     }
 
     public makeSerialPlot() {
+      var htmlId = 'myChart';
+      this.plotter.setCanvas(htmlId);
       this.remote.send(']')
-      this.lineCanvas = this.plotter.lineC;
     }
 
     saveChart() {
