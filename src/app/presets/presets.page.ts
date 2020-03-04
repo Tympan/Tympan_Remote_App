@@ -54,29 +54,29 @@ export class PresetsPage {
 
       function parsePlotterStringFromDevice(data: string, myChart) {
         if (data[0] == 'P'){
-        let serialData = data.split(',');
-        serialData[0] = serialData[0].slice(1);
-        let serialPlotData = [];
-        for (var n in serialData) {
-          serialPlotData[n] = parseFloat(serialData[n]);
-        }
-        chartData.push(serialPlotData)
-        if (myChart != undefined){
-          console.log('refreshing chart');
-          onRefresh(myChart, serialPlotData);
-        }
-        if (lenDataset == undefined) {
-          lenDataset = serialPlotData.length;
-          if (typeof serialPlotData[0] == 'string'){
-            let labels = serialPlotData;
-            addDatasets(lenDataset, labels);
+          let serialData = data.split(',');
+          serialData[0] = serialData[0].slice(1);
+          let serialPlotData = [];
+          for (var n in serialData) {
+            serialPlotData[n] = parseFloat(serialData[n]);
           }
-          else {
-            addDatasets(lenDataset);
+          chartData.push(serialPlotData)
+          if (myChart != undefined){
+            console.log('refreshing chart');
+            onRefresh(myChart, serialPlotData);
+          }
+          if (lenDataset == undefined) {
+            lenDataset = serialPlotData.length;
+            if (typeof serialPlotData[0] == 'string'){
+              let labels = serialPlotData;
+              addDatasets(lenDataset, labels);
+            }
+            else {
+              addDatasets(lenDataset);
+            }
           }
         }
       }
-    }
       
       function addDatasets(data, labels = undefined) {
         for (let dset=0; dset<data; dset++) {
