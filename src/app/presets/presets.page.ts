@@ -4,7 +4,6 @@ import { Logger } from '../../providers/logger';
 import { ButtonComponent } from './presetcomponents/button/button.component';
 import 'chartjs-plugin-streaming';
 import { Chart } from 'chart.js';
-import { File } from '@ionic-native/file/ngx';
 
 @Component({
   selector: 'app-tab2',
@@ -15,7 +14,7 @@ export class PresetsPage {
     @ViewChild("lineCanvas") lineCanvas;
     textInput: string;
 
-    constructor(private file: File, public remote: TympanRemote, public logger:Logger, public buttonComp: ButtonComponent) {
+    constructor(public remote: TympanRemote, public logger:Logger, public buttonComp: ButtonComponent) {
     }
 
     cmd(s: string) {
@@ -153,15 +152,10 @@ export class PresetsPage {
     exportChart(chartData = []) {
       var csv = '';
       chartData.forEach(function(row) {
-            csv += row.join(',');
-            csv += "\n";
+        csv += row.join(',');
+        csv += "\n";
       });
 
-      let filename = "tr-log-"+(new Date()).toISOString()+".csv";
-      filename=filename.replace(/:/g,'-'); // ':' is a forbidden filesystem character.
-
-
-      this.file.createFile(this.file.externalDataDirectory, filename, false);
-      this.file.writeExistingFile(this.file.externalDataDirectory,filename,csv);
+      this.remote.writeTRDataFile(csv);
     }
 }

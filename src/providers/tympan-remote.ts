@@ -2,6 +2,7 @@ import { Injectable, NgZone } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
+import { File } from '@ionic-native/file/ngx';
 import { Logger } from './logger';
 
 import {
@@ -133,7 +134,7 @@ export class TympanRemote {
     })
   }
 
-  constructor(private platform: Platform, private zone: NgZone, private logger: Logger, private androidPermissions: AndroidPermissions) {
+  constructor(private platform: Platform, private zone: NgZone, private logger: Logger, private androidPermissions: AndroidPermissions, private file: File) {
     this.btSerial = new BluetoothSerial();
     this._emulate = false;
     this.connected = false;
@@ -740,6 +741,13 @@ export class TympanRemote {
     this.logger.log("Sending " + DATASTREAM_START_CHAR + ", length = " + dataStr.length.toString());
   }
 
+  public writeTRDataFile(csv: string) {
+    let filename = "tr-data-"+(new Date()).toISOString()+".csv";
+    filename=filename.replace(/:/g,'-'); // ':' is a forbidden filesystem character.
+
+    this.file.createFile(this.file.externalDataDirectory, filename, false);
+    this.file.writeExistingFile(this.file.externalDataDirectory,filename,csv);
+  }
 
 }
 
