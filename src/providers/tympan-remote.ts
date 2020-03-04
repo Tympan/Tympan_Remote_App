@@ -697,39 +697,6 @@ export class TympanRemote {
     return graphData;
   }
 
-// public formatData(){
-//   var card = BOYSTOWN_PAGE_DSL.cards[0]
-//   let TKGainData = [];
-//   let TKData = [];
-//   let BOLTData = [];
-//   let xData = []
-//   var val;
-//   var xval;
-//   var yval1;
-//   var yval2;
-//   var yval3;
-//   var Data;
-//   for (val in card.inputs[4].columns[0].values){
-//     yval1 = card.inputs[4].columns[3].values[val]
-//     TKGainData.push(yval1)
-
-//     yval2 = card.inputs[4].columns[2].values[val]
-//     TKData.push(yval2)
-
-//     yval3 = card.inputs[4].columns[6].values[val]
-//     BOLTData.push(yval3)
-
-//     xval = card.inputs[4].columns[0].values[val]
-//     xData.push(xval)
-//   }
-//     TKGainData.push({x: 12000, y: yval1})
-//     TKData.push({x: 12000, y: yval2})
-//     BOLTData.push({x: 12000, y: yval3})
-//   Data = [TKGainData, TKData, BOLTData, xData];
-//   console.log(Data)
-//   return Data;
-// }
-
   public sendInputCard(card: any) {
     if (!this.connected) {
       this.logger.log('Not connected to a device.');
