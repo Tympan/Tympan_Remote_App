@@ -29,6 +29,7 @@
 		"@angular/platform-browser": "^7.2.15",
 		"@angular/platform-browser-dynamic": "^7.2.15",
 		"@angular/router": "^7.2.15",
+		"@ionic-native/android-permissions": "^5.20.0",
 		"@ionic-native/app-version": "^5.12.0",
 		"@ionic-native/bluetooth-serial": "^5.12.0",
 		"@ionic-native/core": "^5.12.0",
@@ -42,6 +43,7 @@
 		"chartjs-plugin-streaming": "^1.8.0",
 		"cordova": "^9.0.0",
 		"cordova-android": "^8.1.0",
+		"cordova-plugin-android-permissions": "1.0.2",
 		"cordova-plugin-app-version": "^0.1.9",
 		"cordova-plugin-bluetooth-serial": "~0.4.7",
 		"cordova-plugin-device": "2.0.2",
@@ -100,6 +102,7 @@
 			"cordova-plugin-ionic-keyboard": {},
 			"cordova-plugin-bluetooth-serial": {},
 			"cordova-plugin-app-version": {},
+			"cordova-plugin-android-permissions": {},
 			"cordova-plugin-file": {}
 		},
 		"platforms": [

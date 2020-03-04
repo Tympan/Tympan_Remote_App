@@ -1,5 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Platform } from '@ionic/angular';
+import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
 import { Logger } from './logger';
 
@@ -132,7 +133,7 @@ export class TympanRemote {
     })
   }
 
-  constructor(private platform: Platform, private zone: NgZone, private logger: Logger) {
+  constructor(private platform: Platform, private zone: NgZone, private logger: Logger, private androidPermissions: AndroidPermissions) {
     this.btSerial = new BluetoothSerial();
     this._emulate = false;
     this.connected = false;
@@ -293,6 +294,19 @@ export class TympanRemote {
   		this.bluetooth = false;
   		return Promise.resolve(false);
   	}
+
+    this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION).then((perm)=>{
+      this.logger.log('Has fine location permission? '+perm.hasPermission);
+    });
+
+    this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH).then((perm)=>{
+      this.logger.log('Has bluetooth permission? '+perm.hasPermission);
+    });
+
+    this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH_ADMIN).then((perm)=>{
+      this.logger.log('Has bluetooth admin permission? '+perm.hasPermission);
+    });
+
 
 		return this.btSerial.enable().then(()=>{
 	  	this.logger.log('Bluetooth is available');
