@@ -1,7 +1,10 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Platform } from '@ionic/angular';
+import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
 import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
+import { File } from '@ionic-native/file/ngx';
 import { Logger } from './logger';
+import { Plotter } from './plotter';
 
 import {
   iDevice,
@@ -132,7 +135,7 @@ export class TympanRemote {
     })
   }
 
-  constructor(private platform: Platform, private zone: NgZone, private logger: Logger) {
+  constructor(private platform: Platform, private zone: NgZone, private logger: Logger, private plotter: Plotter, private androidPermissions: AndroidPermissions, private file: File) {
     this.btSerial = new BluetoothSerial();
     this._emulate = false;
     this.connected = false;
@@ -294,6 +297,19 @@ export class TympanRemote {
   		return Promise.resolve(false);
   	}
 
+    this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION).then((perm)=>{
+      this.logger.log('Has fine location permission? '+perm.hasPermission);
+    });
+
+    this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH).then((perm)=>{
+      this.logger.log('Has bluetooth permission? '+perm.hasPermission);
+    });
+
+    this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH_ADMIN).then((perm)=>{
+      this.logger.log('Has bluetooth admin permission? '+perm.hasPermission);
+    });
+
+
 		return this.btSerial.enable().then(()=>{
 	  	this.logger.log('Bluetooth is available');
 	  	this.bluetooth = true;
@@ -375,6 +391,9 @@ export class TympanRemote {
   }
 
   public testFn() {
+    console.log("Running the test function...");
+    var canvas = <HTMLCanvasElement> document.getElementById('myChart');
+    console.log(canvas);
     /*
     this.btSerial.isEnabled().then(()=>{this.logger.log('Is Enabled.');},()=>{this.logger.log('Is Not Enabled.');});
     this.btSerial.isConnected().then(()=>{this.logger.log('Is Connected.');},()=>{this.logger.log('Is Not Connected.');});
@@ -395,7 +414,7 @@ export class TympanRemote {
   }
 
   public interpretDataFromDevice(data: string) {
-    this.logger.log(`>${data}`);
+    //this.logger.log(`>${data}`);
     if (data.length>5 && data.slice(0,5)=='JSON=') {
       this.parseConfigStringFromDevice(data);
     } else if (data.length>6 && data.slice(0,6)=='STATE=') {
@@ -410,13 +429,8 @@ export class TympanRemote {
   }
 
   public parsePlotterStringFromDevice(data: string) {
-    this.logger.log('Found serial plotting data from arduino:');
-    let serialData = data.split(',')
-    serialData[0] = serialData[0].slice(1)
-    let serialPlotData = []
-    for (var n in serialData) {
-      serialPlotData[n] = parseFloat(serialData[n])
-    }
+    //this.logger.log('Found serial plotting data from arduino:');
+    this.plotter.parsePlotterStringFromDevice(data);
   }
 
   public parseConfigStringFromDevice(data: string) {
@@ -683,39 +697,6 @@ export class TympanRemote {
     return graphData;
   }
 
-// public formatData(){
-//   var card = BOYSTOWN_PAGE_DSL.cards[0]
-//   let TKGainData = [];
-//   let TKData = [];
-//   let BOLTData = [];
-//   let xData = []
-//   var val;
-//   var xval;
-//   var yval1;
-//   var yval2;
-//   var yval3;
-//   var Data;
-//   for (val in card.inputs[4].columns[0].values){
-//     yval1 = card.inputs[4].columns[3].values[val]
-//     TKGainData.push(yval1)
-
-//     yval2 = card.inputs[4].columns[2].values[val]
-//     TKData.push(yval2)
-
-//     yval3 = card.inputs[4].columns[6].values[val]
-//     BOLTData.push(yval3)
-
-//     xval = card.inputs[4].columns[0].values[val]
-//     xData.push(xval)
-//   }
-//     TKGainData.push({x: 12000, y: yval1})
-//     TKData.push({x: 12000, y: yval2})
-//     BOLTData.push({x: 12000, y: yval3})
-//   Data = [TKGainData, TKData, BOLTData, xData];
-//   console.log(Data)
-//   return Data;
-// }
-
   public sendInputCard(card: any) {
     if (!this.connected) {
       this.logger.log('Not connected to a device.');
@@ -759,6 +740,13 @@ export class TympanRemote {
     this.logger.log("Sending " + DATASTREAM_START_CHAR + ", length = " + dataStr.length.toString());
   }
 
+  public writeTRDataFile(csv: string) {
+    let filename = "tr-data-"+(new Date()).toISOString()+".csv";
+    filename=filename.replace(/:/g,'-'); // ':' is a forbidden filesystem character.
+
+    this.file.createFile(this.file.externalDataDirectory, filename, false);
+    this.file.writeExistingFile(this.file.externalDataDirectory,filename,csv);
+  }
 
 }
 
