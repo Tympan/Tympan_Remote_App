@@ -12,6 +12,12 @@ Mobile App for Controlling Tympan. Built with ionic 4.  Available for Android de
 $ npm install
 ```
 
+Add ionic
+
+```bash
+$npm install ionic -g
+```
+
 Add the ionic Bluetooth classic plugin:
 
 ```bash
