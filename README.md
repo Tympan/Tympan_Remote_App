@@ -6,7 +6,7 @@ Mobile App for Controlling Tympan. Built with ionic 4.  Available for Android de
 
 - You must have [NodeJS](https://nodejs.org/en/) installed to develop the app.
 
-- Clone this repository, the within the repository run:
+- Clone this repository, then within the repository run:
 
 ```bash
 $ npm install
