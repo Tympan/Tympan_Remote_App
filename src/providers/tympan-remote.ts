@@ -299,7 +299,7 @@ export class TympanRemote {
 
 		this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION).then((perm)=>{
 			this.logger.log('Has fine location permission? '+perm.hasPermission);
-		});
+        });
 
 		this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH).then((perm)=>{
 			this.logger.log('Has bluetooth permission? '+perm.hasPermission);
@@ -310,12 +310,12 @@ export class TympanRemote {
 		});
 
 
-		return this.btSerial.enable().then(()=>{
-			this.logger.log('Bluetooth is available');
+		return this.btSerial.isEnabled().then(()=>{
+			this.logger.log('Bluetooth is available.');
 			this.bluetooth = true;
 			return true;
 		},()=>{
-			this.logger.log('Bluetooth is unavailable; not enabled on device');
+			this.logger.log('Bluetooth is unavailable; not enabled on device.');
 			this.bluetooth = false;
 			return false;
 		});
@@ -392,18 +392,24 @@ export class TympanRemote {
 
 	public testFn() {
 		console.log("Running the test function...");
+        /*
 		var canvas = <HTMLCanvasElement> document.getElementById('myChart');
 		console.log(canvas);
-		/*
+		*/
+    
 		this.btSerial.isEnabled().then(()=>{this.logger.log('Is Enabled.');},()=>{this.logger.log('Is Not Enabled.');});
 		this.btSerial.isConnected().then(()=>{this.logger.log('Is Connected.');},()=>{this.logger.log('Is Not Connected.');});
-		this.updateDeviceList();
-		*/
+        this.btSerial.discoverUnpaired().then((list)=>{
+            console.log(list);
+        });
+        this.checkBluetoothStatus();
 	 
+        /*
 		console.log('testing');
 		this.adjustComponentById('algA','label','6^');
 		this.adjustComponentById('algB','label','37!!');
 		this.adjustComponentById('algC','style',BUTTON_STYLE_ON);
+        */
 	}
 
 	public subscribe() {
@@ -605,9 +611,23 @@ export class TympanRemote {
 					device.emulated = false;
 					this.addDevice(device);
 				}
+                // Then add unpaired devices:
+                return this.btSerial.discoverUnpaired().then((btDevices)=>{
+                    for (let idx = 0; idx<btDevices.length; idx++) {
+                        let device = btDevices[idx];
+                        if (device.name != undefined) {
+                            this.logger.log(`Found unpaired device ${device.name}; adding.`);
+                            device.emulated = false;
+                            this.addDevice(device);                            
+                        } else {
+                            this.logger.log(`Found undefined unpaired device ${device.name}; not adding.`);
+                        }
+                    }
+                });
 			},()=>{
-				this.logger.log(`failed to get device list`);
+				this.logger.log(`Failed to get device list.`);
 			});
+
 		}
 	}
 
