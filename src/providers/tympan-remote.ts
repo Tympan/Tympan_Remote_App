@@ -42,7 +42,7 @@ import {
 	providedIn: 'root'
 })
 export class TympanRemote {
-	public bluetooth: boolean = true;
+	public bluetooth: boolean = false;
 	public btSerial: BluetoothSerial;
 	public _emulate: boolean = false; // show emulated devices?
 	public connected: boolean = false;
@@ -146,16 +146,27 @@ export class TympanRemote {
 		this._allDevices = [];
 		this._activeDeviceIdx = -1;
 		this._config = {};
+		this.bluetooth = false;
 
-		this.checkBluetoothStatus();
+		this.disconnect(); // start by being disconnected.  Also resets to default prescription.
 
+		// Add mock devices:
 		this.addDevice(DEVICE_1);
 		this.addDevice(DEVICE_2);
 
-		this.disconnect(); // start by being disconnected
+		this.whenReady();
+	}
 
-		this.logger.log('hello');
-		this.updateDeviceList();
+	private async whenReady(): Promise<any> {
+		// When the platform is ready, get the bluetooth going
+		return this.platform.ready()
+		.then(()=>{
+			return this.checkBluetoothStatus();
+		}).then(()=>{
+			this.logger.log('hello');
+			this.updateDeviceList();
+			return Promise.resolve(true);
+		});
 	}
 
 	private getDeviceIdxWithId(id: string) {
@@ -297,27 +308,33 @@ export class TympanRemote {
 			return Promise.resolve(false);
 		}
 
-		this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION).then((perm)=>{
+		return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION)
+		.then((perm)=>{
 			this.logger.log('Has fine location permission? '+perm.hasPermission);
-        });
-
-		this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH).then((perm)=>{
+			return Promise.resolve(true);
+        }).then(()=>{
+        	return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH);
+		}).then((perm)=>{
 			this.logger.log('Has bluetooth permission? '+perm.hasPermission);
-		});
-
-		this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH_ADMIN).then((perm)=>{
+			return Promise.resolve(true);
+		}).then(()=>{
+			return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH_ADMIN);
+		}).then((perm)=>{
 			this.logger.log('Has bluetooth admin permission? '+perm.hasPermission);
-		});
-
-
-		return this.btSerial.isEnabled().then(()=>{
-			this.logger.log('Bluetooth is available.');
+			return Promise.resolve(true);
+		}).then(()=>{
+			this.btSerial.isEnabled();
+		}).then(()=>{
+			this.logger.log('Bluetooth is enabled.');
 			this.bluetooth = true;
-			return true;
+			return Promise.resolve(true);
 		},()=>{
-			this.logger.log('Bluetooth is unavailable; not enabled on device.');
+			this.logger.log('Bluetooth is not enabled.');
 			this.bluetooth = false;
-			return false;
+			return Promise.resolve(false);
+		}).catch(()=>{
+			this.logger.log('Error checking bluetooth status');
+			return Promise.resolve(false);
 		});
 	}
 
@@ -594,6 +611,7 @@ export class TympanRemote {
 
 	public async updateDeviceList() {
 		this.logger.log('Updating device list:');
+        
 		if (this.bluetooth) {
 			this.btSerial.list().then((btDevices)=>{
 				let activeBtDeviceIds = btDevices.map((d)=>{return d.id;});
@@ -627,7 +645,6 @@ export class TympanRemote {
 			},()=>{
 				this.logger.log(`Failed to get device list.`);
 			});
-
 		}
 	}
 
