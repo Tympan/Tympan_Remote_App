@@ -69,7 +69,7 @@ export class DSL {
             {'label': 'Number of Channels (1-8)', 'type': 'int', 'value': this.nChan, 'disabled': true},
             {'label': 'Output at Full Scale (dB SPL)', 'type': 'float', 'value': this.maxdB},
             {'label': 'Band Data', 'type': 'grid', 'numRows': this.nChan, 'indexLabel': 'Band', 'columns': [
-              {'label': 'Crossover Frequency (Hz)', 'type': 'int', 'values': this.cross_freq},
+              {'label': 'Crossover Frequency (Hz)', 'type': 'float', 'values': this.cross_freq},
               {'label': 'Low SPL: Compression Ratio', 'type': 'float', 'values': this.exp_cr},
               {'label': 'Low SPL: End Knee (dB SPL)', 'type': 'float', 'values': this.exp_end_knee},
               {'label': 'Linear Region: Gain (dB)', 'type': 'float', 'values': this.tkgain},
