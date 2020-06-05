@@ -13,15 +13,9 @@ import {
 	DATASTREAM_START_CHAR,
 	DATASTREAM_SEPARATOR,
 	DATASTREAM_END_CHAR,
-	DATASTREAM_PREFIX_GHA,
-	DATASTREAM_PREFIX_DSL,
-	DATASTREAM_PREFIX_AFC,
 	BUTTON_STYLE_ON,
 	BUTTON_STYLE_OFF,
 	BUTTON_STYLE_NONE,
-	BOYSTOWN_PAGE_DSL,
-	BOYSTOWN_PAGE_WDRC,
-	BOYSTOWN_PAGE_AFC,
 	BOYSTOWN_PAGE_PLOT,
 	DEFAULT_CONFIG,
 	numberAsCharStr,
@@ -208,15 +202,15 @@ export class TympanRemote {
 				console.log(pageName);
 				switch (pageName) {
 					case 'multiband': {
-						pages.push(BOYSTOWN_PAGE_DSL);
+						pages.push(new DSL().asPage());
 						break;
 					}
 					case 'broadband': {
-						pages.push(BOYSTOWN_PAGE_WDRC);
+						pages.push(new WDRC().asPage());
 						break;
 					}
 					case 'afc': {
-						pages.push(BOYSTOWN_PAGE_AFC);
+						pages.push(new AFC().asPage());
 						break;
 					}
 					case 'plot': {
@@ -225,6 +219,7 @@ export class TympanRemote {
 					}
 					case 'serialMonitor': {
 						this.showSerialMonitor = true;
+						break;
 					}
 					case 'serialPlotter': {
 						this.showSerialPlotter = true;
@@ -718,7 +713,8 @@ export class TympanRemote {
 	}
 
 	public formatData(){
-		var card = BOYSTOWN_PAGE_DSL.cards[0]
+		console.log('formatting data');
+		let card = new DSL().asPage().cards[0];
 		let TKGainData = [];
 		let TKData = [];
 		let BOLTData = [];
