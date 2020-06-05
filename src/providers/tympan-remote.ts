@@ -48,8 +48,8 @@ export class TympanRemote {
 	public connected: boolean = false;
 	public showLogs: boolean = false;
 	public showDevOptions: boolean = false;
-	public showSerialMonitorPage: boolean = false;
-	public showSerialPlotter: boolean = false;
+	public showSerialMonitor: boolean = false;
+	public showSerialPlotter: boolean = true;
 	// properties related to the connected device:
 	private _allDevices: iDevice[];
 	private _activeDeviceIdx: number;
@@ -141,7 +141,7 @@ export class TympanRemote {
 		this.connected = false;
 		this.showLogs = false;
 		this.showDevOptions = false;
-		this.showSerialMonitorPage = false;
+		this.showSerialMonitor = false;
 		this.showSerialPlotter = false;
 		this._allDevices = [];
 		this._activeDeviceIdx = -1;
@@ -224,7 +224,7 @@ export class TympanRemote {
 						break;
 					}
 					case 'serialMonitor': {
-						this.showSerialMonitorPage = true;
+						this.showSerialMonitor = true;
 					}
 					case 'serialPlotter': {
 						this.showSerialPlotter = true;
