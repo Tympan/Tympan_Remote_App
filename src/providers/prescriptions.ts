@@ -234,7 +234,7 @@ export class AFC {
   public submitPrefix: string;
 
   constructor() {
-    this.name = 'Broadband Output Compression';
+    this.name = 'Adaptive Feedback Cancellation';
     this.default_to_active = 0; 
     this.afl = 100; 
     this.mu = 1.0e-3; 

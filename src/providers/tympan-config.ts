@@ -91,7 +91,7 @@ export const BOYSTOWN_PAGE_AFC = {
       'id': 'afc',
       'cards': [
     {
-      'name': 'Adaptive Feedback Cancelation',
+      'name': 'Adaptive Feedback Cancellation',
       'inputs': [
         {'label': 'Enable (1=yes, 0=no)', 'type': 'int', 'value': 1},
         {'label': 'Filter Length (samples, 0-256)', 'type': 'int', 'value': 100},
