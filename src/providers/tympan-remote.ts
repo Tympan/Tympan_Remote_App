@@ -616,7 +616,6 @@ export class TympanRemote {
 	}
 
 	public sayHello() {    
-		this.send('h');
 		this.send('J');
 	}
 
