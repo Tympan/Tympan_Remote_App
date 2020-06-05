@@ -243,7 +243,6 @@ export class TympanRemote {
 	}
 
 	public setConfig(cfgObj: any) {
-		this.logger.log('Updating pages...');
 
 		let newConfig = {};
 
@@ -256,7 +255,7 @@ export class TympanRemote {
 		}
 		if (cfgObj.prescription) {
 			newConfig['prescription'] = cfgObj.prescription;
-			newConfig['prescription'].pages = this.buildPrescriptionPages(cfgObj.prescription);
+			newConfig['prescription'].pages = cfgObj.pages.concat(this.buildPrescriptionPages(cfgObj.prescription));
 		}
 
 		this.zone.run(()=>{
@@ -393,17 +392,34 @@ export class TympanRemote {
 	public adjustComponentById(id: string, field: string, property: any) {
 		let adjustableFields = ['label','style'];
 		if (!adjustableFields.includes(field)) {
-			console.log(`Cannot set the ${field} of ${id}: invalid field`);
+			this.logger.log(`Cannot set the ${field} of ${id}: invalid field.`);
 			return;
 		}
 		for (let page of this._config.global.pages) {
+			if (page.cards) {
+				for (let card of page.cards) {
+					if (card.buttons) {
+						for (let btn of card.buttons) {
+							if (btn.id == id) {
+								btn[field] = property;
+							}
+						}						
+					}
+				}				
+			}
+		}
+		for (let page of this._config.prescription.pages) {
+			if (page.cards) {
 			for (let card of page.cards) {
+					if (card.buttons) {
 				for (let btn of card.buttons) {
 					if (btn.id == id) {
 						btn[field] = property;
 					}
 				}
 			}
+		}
+	}
 		}
 	}
 
