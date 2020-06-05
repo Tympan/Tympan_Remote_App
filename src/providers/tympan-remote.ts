@@ -410,16 +410,16 @@ export class TympanRemote {
 		}
 		for (let page of this._config.prescription.pages) {
 			if (page.cards) {
-			for (let card of page.cards) {
+				for (let card of page.cards) {
 					if (card.buttons) {
-				for (let btn of card.buttons) {
-					if (btn.id == id) {
-						btn[field] = property;
+						for (let btn of card.buttons) {
+							if (btn.id == id) {
+								btn[field] = property;
+							}
+						}					
 					}
-				}
+				}				
 			}
-		}
-	}
 		}
 	}
 
