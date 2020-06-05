@@ -39,83 +39,16 @@ export const BUTTON_STYLE_ON = {color: 'success', isOn: true, class: 'btn-on'};
 export const BUTTON_STYLE_OFF = {color: 'medium', isOn: false, class: 'btn-off'};
 export const BUTTON_STYLE_NONE = {color: 'unset', isOn: undefined, class: 'btn-none'};
 
-export const BOYSTOWN_PAGE_DSL = {
-  'title': 'Boys Town Algorithm',
-  'id': 'dsl',
-  'cards': [
-    {
-      'name': 'Multiband Compression',
-      'inputs': [
-        {'label': 'Attack (msec)', 'type': 'float', 'value': 30},
-        {'label': 'Release (msec)', 'type': 'float', 'value': 300},
-        {'label': 'Number of Channels (1-8)', 'type': 'int', 'value': 8, 'disabled': true},
-        {'label': 'Output at Full Scale (db SPL)', 'type': 'float', 'value': 115},
-        {'label': 'Band Data', 'type': 'grid', 'numRows': 8, 'indexLabel': 'Band', 'columns': [
-                {'label': 'Crossover Frequency (Hz)', 'type': 'float', 'values': [0, 317, 503, 798, 1265, 2006, 3181, 5045]},
-                {'label': 'Low SPL: Compression Ratio', 'type': 'float', 'values': [0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57, 0.57]},
-                {'label': 'Low SPL: End Knee (dB SPL)', 'type': 'float', 'values': [45.0, 45.0, 33.0, 32.0, 36.0, 34.0, 36.0, 40.0]},
-                {'label': 'Linear Region: Gain (dB)', 'type': 'float', 'values': [20., 20., 25., 30., 30., 30., 30., 30.]},
-                {'label': 'Compression: Start Knee (dB SPL)', 'type': 'float', 'values': [20., 20., 25., 30., 30., 30., 30., 30.]},
-                {'label': 'Compression: Ratio', 'type': 'float', 'values': [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5]},
-                {'label': 'Limiter: Threshold (dB SPL)', 'type': 'float', 'values': [90., 90., 90., 90., 90., 91., 92., 93.]},
-        ]},
-      ],      
-      'submitButton': {'prefix': DATASTREAM_PREFIX_DSL}
-    },
-  ],
-};
-
-export const BOYSTOWN_PAGE_WDRC = {
-      'title': 'Boys Town Algorithm',
-      'id': 'gha',
-      'cards': [
-    {
-      'name': 'Broadband Output Compression',
-      'inputs': [
-        {'label': 'Attack (msec)', 'type': 'float', 'value': 5},
-        {'label': 'Release (msec)', 'type': 'float', 'value': 300},
-        {'label': 'Low SPL: Compression Ratio', 'type': 'float', 'value': 1.0},
-        {'label': 'Low SPL: End Knee (dB SPL)', 'type': 'float', 'value': 0.0},
-        {'label': 'Linear Region: Gain (dB)', 'type': 'float', 'value': 0.},
-        {'label': 'Compression: Start Knee (dB SPL)', 'type': 'float', 'value': 115.},
-        {'label': 'Compression: Ratio', 'type': 'float', 'value': 1.},
-        {'label': 'Limiter: Threshold (dB SPL)', 'type': 'float', 'value': 98.0},
-      ],
-      'submitButton': {'prefix': DATASTREAM_PREFIX_GHA}
-    },
-  ],
-};
-
-export const BOYSTOWN_PAGE_AFC = {
-      'title': 'Boys Town Algorithm',
-      'id': 'afc',
-      'cards': [
-    {
-      'name': 'Adaptive Feedback Cancelation',
-      'inputs': [
-        {'label': 'Enable (1=yes, 0=no)', 'type': 'int', 'value': 1},
-        {'label': 'Filter Length (samples, 0-256)', 'type': 'int', 'value': 100},
-        {'label': 'Adaptation Factor (mu, 0.0-1.0)', 'type': 'float', 'value': 0.00100},
-        {'label': 'Smoothing Factor (rho, 0.0-1.0)', 'type': 'float', 'value': 0.90},
-        {'label': 'Min Allowed Envelope (eps, 0-1.0)', 'type': 'float', 'value': 0.008},
-
-      ],
-      'submitButton': {'prefix': DATASTREAM_PREFIX_AFC}
-    },
-  ],
-};
 
 export const BOYSTOWN_PAGE_PLOT = {
-      'title': 'Boys Town Algorithm',
-      'cards': [
+  'title': 'Boys Town Algorithm',
+  'cards': [
     {
       'name': 'Frequency v. Output Level',
       'plot':{}
     },
-  ],
+  ]
 };
-
-
 
 export const DEFAULT_CONFIG = {
   'icon': 'creare.png',

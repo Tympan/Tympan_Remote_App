@@ -13,15 +13,9 @@ import {
 	DATASTREAM_START_CHAR,
 	DATASTREAM_SEPARATOR,
 	DATASTREAM_END_CHAR,
-	DATASTREAM_PREFIX_GHA,
-	DATASTREAM_PREFIX_DSL,
-	DATASTREAM_PREFIX_AFC,
 	BUTTON_STYLE_ON,
 	BUTTON_STYLE_OFF,
 	BUTTON_STYLE_NONE,
-	BOYSTOWN_PAGE_DSL,
-	BOYSTOWN_PAGE_WDRC,
-	BOYSTOWN_PAGE_AFC,
 	BOYSTOWN_PAGE_PLOT,
 	DEFAULT_CONFIG,
 	numberAsCharStr,
@@ -48,8 +42,8 @@ export class TympanRemote {
 	public connected: boolean = false;
 	public showLogs: boolean = false;
 	public showDevOptions: boolean = false;
-	public showSerialMonitorPage: boolean = false;
-	public showSerialPlotter: boolean = false;
+	public showSerialMonitor: boolean = false;
+	public showSerialPlotter: boolean = true;
 	// properties related to the connected device:
 	private _allDevices: iDevice[];
 	private _activeDeviceIdx: number;
@@ -141,7 +135,7 @@ export class TympanRemote {
 		this.connected = false;
 		this.showLogs = false;
 		this.showDevOptions = false;
-		this.showSerialMonitorPage = false;
+		this.showSerialMonitor = false;
 		this.showSerialPlotter = false;
 		this._allDevices = [];
 		this._activeDeviceIdx = -1;
@@ -208,15 +202,15 @@ export class TympanRemote {
 				console.log(pageName);
 				switch (pageName) {
 					case 'multiband': {
-						pages.push(BOYSTOWN_PAGE_DSL);
+						pages.push(new DSL().asPage());
 						break;
 					}
 					case 'broadband': {
-						pages.push(BOYSTOWN_PAGE_WDRC);
+						pages.push(new WDRC().asPage());
 						break;
 					}
 					case 'afc': {
-						pages.push(BOYSTOWN_PAGE_AFC);
+						pages.push(new AFC().asPage());
 						break;
 					}
 					case 'plot': {
@@ -224,7 +218,8 @@ export class TympanRemote {
 						break;
 					}
 					case 'serialMonitor': {
-						this.showSerialMonitorPage = true;
+						this.showSerialMonitor = true;
+						break;
 					}
 					case 'serialPlotter': {
 						this.showSerialPlotter = true;
@@ -243,7 +238,6 @@ export class TympanRemote {
 	}
 
 	public setConfig(cfgObj: any) {
-		this.logger.log('Updating pages...');
 
 		let newConfig = {};
 
@@ -256,7 +250,7 @@ export class TympanRemote {
 		}
 		if (cfgObj.prescription) {
 			newConfig['prescription'] = cfgObj.prescription;
-			newConfig['prescription'].pages = this.buildPrescriptionPages(cfgObj.prescription);
+			newConfig['prescription'].pages = cfgObj.pages.concat(this.buildPrescriptionPages(cfgObj.prescription));
 		}
 
 		this.zone.run(()=>{
@@ -393,16 +387,33 @@ export class TympanRemote {
 	public adjustComponentById(id: string, field: string, property: any) {
 		let adjustableFields = ['label','style'];
 		if (!adjustableFields.includes(field)) {
-			console.log(`Cannot set the ${field} of ${id}: invalid field`);
+			this.logger.log(`Cannot set the ${field} of ${id}: invalid field.`);
 			return;
 		}
 		for (let page of this._config.global.pages) {
-			for (let card of page.cards) {
-				for (let btn of card.buttons) {
-					if (btn.id == id) {
-						btn[field] = property;
+			if (page.cards) {
+				for (let card of page.cards) {
+					if (card.buttons) {
+						for (let btn of card.buttons) {
+							if (btn.id == id) {
+								btn[field] = property;
+							}
+						}						
 					}
-				}
+				}				
+			}
+		}
+		for (let page of this._config.prescription.pages) {
+			if (page.cards) {
+				for (let card of page.cards) {
+					if (card.buttons) {
+						for (let btn of card.buttons) {
+							if (btn.id == id) {
+								btn[field] = property;
+							}
+						}					
+					}
+				}				
 			}
 		}
 	}
@@ -605,7 +616,6 @@ export class TympanRemote {
 	}
 
 	public sayHello() {    
-		this.send('h');
 		this.send('J');
 	}
 
@@ -702,7 +712,8 @@ export class TympanRemote {
 	}
 
 	public formatData(){
-		var card = BOYSTOWN_PAGE_DSL.cards[0]
+		console.log('formatting data');
+		let card = new DSL().asPage().cards[0];
 		let TKGainData = [];
 		let TKData = [];
 		let BOLTData = [];

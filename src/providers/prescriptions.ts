@@ -64,12 +64,12 @@ export class DSL {
         {
           'name': this.name,
           'inputs': [
-            {'label': 'Attack (msec)', 'type': 'float', 'value': this.attack},
-            {'label': 'Release (msec)', 'type': 'float', 'value': this.release},
+            {'label': 'Attack (ms)', 'type': 'float', 'value': this.attack},
+            {'label': 'Release (ms)', 'type': 'float', 'value': this.release},
             {'label': 'Number of Channels (1-8)', 'type': 'int', 'value': this.nChan, 'disabled': true},
             {'label': 'Output at Full Scale (dB SPL)', 'type': 'float', 'value': this.maxdB},
             {'label': 'Band Data', 'type': 'grid', 'numRows': this.nChan, 'indexLabel': 'Band', 'columns': [
-              {'label': 'Crossover Frequency (Hz)', 'type': 'int', 'values': this.cross_freq},
+              {'label': 'Crossover Frequency (Hz)', 'type': 'float', 'values': this.cross_freq},
               {'label': 'Low SPL: Compression Ratio', 'type': 'float', 'values': this.exp_cr},
               {'label': 'Low SPL: End Knee (dB SPL)', 'type': 'float', 'values': this.exp_end_knee},
               {'label': 'Linear Region: Gain (dB)', 'type': 'float', 'values': this.tkgain},
@@ -149,12 +149,12 @@ export class WDRC {
 
   constructor() {
     this.name = 'Broadband Output Compression';
-    this.attack = 30;
+    this.attack = 5;
     this.release = 300;
     this.fs = 24000; // ignored
     this.maxdB = 115;
-    this.exp_cr = 1.0;
-    this.exp_end_knee = 0.0; // int32
+    this.exp_cr = 1.0; // ignored
+    this.exp_end_knee = 0; // ignored
     this.tkgain = 0.0;
     this.tk = 115.0;
     this.cr = 1;
@@ -170,14 +170,13 @@ export class WDRC {
         {
           'name': this.name,
           'inputs': [
-            {'label': 'Attack (msec)', 'type': 'float', 'value': this.attack},
-            {'label': 'Release (msec)', 'type': 'float', 'value': this.release},
-            {'label': 'Low SPL: Compression Ratio', 'type': 'float', 'value': this.exp_cr},
-            {'label': 'Low SPL: End Knee (dB SPL)', 'type': 'float', 'value': this.exp_end_knee},
+            {'label': 'Attack (ms)', 'type': 'float', 'value': this.attack},
+            {'label': 'Release (ms)', 'type': 'float', 'value': this.release},
+            {'label': 'Output at Full Scale (dB SPL)', 'type': 'float', 'value': this.maxdB},
             {'label': 'Linear Region: Gain (dB)', 'type': 'float', 'value': this.tkgain},
             {'label': 'Compression: Start Knee (dB SPL)', 'type': 'float', 'value': this.tk},
             {'label': 'Compression: Ratio', 'type': 'float', 'value': this.cr},
-            {'label': 'Limiter: Threshold (dB SPL)', 'type': 'float', 'value': this.bolt},
+            {'label': 'Limiter Threshold (dB SPL)', 'type': 'float', 'value': this.bolt},
           ],
           'submitButton': {'prefix': this.submitPrefix}
         },
@@ -234,7 +233,7 @@ export class AFC {
   public submitPrefix: string;
 
   constructor() {
-    this.name = 'Broadband Output Compression';
+    this.name = 'Adaptive Feedback Cancellation';
     this.default_to_active = 0; 
     this.afl = 100; 
     this.mu = 1.0e-3; 

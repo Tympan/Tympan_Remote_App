@@ -1,6 +1,7 @@
 import { Component, ViewChild } from '@angular/core';
 import { TympanRemote } from '../../providers/tympan-remote';
 import { Logger } from '../../providers/logger';
+import { Plotter } from '../../providers/plotter';
 import { Chart } from 'chart.js';
 import { tick } from '@angular/core/testing';
 import { 
@@ -18,7 +19,7 @@ export class PrescriptionPage {
     @ViewChild('lineCanvas') lineCanvas;
     public lineChart: Chart;
     
-    constructor(public remote: TympanRemote, public logger:Logger) {
+    constructor(public remote: TympanRemote, public logger:Logger, public plotter: Plotter) {
     }
 
     cmd(s: string) {
@@ -107,4 +108,32 @@ export class PrescriptionPage {
     public isNum(type: string): boolean {
       return isNumeric(type);
     }
+
+
+    public stopSerialPlot() {
+      this.remote.send('}')
+    }
+
+    public makeSerialPlot() {
+      var htmlId = 'myChart';
+      this.plotter.setCanvas(htmlId);
+      this.remote.send(']')
+    }
+
+    saveChart() {
+      let chart = <HTMLCanvasElement> document.getElementById('myChart') 
+      var chartImage = chart.toDataURL('image/jpg')
+      document.getElementById('imgLocation').innerHTML = '<img src="'+ chartImage +'" width="100" height="100"/>'
+    }
+
+    exportChart(chartData = []) {
+      var csv = '';
+      chartData.forEach(function(row) {
+        csv += row.join(',');
+        csv += "\n";
+      });
+
+      this.remote.writeTRDataFile(csv);
+    }
+
   }
