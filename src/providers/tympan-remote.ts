@@ -116,7 +116,7 @@ export class TympanRemote {
 	}
 
 	get devIcon(): string {
-		return this._config.prescription.devIcon;
+		return this._config.devIcon;
 	}
 
 	get activeDeviceIdx() {
@@ -243,6 +243,8 @@ export class TympanRemote {
 
 		if (cfgObj.icon) {
 			newConfig['devIcon'] = '/assets/devIcon/' + cfgObj.icon;
+		} else {
+			newConfig['devIcon'] = '/assets/devIcon/tympan.png';
 		}
 		if (cfgObj.pages) {
 			this.initializePages(cfgObj.pages);
