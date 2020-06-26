@@ -350,7 +350,7 @@ export class TympanRemote {
 		id=!id
 	}
 
-	public connectToId(id: string) {
+	public async connectToId(id: string) {
 
 		this.logger.log(`remote.connectToId: setting device with id ${id} as active.`);
 		this.disconnect();
@@ -365,25 +365,45 @@ export class TympanRemote {
 			this.activeDeviceIdx = devIdx;
 			this.connected = true;
 			dev.status = 'connected';
+			let toast = await this.presentToast('Connecting...');
+			console.log(toast);
+			toast.dismiss();
 		} else {
 			this.logger.log(`setAD: connecting to ${dev.name} (${dev.id})`); //  `
 			dev.status = 'Connecting...';
+			let toast = await this.presentToast('Connecting');
+
 			this.btSerial.connect(dev.id).subscribe(()=>{
 				this.logger.log('CONNECTED');
 				this.activeDeviceIdx = this.getDeviceIdxWithId(dev.id);
 				this.connected = true;
 				dev.status = "Connected";
+				toast.dismiss();
 				this.subscribe();
 				this.sayHello();
 			},()=>{
 				this.zone.run(()=>{
 					this.logger.log('CONNECTION FAIL');
+					toast.dismiss();
+					this.presentToast('Bluetooth connection failed.',2000);
 					this.activeDeviceIdx = -1;
 					dev.status = 'Connection fail.';
 					this.connected = false;          
 				});
 			});      
 		}
+	}
+
+	public async presentToast(msg: string, duration_ms?: number) {
+		const toast = document.createElement('ion-toast');
+		toast.message = msg;
+		if (duration_ms != undefined) {
+			toast.duration = duration_ms;
+		}
+		toast.position = 'top';
+		toast.color = 'primary';
+		document.body.appendChild(toast);
+		return toast.present().then(()=>{return toast;});
 	}
 
 	public adjustComponentById(id: string, field: string, property: any) {
