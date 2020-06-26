@@ -51,7 +51,7 @@ export const BOYSTOWN_PAGE_PLOT = {
 };
 
 export const DEFAULT_CONFIG = {
-  'icon': 'creare.png',
+  'icon': 'tympan.png',
   'pages': [
     { 
       'title':'Global', 
