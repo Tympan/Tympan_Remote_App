@@ -26,15 +26,6 @@ const routes: Routes = [
         ]
       },
       {
-        path: 'presets',
-        children: [
-          {
-            path: '',
-            loadChildren: '../presets/presets.module#PresetsPageModule'
-          }
-        ]
-      },
-      {
         path: '',
         redirectTo: '/tabs/connect',
         pathMatch: 'full'
