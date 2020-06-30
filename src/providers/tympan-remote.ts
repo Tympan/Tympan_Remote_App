@@ -248,6 +248,9 @@ export class TympanRemote {
 		if (cfgObj.prescription) {
 			newConfig['prescription'] = cfgObj.prescription;
 			newConfig['prescription'].pages = cfgObj.pages.concat(this.buildPrescriptionPages(cfgObj.prescription));
+		} else {
+			newConfig['prescription'] = {};
+			newConfig['prescription'].pages = cfgObj.pages;
 		}
 
 		this.zone.run(()=>{
