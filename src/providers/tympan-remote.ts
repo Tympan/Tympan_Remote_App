@@ -107,10 +107,6 @@ export class TympanRemote {
 		}
 	}
 
-	get globalPages() {
-		return this._config.global.pages;
-	}
-
 	get prescriptionPages() {
 		return this._config.prescription.pages;
 	}
@@ -248,11 +244,13 @@ export class TympanRemote {
 		}
 		if (cfgObj.pages) {
 			this.initializePages(cfgObj.pages);
-			newConfig['global'] = {'pages': cfgObj.pages};
 		}
 		if (cfgObj.prescription) {
 			newConfig['prescription'] = cfgObj.prescription;
 			newConfig['prescription'].pages = cfgObj.pages.concat(this.buildPrescriptionPages(cfgObj.prescription));
+		} else {
+			newConfig['prescription'] = {};
+			newConfig['prescription'].pages = cfgObj.pages;
 		}
 
 		this.zone.run(()=>{
@@ -411,19 +409,6 @@ export class TympanRemote {
 		if (!adjustableFields.includes(field)) {
 			this.logger.log(`Cannot set the ${field} of ${id}: invalid field.`);
 			return;
-		}
-		for (let page of this._config.global.pages) {
-			if (page.cards) {
-				for (let card of page.cards) {
-					if (card.buttons) {
-						for (let btn of card.buttons) {
-							if (btn.id == id) {
-								btn[field] = property;
-							}
-						}						
-					}
-				}				
-			}
 		}
 		for (let page of this._config.prescription.pages) {
 			if (page.cards) {
