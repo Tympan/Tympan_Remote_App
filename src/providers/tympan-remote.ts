@@ -737,7 +737,7 @@ export class TympanRemote {
 			TKGainData.push({x: xval, y: yval1});
 
 			xval = card.inputs[4].columns[0].values[val];
-			yval2 = card.inputs[4].columns[2].values[val];
+			yval2 = card.inputs[4].columns[4].values[val];
 			TKData.push({x: xval, y: yval2});
 
 			xval = card.inputs[4].columns[0].values[val];
