@@ -14,27 +14,21 @@ Mobile App for Controlling Tympan. Built with ionic 5.  Available for Android de
 $ npm install
 ```
 
-Add ionic
-
-```bash
-$npm install ionic -g
-```
-
 Add the ionic Bluetooth classic plugin:
 
 ```bash
-$ ionic cordova plugin add cordova-plugin-bluetooth-serial
+$ npm run ionic cordova plugin add cordova-plugin-bluetooth-serial
 ```
 
 Add the android platform:
 
 ```bash
-$ ionic cordova platform add android
+$ npm run ionic cordova platform add android
 ```
 
 To build:
 ```bash
-$ ionic cordova run android --prod
+$ npm run ionic.build.android
 ```
 
 To serve it locally:
@@ -42,12 +36,10 @@ To serve it locally:
 $ npm run serve
 ```
 
-(--prod makes it smaller, load faster, and not be debugg-able.)
-
 ## Additional Useful Commands
 
 To re-generate resources (icons, etc):
 
 ```bash
-$ ionic cordova resources --cordova-res
+$ npm run resources
 ```
