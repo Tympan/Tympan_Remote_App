@@ -207,7 +207,7 @@ export class TympanRemote {
 		return this._allDevices.findIndex((dev)=>{return dev.id === id;});
 	}
 
-	public addDevice(dev: any) {
+	public addDevice(dev: TympanDevice) {
 		let idx = this.getDeviceIdxWithId(dev.id);
 		if (idx<0) {
 			this.zone.run(()=>{this._allDevices.push(dev)});
@@ -320,7 +320,16 @@ export class TympanRemote {
 		} else {
 			this.logger.log(`setAD: connecting to ${dev.name} (${dev.id})`);
 			dev.status = 'Connecting...';
-			dev.connect();
+			let thisTR = this;
+			let success = function() {
+				thisTR.connected = true;
+				thisTR.activeDeviceIdx = devIdx;
+			}
+			let fail = function () {
+				thisTR.connected = false;
+				thisTR.activeDeviceIdx = -1;
+			}
+			dev.connect(success,fail);
 
 			//let toast = await this.presentToast('Connecting');
 
@@ -411,7 +420,6 @@ export class TympanRemote {
    			this.logger.log('Connected!');
    			console.log('Connected to:');
    			console.log(dev);
-   			let arb =  
    			this.ble.write(device.id,ADAFRUIT_SERVICE_UUID,ADAFRUIT_CHARACTERISTIC_UUID,msg);
    		};
    		let onDisconnect = ()=> {
@@ -608,6 +616,7 @@ export class TympanRemote {
 				this.logger.log(`Failed to send ${s}`);
 			});
 			*/
+			this.activeDevice.write(s);
 		} else {
 			this.logger.log('mock sending.');
 			//this.mockSend(s);

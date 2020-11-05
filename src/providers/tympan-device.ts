@@ -88,7 +88,9 @@ export abstract class TympanDevice {
   }
 
   /* The abstract functions that all extended classes must implement: */
-  public abstract connect(): Promise<any>;
+  public abstract connect(success, fail): Promise<any>;
+
+  public abstract write(msg: string);
 
   /* Common public functions: */
   public sayHello() {    
@@ -369,9 +371,11 @@ export class TympanBTSerial extends TympanDevice {
     super(dev as TympanDeviceConfig);
   }
 
-  public connect(): Promise<any> {
+  public connect(success, fail): Promise<any> {
     return Promise.resolve(true);
   }
+
+  public write(msg: string) {}
 }
 
 /**
@@ -386,7 +390,7 @@ export class TympanBLE extends TympanDevice {
     this.ble = dev.parent.ble;
   }
 
-  public connect(): Promise<any> {
+  public connect(success, fail): Promise<any> {
     try {
       console.log('A bunch of logs:');
       console.log(this);
@@ -395,10 +399,10 @@ export class TympanBLE extends TympanDevice {
       this.logger.log('Attempting to connect to ');
       var thisDev = this;
       let onConnect = function() {
-        thisDev.onConnect();
+        thisDev.onConnect(success);
       }
       let onDisconnect = function() {
-        thisDev.onDisconnect();
+        thisDev.onDisconnect(fail);
       }
       this.ble.connect(this.id).subscribe(onConnect, onDisconnect);
     } catch {
@@ -412,13 +416,18 @@ export class TympanBLE extends TympanDevice {
    * onConnect():
    * This function is called when the device has been connected.
    */
-  public onConnect() {
-    console.log('In TympanBLE.onConnect!');
-    console.log(this);
+  public onConnect(fn) {
     this.logger.log(`Connected to ${this.name}`);
+    // Run the success callback:
+    fn();
 
-    this.status = 'connected';
     let msg = str2ab('howdy');
+    this.ble.startNotification(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID)
+    .subscribe((c)=>{
+      console.log('Got a notification.');
+      console.log(c);
+      this.logger.log('>>' + c);
+    });
     this.ble.write(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID, msg);
   }
 
@@ -426,9 +435,15 @@ export class TympanBLE extends TympanDevice {
    * onDisconnect():
    * This function is called when the device has been disconnected.
    */
-  public onDisconnect() {
+  public onDisconnect(fn) {
+    fn();
     this.logger.log(`Disconnected from ${this.name}`);
     this.status = '';
+  }
+
+  public write(msg: string) {
+    let ab = str2ab(msg);
+    this.ble.write(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID, ab);
   }
 
 }
