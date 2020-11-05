@@ -1,5 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
+import { BLE } from '@ionic-native/ble/ngx';
 import ieee754 from 'ieee754';
 
 //import { BluetoothType } from './tympan-remote'; 

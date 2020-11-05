@@ -1,7 +1,8 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
-import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
+//import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
+import { BLE } from '@ionic-native/ble/ngx';
 import { File } from '@ionic-native/file/ngx';
 import { Logger } from './logger';
 import { Plotter } from './plotter';
