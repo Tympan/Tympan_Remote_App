@@ -93,12 +93,12 @@ export abstract class TympanDevice {
     }
   }
 
-  public parsePlotterStringFromDevice(data: string) {
+  private parsePlotterStringFromDevice(data: string) {
     //this.logger.log('Found serial plotting data from arduino:');
     this.plotter.parsePlotterStringFromDevice(data);
   }
 
-  public parseConfigStringFromDevice(data: string) {
+  private parseConfigStringFromDevice(data: string) {
     this.logger.log('Found json config from arduino:');
     let cfgStr = data.slice(5).replace(/'/g,'"');
     this.logger.log(cfgStr);
@@ -113,7 +113,7 @@ export abstract class TympanDevice {
     }
   }
 
-  public parseStateStringFromDevice(data: string) {
+  private parseStateStringFromDevice(data: string) {
     //this.logger.log('Found state string from arduino:');
     let stateStr = data.slice(6);
     //this.logger.log(stateStr);
@@ -153,7 +153,7 @@ export abstract class TympanDevice {
     });
   }
 
-  public parseTextStringFromDevice(data: string) {
+  private parseTextStringFromDevice(data: string) {
     //this.logger.log('Found state string from arduino:');
     let textStr = data.slice(5);
     //this.logger.log(stateStr);
@@ -177,7 +177,7 @@ export abstract class TympanDevice {
     });
   }
 
-  public parsePrescriptionStringFromDevice(data: string) {
+  private parsePrescriptionStringFromDevice(data: string) {
     //this.logger.log('Found state string from arduino:');
     let prescStr = data.slice(6);
     //this.logger.log(prescStr);
@@ -248,7 +248,7 @@ export abstract class TympanDevice {
     //this.send('J');
   }
 
-  public setConfig(cfgObj: any) {
+  private setConfig(cfgObj: any) {
 
     let newConfig = {};
 
@@ -274,7 +274,7 @@ export abstract class TympanDevice {
     });   
   }
 
-  public buildPrescriptionPages(presc: any): any {
+  private buildPrescriptionPages(presc: any): any {
 
     let pages = [];
 
@@ -318,7 +318,7 @@ export abstract class TympanDevice {
     return pages;
   }
 
-  public initializePages(pages: any) {
+  private initializePages(pages: any) {
     // Create variables to control cycling through tables:
     for (let page of pages) {
       if (page.cards) {
