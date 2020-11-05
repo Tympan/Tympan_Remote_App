@@ -20,6 +20,7 @@ import { TympanRemote } from '../providers/tympan-remote';
   imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule],
   providers: [
     AndroidPermissions,
+    BLE,
     File,
     StatusBar,
     SplashScreen,

@@ -35,8 +35,8 @@ import {
 	TympanBTSerial,
 	TympanBLE,
 	numberAsCharStr,
-	charStrToNumber,
-	isNumeric
+	isNumeric,
+	str2ab
 } from './tympan-device';
 
 /**
@@ -50,7 +50,6 @@ export class TympanRemote {
 	public btSerialIsEnabled: boolean;
 	public btSerial: any; //BluetoothSerial;
 	public bleIsEnabled: boolean = true;
-	public ble: BLE;
 	//public bluetoothle: BluetoothLE;
 	public _emulate: boolean = false; // show emulated devices?
 	public connected: boolean = false;
@@ -139,11 +138,10 @@ export class TympanRemote {
 		})
 	}
 
-	constructor(private platform: Platform, private zone: NgZone, private logger: Logger, private plotter: Plotter, private androidPermissions: AndroidPermissions, private file: File) {
+	constructor(public ble: BLE, private platform: Platform, private zone: NgZone, private logger: Logger, private plotter: Plotter, private androidPermissions: AndroidPermissions, private file: File) {
 		this.btSerialIsEnabled = false;
 		this.btSerial = undefined; //new BluetoothSerial();
 		this.bleIsEnabled = true;
-		this.ble = new BLE();
 		this._emulate = false;
 		this.connected = false;
 		this.showLogs = false;
@@ -184,24 +182,17 @@ export class TympanRemote {
 
 	private async whenReady(): Promise<any> {
 
-		return Promise.resolve(true);
-
-    let handler = (device)=> {
-      return this.zone.run(()=> {
-        this.logger.log(JSON.stringify(device));
-        console.log(`Detected device:\n ${JSON.stringify(device)}\n`);
-      });
-    };
+		let handler = (device)=> {
+			return this.zone.run(()=> {
+				this.logger.log(JSON.stringify(device));
+				console.log(`Detected device xx:\n ${JSON.stringify(device)}\n`);
+			});
+		};
 
 		// When the platform is ready, get the bluetooth going
 		return this.platform.ready()
 		.then(()=>{
-			return this.ble.scan([ADAFRUIT_SERVICE_UUID],20).subscribe(handler);
-			/*
-			return this.bluetoothle.initialize().subscribe((ble) => {
-	    	console.log('ble', ble.status); // logs 'enabled'
-  	 	});
-  	 	*/
+			return true; // this.ble.scan([ADAFRUIT_SERVICE_UUID],20).subscribe(handler);
 		})
 		.then(()=>{
 			return this.checkBluetoothStatus();
@@ -216,10 +207,10 @@ export class TympanRemote {
 		return this._allDevices.findIndex((dev)=>{return dev.id === id;});
 	}
 
-	public addDevice(dev: TympanDevice) {
+	public addDevice(dev: any) {
 		let idx = this.getDeviceIdxWithId(dev.id);
 		if (idx<0) {
-			this._allDevices.push(dev);
+			this.zone.run(()=>{this._allDevices.push(dev)});
 		} else {
 			// Update the device in some way?
 		}
@@ -329,13 +320,8 @@ export class TympanRemote {
 		} else {
 			this.logger.log(`setAD: connecting to ${dev.name} (${dev.id})`);
 			dev.status = 'Connecting...';
-			dev.connect()
-			.then(()=>{
+			dev.connect();
 
-			})
-			.catch(()=>{
-
-			});
 			//let toast = await this.presentToast('Connecting');
 
 /*
@@ -410,7 +396,7 @@ export class TympanRemote {
         */
         //this.checkBluetoothStatus();
 
-    let msg = this.str2ab('howdy');
+    let msg = str2ab('howdy');
 
 
 
@@ -507,8 +493,6 @@ export class TympanRemote {
 	public async updateDeviceList() {
 		this.logger.log('Updating device list:');
         
-    let thisTR = this;
-
 		if (this.btSerialIsEnabled) {
 
 /*			
@@ -554,23 +538,23 @@ export class TympanRemote {
 
 		// Add BLE devices:
 		if (this.bleIsEnabled) {
-	    this.logger.log('scanning for BLE devices...');
+			this.logger.log('scanning for BLE devices...');
 
 			this.ble.scan([ADAFRUIT_SERVICE_UUID],20)
 			.subscribe((device)=>{
-				// on device detection, add it to the list of contacted devices
-	      this.logger.log(`Detected device! name: ${device.name}, id: ${device.id}`);
-	      console.log(JSON.stringify(device));
-	      console.log(device);
-  	    let tympConf: TympanBLEConfig = {
-  	    	id: device.id,
-	  	    name: device.name,
-	  	    emulated: false,
-	  	    rssi: device.rssi,
-	  	    parent: this
-  	    };
-  	    // Add the device to the list:
-  	    this.addDevice(new TympanBLE(tympConf));
+					// on device detection, add it to the list of contacted devices
+				this.logger.log(`Detected device! name: ${device.name}, id: ${device.id}`);
+				console.log(JSON.stringify(device));
+				console.log(device);
+				let tympConf: TympanBLEConfig = {
+					id: device.id,
+					name: device.name,
+					emulated: false,
+					rssi: device.rssi,
+					parent: this
+				};
+				// Add the device to the list:
+				this.addDevice(new TympanBLE(tympConf));
 			});
 		}
 	}

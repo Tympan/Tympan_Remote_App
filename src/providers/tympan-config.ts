@@ -1,18 +1,7 @@
-import ieee754 from 'ieee754';
 
-enum ByteOrder {MSB, LSB}
 
-export interface iDevice {
-  id: string;
-  name: string;
-  status: string;
-  uuid?: string;
-  class?: number;
-  address?: string;
-  rssi?: number;
-  emulated?: boolean;
-}
-
+export const ADAFRUIT_SERVICE_UUID = "BC2F4CC6-AAEF-4351-9034-D66268E328F0";
+export const ADAFRUIT_CHARACTERISTIC_UUID = "06D1E5E7-79AD-4A71-8FAA-373789F7D93C";
 
 /* Some definitions that need to be the same in the app and in the Tympan code: */
 export const DATASTREAM_START_CHAR = String.fromCharCode(0x02);

@@ -23,9 +23,12 @@ import {
   BUTTON_STYLE_NONE,
   BOYSTOWN_PAGE_PLOT,
   DEFAULT_CONFIG,
-  charStrToNumber,
-  isNumeric
+  ADAFRUIT_SERVICE_UUID,
+  ADAFRUIT_CHARACTERISTIC_UUID,
 } from './tympan-config';
+import { relativeTimeThreshold } from 'moment';
+
+export enum ByteOrder { MSB, LSB }
 
 /**
  * This interface contains the information that needs to be provided
@@ -50,6 +53,7 @@ export interface TympanBLEConfig extends TympanDeviceConfig {
 }
 
 /**
+ * Class TympanDevice
  * This class contains the variables and methods for the Tympan Remote app.
  */
 export abstract class TympanDevice {  
@@ -62,11 +66,12 @@ export abstract class TympanDevice {
   public rssi?: number;
   public emulated: boolean;
   public _config: any;
-  private parent: TympanRemote;
+  protected parent: TympanRemote;
 
-  public plotter: Plotter;
-  public logger: Logger;
-  private zone: NgZone
+  protected plotter: Plotter;
+  protected logger: Logger;
+  protected zone: NgZone
+  
   //public btType: BluetoothType;
 
   constructor(dev: any) {
@@ -75,6 +80,10 @@ export abstract class TympanDevice {
     this.emulated = dev.emulated;
     this.status = '';
     this._config = {};
+
+    this.plotter = dev.parent.plotter;
+    this.logger = dev.parent.logger;
+    this.zone = dev.parent.zone;
     //this.btType = dev.btType;
   }
 
@@ -86,9 +95,8 @@ export abstract class TympanDevice {
     //this.send('J');
   }
 
-
-  /* Common private functions that can be used by extended classes: */
-  private interpretDataFromDevice(data: string) {
+  /* Common protected functions that can be used by extended classes: */
+  protected interpretDataFromDevice(data: string) {
     //this.logger.log(`>${data}`);
     if (data.length>5 && data.slice(0,5)=='JSON=') {
       this.parseConfigStringFromDevice(data);
@@ -103,12 +111,12 @@ export abstract class TympanDevice {
     }
   }
 
-  private parsePlotterStringFromDevice(data: string) {
+  protected parsePlotterStringFromDevice(data: string) {
     //this.logger.log('Found serial plotting data from arduino:');
     this.plotter.parsePlotterStringFromDevice(data);
   }
 
-  private parseConfigStringFromDevice(data: string) {
+  protected parseConfigStringFromDevice(data: string) {
     this.logger.log('Found json config from arduino:');
     let cfgStr = data.slice(5).replace(/'/g,'"');
     this.logger.log(cfgStr);
@@ -123,7 +131,7 @@ export abstract class TympanDevice {
     }
   }
 
-  private parseStateStringFromDevice(data: string) {
+  protected parseStateStringFromDevice(data: string) {
     //this.logger.log('Found state string from arduino:');
     let stateStr = data.slice(6);
     //this.logger.log(stateStr);
@@ -163,7 +171,7 @@ export abstract class TympanDevice {
     });
   }
 
-  private parseTextStringFromDevice(data: string) {
+  protected parseTextStringFromDevice(data: string) {
     //this.logger.log('Found state string from arduino:');
     let textStr = data.slice(5);
     //this.logger.log(stateStr);
@@ -187,7 +195,7 @@ export abstract class TympanDevice {
     });
   }
 
-  private parsePrescriptionStringFromDevice(data: string) {
+  protected parsePrescriptionStringFromDevice(data: string) {
     //this.logger.log('Found state string from arduino:');
     let prescStr = data.slice(6);
     //this.logger.log(prescStr);
@@ -254,7 +262,7 @@ export abstract class TympanDevice {
     });
   }
 
-  private setConfig(cfgObj: any) {
+  protected setConfig(cfgObj: any) {
 
     let newConfig = {};
 
@@ -280,7 +288,7 @@ export abstract class TympanDevice {
     });   
   }
 
-  private buildPrescriptionPages(presc: any): any {
+  protected buildPrescriptionPages(presc: any): any {
 
     let pages = [];
 
@@ -324,7 +332,7 @@ export abstract class TympanDevice {
     return pages;
   }
 
-  private initializePages(pages: any) {
+  protected initializePages(pages: any) {
     // Create variables to control cycling through tables:
     for (let page of pages) {
       if (page.cards) {
@@ -352,43 +360,77 @@ export abstract class TympanDevice {
   }
 }
 
+/**
+ * Class TympanBTSerial
+ * A Class extending TympanDevice for devices using Bluetooth Serial communication.
+ */
 export class TympanBTSerial extends TympanDevice {
   constructor(dev: TympanBTSerialConfig) {
     super(dev as TympanDeviceConfig);
   }
 
   public connect(): Promise<any> {
-    return promise.resolve(true);
+    return Promise.resolve(true);
   }
 }
 
+/**
+ * Class TympanBLE
+ * A Class extending TympanDevice for devices using Bluetooth Low Energy communication.
+ */
 export class TympanBLE extends TympanDevice {
+  public ble: BLE;
+
   constructor(dev: TympanBLEConfig) {
     super(dev as TympanDeviceConfig);
+    this.ble = dev.parent.ble;
   }
 
   public connect(): Promise<any> {
-    let q = new Promise();
-
-    let onConnect = function {
-      this.logger.log(`Connected to ${this.name}`);
-
-      let msg = this.str2ab('howdy');
-      this.ble.write(device.id,ADAFRUIT_SERVICE_UUID,ADAFRUIT_CHARACTERISTIC_UUID,msg);
-      q.resolve('Connected to device.');
-    };
-    let onDisconnect = ()=> {
-      this.logger.log(`Disconnected from ${this.name}`);
-    };
-
     try {
-      this.ble.connect(this.id).subscribe(onConnect,onDisconnect);
+      console.log('A bunch of logs:');
+      console.log(this);
+      console.log(this.ble);
+      console.log(this.logger);
+      this.logger.log('Attempting to connect to ');
+      var thisDev = this;
+      let onConnect = function() {
+        thisDev.onConnect();
+      }
+      let onDisconnect = function() {
+        thisDev.onDisconnect();
+      }
+      this.ble.connect(this.id).subscribe(onConnect, onDisconnect);
     } catch {
-      q.reject(`Could not connect to ${this.id}`);
+      let msg = `Could not connect to ${this.id}`;
+      this.logger.log(msg);
+      return Promise.reject(new Error(msg));
     }
-
-    return q;
   }
+
+  /*
+   * onConnect():
+   * This function is called when the device has been connected.
+   */
+  public onConnect() {
+    console.log('In TympanBLE.onConnect!');
+    console.log(this);
+    this.logger.log(`Connected to ${this.name}`);
+
+    this.status = 'connected';
+    let msg = str2ab('howdy');
+    this.ble.write(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID, msg);
+  }
+
+  /*
+   * onDisconnect():
+   * This function is called when the device has been disconnected.
+   */
+  public onDisconnect() {
+    this.logger.log(`Disconnected from ${this.name}`);
+    this.status = '';
+  }
+
 }
 
 

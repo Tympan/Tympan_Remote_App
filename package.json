@@ -105,7 +105,7 @@
 			"cordova-plugin-android-permissions": {},
 			"cordova-plugin-file": {},
 			"cordova-plugin-ble-central": {
-				"BLUETOOTH_USAGE_DESCRIPTION": " "
+				"BLUETOOTH_USAGE_DESCRIPTION": "To communicate with Tympan devices"
 			}
 		},
 		"platforms": [
