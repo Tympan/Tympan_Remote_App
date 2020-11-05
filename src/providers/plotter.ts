@@ -9,9 +9,9 @@ import { Chart } from 'chart.js';
   providedIn: 'root'
 })
 export class Plotter {
-    public lineC = undefined
+    public lineC = undefined;
     public lenDataset = undefined;
-    public fullDatasets = []
+    public fullDatasets = [];
     public chartData = [];
     public myChart = undefined;
     public chartColors = [
@@ -44,7 +44,7 @@ export class Plotter {
 */
 
   public parsePlotterStringFromDevice(data: string) {
-    if (data[0] == 'P'){
+    if (data[0] === 'P'){
       let serialData = data.split(',');
       serialData[0] = serialData[0].slice(1);
       let serialPlotData = [];
@@ -55,9 +55,9 @@ export class Plotter {
       if (this.myChart != undefined){
         this.onRefresh(undefined,serialPlotData);
       }
-      if (this.lenDataset == undefined) {
+      if (this.lenDataset === undefined) {
         this.lenDataset = serialPlotData.length;
-        if (typeof serialPlotData[0] == 'string'){
+        if (typeof serialPlotData[0] === 'string'){
           let labels = serialPlotData;
           this.addDatasets(this.lenDataset, labels);
         } else {
@@ -71,9 +71,9 @@ export class Plotter {
     for (let dset=0; dset<data; dset++) {
       let dataName = undefined;
       if (labels != undefined){
-        dataName = labels[dset]
+        dataName = labels[dset];
       } else {
-        dataName = 'Dataset ' + (dset + 1)
+        dataName = 'Dataset ' + (dset + 1);
       }
       let newDataset = {
         label: dataName,
