@@ -1,6 +1,6 @@
 import ieee754 from 'ieee754';
 
-enum ByteOrder {MSB, LSB};
+enum ByteOrder {MSB, LSB}
 
 export interface iDevice {
   id: string;
@@ -13,19 +13,6 @@ export interface iDevice {
   emulated?: boolean;
 }
 
-export const DEVICE_1: iDevice = {
-  id: 'mo:ck:01',
-  name: 'mock1',
-  status: '',
-  emulated: true,
-};
-
-export const DEVICE_2: iDevice = {
-  id: 'mo:ck:02',
-  name: 'mock2',
-  status: '',
-  emulated: true,
-};
 
 /* Some definitions that need to be the same in the app and in the Tympan code: */
 export const DATASTREAM_START_CHAR = String.fromCharCode(0x02);
@@ -35,6 +22,7 @@ export const DATASTREAM_PREFIX_GHA = 'gha';
 export const DATASTREAM_PREFIX_DSL = 'dsl';
 export const DATASTREAM_PREFIX_AFC = 'afc';
 
+/* Button styling: */
 export const BUTTON_STYLE_ON = {color: 'success', isOn: true, class: 'btn-on'};
 export const BUTTON_STYLE_OFF = {color: 'medium', isOn: false, class: 'btn-off'};
 export const BUTTON_STYLE_NONE = {color: 'unset', isOn: undefined, class: 'btn-none'};
