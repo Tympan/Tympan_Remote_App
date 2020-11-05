@@ -23,7 +23,6 @@ import {
   BUTTON_STYLE_NONE,
   BOYSTOWN_PAGE_PLOT,
   DEFAULT_CONFIG,
-  numberAsCharStr,
   charStrToNumber,
   isNumeric
 } from './tympan-config';
@@ -343,7 +342,102 @@ export abstract class TympanDevice {
           }
         }        
       }
+
+}
+
+
+/******************************************************************
+ * HELPER FUNCTIONS 
+ ******************************************************************
+ */
+
+export function numberAsCharStr(num: number, numType: string): string {
+  let str = '';
+  let hex = '';
+  let BO: ByteOrder = ByteOrder.LSB;
+
+  switch (numType) {
+    case 'int':
+    case 'int32':
+      //str = num.toString();
+      let byteArray = new Uint8Array(4);
+      let rem = num;
+      for (let i=3; i>=0; i--) {
+        /* tslint:disable no-bitwise */
+        byteArray[i] = rem & 0xFF;
+        rem = rem >> 8;
+        /* tslint:enable no-bitwise */
+      }
+      for (let i=0; i<4; i++) {
+        str += String.fromCharCode(byteArray[i]);
+        hex += ('00' + byteArray[i].toString(16)).slice(-2);
+      }
+      //console.log('int check: ' + num + ' => ' + str + '(' + hex + ')');
+      break;
+    case 'float': // float32
+    case 'float32':
+      let b2 = new Uint8Array(4);
+      ieee754.write(b2,num,0,false,23,4);
+      for (let i=0; i<4; i++) {
+        str += String.fromCharCode(b2[i]);
+        hex += ('00' + b2[i].toString(16)).slice(-2);
+      }
+      //console.log('ieee754 check: ' + num + ' => ' + str + '(' + hex + ')');
+      break;
+  }
+  if (BO === ByteOrder.LSB) {
+    return str.split('').reverse().join('');
+  } else {
+    return str;
+  }
+}
+
+export function charStrToNumber(data: string, idx: number, numType: string): number {
+  let dataLen = 0;
+  let num = 0;
+  let BO: ByteOrder = ByteOrder.LSB;
+
+  let isLE = (BO === ByteOrder.LSB);
+
+  switch (numType) {
+    case 'int':
+    case 'int32':
+      dataLen = 4;
+      num = 0;
+      for (let i=idx+dataLen-1; i >= idx; i--) {
+        /* tslint:disable no-bitwise */
+        num = (num<<8) | data.charCodeAt(i);
+        /* tslint:enable no-bitwise */
+      }
+      break;
+    case 'float':
+    case 'float32':
+      dataLen = 4;
+      let buf = new Uint8Array(dataLen);
+      for (let i=0; i<dataLen; i++) {
+        buf[i] = data.charCodeAt(idx+i);
+      }
+      num = ieee754.read(buf,0,isLE,23,4);
+      break;
+  }
+  //console.log(`${num}`);
+  return num;
+}
+
+export function isNumeric(s: string): boolean {
+  const numerics = ['int', 'float'];
+  return numerics.includes(s);
+}
+
+export function str2ab(str) {
+    var buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
+    var bufView = new Uint16Array(buf);
+    for (var i=0, strLen=str.length; i < strLen; i++) {
+      bufView[i] = str.charCodeAt(i);
     }
+    return buf;
+    }
+    case 'int32':
   }
 }
 

@@ -18,10 +18,7 @@ import {
 	BUTTON_STYLE_OFF,
 	BUTTON_STYLE_NONE,
 	BOYSTOWN_PAGE_PLOT,
-	DEFAULT_CONFIG,
-	numberAsCharStr,
-	charStrToNumber,
-	isNumeric
+	DEFAULT_CONFIG
 } from './tympan-config';
 
 import {
@@ -36,7 +33,10 @@ import {
 	TympanBLEConfig, //interface
 	TympanDevice,
 	TympanBTSerial,
-	TympanBLE
+	TympanBLE,
+	numberAsCharStr,
+	charStrToNumber,
+	isNumeric
 } from './tympan-device';
 
 /**
