@@ -78,7 +78,17 @@ export abstract class TympanDevice {
     //this.btType = dev.btType;
   }
 
-  public interpretDataFromDevice(data: string) {
+  /* The abstract functions that all extended classes must implement: */
+  public abstract connect(): Promise<any>;
+
+  /* Common public functions: */
+  public sayHello() {    
+    //this.send('J');
+  }
+
+
+  /* Common private functions that can be used by extended classes: */
+  private interpretDataFromDevice(data: string) {
     //this.logger.log(`>${data}`);
     if (data.length>5 && data.slice(0,5)=='JSON=') {
       this.parseConfigStringFromDevice(data);
@@ -244,10 +254,6 @@ export abstract class TympanDevice {
     });
   }
 
-  public sayHello() {    
-    //this.send('J');
-  }
-
   private setConfig(cfgObj: any) {
 
     let newConfig = {};
@@ -342,7 +348,47 @@ export abstract class TympanDevice {
           }
         }        
       }
+    }
+  }
+}
 
+export class TympanBTSerial extends TympanDevice {
+  constructor(dev: TympanBTSerialConfig) {
+    super(dev as TympanDeviceConfig);
+  }
+
+  public connect(): Promise<any> {
+    return promise.resolve(true);
+  }
+}
+
+export class TympanBLE extends TympanDevice {
+  constructor(dev: TympanBLEConfig) {
+    super(dev as TympanDeviceConfig);
+  }
+
+  public connect(): Promise<any> {
+    let q = new Promise();
+
+    let onConnect = function {
+      this.logger.log(`Connected to ${this.name}`);
+
+      let msg = this.str2ab('howdy');
+      this.ble.write(device.id,ADAFRUIT_SERVICE_UUID,ADAFRUIT_CHARACTERISTIC_UUID,msg);
+      q.resolve('Connected to device.');
+    };
+    let onDisconnect = ()=> {
+      this.logger.log(`Disconnected from ${this.name}`);
+    };
+
+    try {
+      this.ble.connect(this.id).subscribe(onConnect,onDisconnect);
+    } catch {
+      q.reject(`Could not connect to ${this.id}`);
+    }
+
+    return q;
+  }
 }
 
 
@@ -436,19 +482,4 @@ export function str2ab(str) {
       bufView[i] = str.charCodeAt(i);
     }
     return buf;
-    }
-    case 'int32':
   }
-}
-
-export class TympanBTSerial extends TympanDevice {
-  constructor(dev: TympanBTSerialConfig) {
-    super(dev as TympanDeviceConfig);
-  }
-}
-
-export class TympanBLE extends TympanDevice {
-  constructor(dev: TympanBLEConfig) {
-    super(dev as TympanDeviceConfig);
-  }
-}
