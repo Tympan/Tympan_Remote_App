@@ -42,6 +42,7 @@
 		"chartjs-plugin-streaming": "^1.8.0",
 		"cordova": "^9.0.0",
 		"cordova-android": "^8.1.0",
+		"cordova-ios": "^5.1.1",
 		"cordova-plugin-android-permissions": "1.0.2",
 		"cordova-plugin-app-version": "^0.1.9",
 		"cordova-plugin-bluetooth-serial": "~0.4.7",
@@ -103,7 +104,8 @@
 			"cordova-plugin-file": {}
 		},
 		"platforms": [
-			"android"
+			"android",
+			"ios"
 		]
 	}
 }
