@@ -36,7 +36,7 @@ import {
 	TympanBLE,
 	numberAsCharStr,
 	isNumeric,
-	str2ab
+	stringToArrayBuffer
 } from './tympan-device';
 
 /**
@@ -326,6 +326,7 @@ export class TympanRemote {
 				thisTR.activeDeviceIdx = devIdx;
 			}
 			let fail = function () {
+				thisTR.logger.log('Connection failed');
 				thisTR.connected = false;
 				thisTR.activeDeviceIdx = -1;
 			}
@@ -405,7 +406,7 @@ export class TympanRemote {
         */
         //this.checkBluetoothStatus();
 
-    let msg = str2ab('howdy');
+    let msg = stringToArrayBuffer('howdy');
 
 
 

@@ -392,11 +392,7 @@ export class TympanBLE extends TympanDevice {
 
   public connect(success, fail): Promise<any> {
     try {
-      console.log('A bunch of logs:');
-      console.log(this);
-      console.log(this.ble);
-      console.log(this.logger);
-      this.logger.log('Attempting to connect to ');
+      this.logger.log(`Attempting to connect to ${this.name}`);
       var thisDev = this;
       let onConnect = function() {
         thisDev.onConnect(success);
@@ -418,16 +414,17 @@ export class TympanBLE extends TympanDevice {
    */
   public onConnect(fn) {
     this.logger.log(`Connected to ${this.name}`);
+    this.status = 'Connected';
     // Run the success callback:
     fn();
 
-    let msg = str2ab('howdy');
     this.ble.startNotification(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID)
-    .subscribe((c)=>{
-      console.log('Got a notification.');
-      console.log(c);
-      this.logger.log('>>' + c);
+    .subscribe((buffer)=>{
+      let str = arrayBufferToString(buffer[0]);
+      this.logger.log('>> ' + str);
     });
+
+    let msg = stringToArrayBuffer('howdy');
     this.ble.write(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID, msg);
   }
 
@@ -436,13 +433,13 @@ export class TympanBLE extends TympanDevice {
    * This function is called when the device has been disconnected.
    */
   public onDisconnect(fn) {
-    fn();
     this.logger.log(`Disconnected from ${this.name}`);
     this.status = '';
+    fn();
   }
 
   public write(msg: string) {
-    let ab = str2ab(msg);
+    let ab = stringToArrayBuffer(msg);
     this.ble.write(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID, ab);
   }
 
@@ -532,11 +529,15 @@ export function isNumeric(s: string): boolean {
   return numerics.includes(s);
 }
 
-export function str2ab(str) {
+export function stringToArrayBuffer(str: string) {
     var buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
     var bufView = new Uint16Array(buf);
     for (var i=0, strLen=str.length; i < strLen; i++) {
       bufView[i] = str.charCodeAt(i);
     }
     return buf;
-  }
+}
+
+export function arrayBufferToString(buf: ArrayBuffer): string {
+  return String.fromCharCode.apply(null, new Uint8Array(buf));
+}
