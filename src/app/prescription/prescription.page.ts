@@ -6,7 +6,7 @@ import { Chart } from 'chart.js';
 import { tick } from '@angular/core/testing';
 import { 
   isNumeric,
- } from '../../providers/tympan-config';
+ } from '../../providers/tympan-device';
 
 
 @Component({
@@ -111,29 +111,28 @@ export class PrescriptionPage {
 
 
     public stopSerialPlot() {
-      this.remote.send('}')
+      this.remote.send('}');
     }
 
     public makeSerialPlot() {
-      var htmlId = 'myChart';
+      let htmlId = 'myChart';
       this.plotter.setCanvas(htmlId);
       this.remote.send(']')
     }
 
     saveChart() {
-      let chart = <HTMLCanvasElement> document.getElementById('myChart') 
-      var chartImage = chart.toDataURL('image/jpg')
-      document.getElementById('imgLocation').innerHTML = '<img src="'+ chartImage +'" width="100" height="100"/>'
+      let chart = <HTMLCanvasElement> document.getElementById('myChart') ;
+      let chartImage = chart.toDataURL('image/jpg');
+      document.getElementById('imgLocation').innerHTML = '<img src="'+ chartImage +'" width="100" height="100"/>';
     }
 
     exportChart(chartData = []) {
       var csv = '';
       chartData.forEach(function(row) {
         csv += row.join(',');
-        csv += "\n";
+        csv += '\n';
       });
 
       this.remote.writeTRDataFile(csv);
     }
-
   }
