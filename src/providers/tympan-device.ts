@@ -419,13 +419,12 @@ export class TympanBLE extends TympanDevice {
     fn();
 
     this.ble.startNotification(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID)
-    .subscribe((buffer)=>{
-      let str = arrayBufferToString(buffer[0]);
-      this.logger.log('>> ' + str);
+    .subscribe((data)=>{
+      this.bufferHandler(data);
     });
 
     let msg = stringToArrayBuffer('howdy');
-    this.ble.write(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID, msg);
+    //this.ble.write(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID, msg);
   }
 
   /*
@@ -441,6 +440,13 @@ export class TympanBLE extends TympanDevice {
   public write(msg: string) {
     let ab = stringToArrayBuffer(msg);
     this.ble.write(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID, ab);
+  }
+
+  public bufferHandler(data) {
+    console.log('Received message:');
+    console.log(data);
+    let str = arrayBufferToString(data[0]);
+    this.logger.log('>> ' + str);
   }
 
 }

@@ -421,7 +421,7 @@ export class TympanRemote {
    			this.logger.log('Connected!');
    			console.log('Connected to:');
    			console.log(dev);
-   			this.ble.write(device.id,ADAFRUIT_SERVICE_UUID,ADAFRUIT_CHARACTERISTIC_UUID,msg);
+   			//this.ble.write(device.id,ADAFRUIT_SERVICE_UUID,ADAFRUIT_CHARACTERISTIC_UUID,msg);
    		};
    		let onDisconnect = ()=> {
    			this.logger.log('Disconnected!');
