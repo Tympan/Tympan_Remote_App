@@ -378,16 +378,19 @@ export class TympanBTSerial extends TympanDevice {
   public write(msg: string) {}
 }
 
+interface iMessage { msg: string, msgLen: number, packetsReceived: number }
 /**
  * Class TympanBLE
  * A Class extending TympanDevice for devices using Bluetooth Low Energy communication.
  */
 export class TympanBLE extends TympanDevice {
   public ble: BLE;
+  private incomingMessage: iMessage | null;
 
   constructor(dev: TympanBLEConfig) {
     super(dev as TympanDeviceConfig);
     this.ble = dev.parent.ble;
+    this.incomingMessage = null;
   }
 
   public connect(success, fail): Promise<any> {
@@ -443,10 +446,86 @@ export class TympanBLE extends TympanDevice {
   }
 
   public bufferHandler(data) {
-    console.log('Received message:');
-    console.log(data);
-    let str = arrayBufferToString(data[0]);
-    this.logger.log('>> ' + str);
+    // Message types, by their first byte+:
+    // 0xABADCODEFF : A header packet
+    // 0XFn : A payload packet, where n is the packet counter mod 16
+    // 0xCC : A short packet
+    let thisDev = this;
+
+    // Functions for identifying a packet's type:
+    function isHeaderPacket(pkt: Uint8Array) {
+      const hc = [0xAB, 0xAD, 0xC0, 0xDE, 0xFF];
+      const HEADER_CODE = String.fromCharCode.apply(null, hc);
+      return pkt.byteLength === 7 && String.fromCharCode.apply(null, pkt.slice(0, 5)) == HEADER_CODE;
+    }
+    function isPayloadPacket(pkt: Uint8Array) {
+      //console.log('0x'+pkt[0].toString(16) + ': ' + String.fromCharCode.apply(null, pkt.slice(1)));
+      return pkt.byteLength > 0 && (pkt[0]>>4===0x0F);
+    }
+    function isShortPacket(pkt: Uint8Array) {
+      return pkt.byteLength > 0 && (pkt[0] === 0xCC);
+    }
+
+    // Functions for handling packets:
+    function handleHeaderPacket(pkt: Uint8Array) {
+      console.log('Found a header!!!: ' + uint8ArrayToHexString(pkt));
+      thisDev.incomingMessage = {
+        msg: '',
+        msgLen: (pkt[5] & 0x7F) << 7 | (pkt[6] & 0xFE) >> 1,
+        packetsReceived: 0
+      }
+    }
+    function handlePayloadPacket(pkt: Uint8Array) {
+      if (thisDev.incomingMessage === null) {
+        thisDev.logger.log('ERROR: Received unexpected message packet (no preceding header)');
+        return;
+      }
+      const idx = pkt[0] & 0x0F;
+      if (idx === (thisDev.incomingMessage.packetsReceived & 0x0F)) {
+        thisDev.incomingMessage.msg += String.fromCharCode.apply(null, pkt.slice(1));
+        thisDev.incomingMessage.packetsReceived++;
+        if (thisDev.incomingMessage.msg.length === thisDev.incomingMessage.msgLen) {
+          let msg = thisDev.incomingMessage.msg;
+          thisDev.incomingMessage = null;
+          console.log('Interpreting message:');
+          console.log(msg);
+          thisDev.interpretDataFromDevice(msg);
+        } else if (thisDev.incomingMessage.msg.length > thisDev.incomingMessage.msgLen) {
+          thisDev.logger.log('ERROR: Received more characters than expected, based on the header');
+          console.log(thisDev.incomingMessage);
+          thisDev.incomingMessage = null;
+        }
+      } else {
+        thisDev.logger.log('ERROR: out of order packets.  Expected ' + thisDev.incomingMessage.packetsReceived + ' but got ' + idx + ' instead.');
+      }
+    }
+    function handleShortPacket(pkt: Uint8Array) {
+      thisDev.interpretDataFromDevice(String.fromCharCode.apply(null, pkt.slice(1)));
+    }
+
+    // Deal with the arriving packet:
+    let pkt = new Uint8Array(data[0]);
+
+    if (this.incomingMessage === null) {
+      // here we're listening for anything except a payload packet:
+      if (isHeaderPacket(pkt)) {
+        //this.logger.log('Found a header packet.');
+        handleHeaderPacket(pkt);
+      } else if (isShortPacket(pkt)) {
+        handleShortPacket(pkt);
+      } else {
+        this.logger.log('Uknown packet type. Maybe it is just a string? Passing it along.');
+        this.interpretDataFromDevice(arrayBufferToString(pkt));
+      }
+    } else {
+      // I better receive a payload packet...
+      if (isPayloadPacket(pkt)) {
+        handlePayloadPacket(pkt);
+      } else {
+        this.logger.log("Was expecting a payload packet, but didn't get one.  Resetting listening.");
+        this.incomingMessage = null;
+      }
+    }
   }
 
 }
@@ -546,4 +625,12 @@ export function stringToArrayBuffer(str: string) {
 
 export function arrayBufferToString(buf: ArrayBuffer): string {
   return String.fromCharCode.apply(null, new Uint8Array(buf));
+}
+
+export function uint8ArrayToHexString(arr: Uint8Array) {
+  let hx = '0x';
+  arr.forEach((s)=>{
+    hx += (s).toString(16).toUpperCase().padStart(2, '0');
+  });
+  return hx;
 }
