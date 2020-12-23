@@ -378,6 +378,11 @@ export class TympanBTSerial extends TympanDevice {
   public write(msg: string) {}
 }
 
+/***************************************************************
+*
+* TYMPAN BLE
+*
+****************************************************************/
 interface iMessage { msg: string, msgLen: number, packetsReceived: number }
 /**
  * Class TympanBLE
@@ -531,10 +536,11 @@ export class TympanBLE extends TympanDevice {
 }
 
 
-/******************************************************************
- * HELPER FUNCTIONS 
- ******************************************************************
- */
+/***************************************************************
+*
+* GENERAL HELPER FUNCTIONS
+*
+****************************************************************/
 
 export function numberAsCharStr(num: number, numType: string): string {
   let str = '';

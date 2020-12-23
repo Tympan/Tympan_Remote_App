@@ -405,13 +405,8 @@ export class TympanRemote {
         });
         */
         //this.checkBluetoothStatus();
-
+		/*
     let msg = stringToArrayBuffer('howdy');
-
-
-
-
-
     let handler = (device)=> {
       console.log('Detected device!');
       console.log(JSON.stringify(device));
@@ -432,6 +427,7 @@ export class TympanRemote {
 
     this.logger.log('scanning...');
 		this.ble.scan([ADAFRUIT_SERVICE_UUID],20).subscribe(handler);
+		*/
 
 /*
       	console.log("\n\nSTARTING SCAN:.");
