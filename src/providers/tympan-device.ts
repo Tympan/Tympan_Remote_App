@@ -84,6 +84,7 @@ export abstract class TympanDevice {
     this.plotter = dev.parent.plotter;
     this.logger = dev.parent.logger;
     this.zone = dev.parent.zone;
+    this.parent = dev.parent;
     //this.btType = dev.btType;
   }
 
