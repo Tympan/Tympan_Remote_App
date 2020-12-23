@@ -151,9 +151,9 @@ export abstract class TympanDevice {
         switch (featType) {
           case 'BTN':
             if (val[0]==='0') {
-              this.parent.adjustComponentById(id,'style',BUTTON_STYLE_OFF);
+              this.adjustComponentById(id,'style',BUTTON_STYLE_OFF);
             } else if (val[0]==='1') {
-              this.parent.adjustComponentById(id,'style',BUTTON_STYLE_ON);
+              this.adjustComponentById(id,'style',BUTTON_STYLE_ON);
             } else {
               throw 'Button state must be 0 or 1';
             }
@@ -188,7 +188,7 @@ export abstract class TympanDevice {
     }
     this.zone.run(()=>{
       try {
-        this.parent.adjustComponentById(id,'label',val);
+        this.adjustComponentById(id,'label',val);
         //this.logger.log('Updating pages...');
       }
       catch(err) {
@@ -360,8 +360,34 @@ export abstract class TympanDevice {
       }
     }
   }
+
+  protected adjustComponentById(id: string, field: string, property: any) {
+    let adjustableFields = ['label', 'style'];
+    if (!adjustableFields.includes(field)) {
+      this.logger.log(`Cannot set the ${field} of ${id}: invalid field.`);
+      return;
+    }
+    for (let page of this._config.prescription.pages) {
+      if (page.cards) {
+        for (let card of page.cards) {
+          if (card.buttons) {
+            for (let btn of card.buttons) {
+              if (btn.id == id) {
+                btn[field] = property;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
+/***************************************************************
+*
+* TYMPAN SERIAL
+*
+****************************************************************/
 /**
  * Class TympanBTSerial
  * A Class extending TympanDevice for devices using Bluetooth Serial communication.

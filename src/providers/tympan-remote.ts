@@ -121,7 +121,12 @@ export class TympanRemote {
 	}
 
 	get prescriptionPages() {
-		return this._config.prescription.pages;
+		if (this.activeDevice && this.activeDevice._config && this.activeDevice._config.prescription) {
+			return this.activeDevice._config.prescription.pages;
+		} else {
+			return undefined;
+		}
+		//return this._config.prescription.pages;
 	}
 
 	get devIcon(): string {
@@ -367,27 +372,6 @@ export class TympanRemote {
 		toast.color = 'primary';
 		document.body.appendChild(toast);
 		return toast.present().then(()=>{return toast;});
-	}
-
-	public adjustComponentById(id: string, field: string, property: any) {
-		let adjustableFields = ['label','style'];
-		if (!adjustableFields.includes(field)) {
-			this.logger.log(`Cannot set the ${field} of ${id}: invalid field.`);
-			return;
-		}
-		for (let page of this._config.prescription.pages) {
-			if (page.cards) {
-				for (let card of page.cards) {
-					if (card.buttons) {
-						for (let btn of card.buttons) {
-							if (btn.id == id) {
-								btn[field] = property;
-							}
-						}					
-					}
-				}				
-			}
-		}
 	}
 
 	public testFn() {
