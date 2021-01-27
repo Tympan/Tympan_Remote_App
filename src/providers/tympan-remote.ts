@@ -142,7 +142,15 @@ export class TympanRemote {
 		})
 	}
 
-	constructor(public ble: BLE, private platform: Platform, private zone: NgZone, private logger: Logger, private plotter: Plotter, private androidPermissions: AndroidPermissions, private file: File) {
+	constructor(
+		public ble: BLE, 
+		private platform: Platform, 
+		private zone: NgZone, 
+		private logger: Logger, 
+		private plotter: Plotter, 
+		private androidPermissions: AndroidPermissions, 
+		private file: File) 
+	{
 		this.btSerialIsEnabled = false;
 		this.btSerial = undefined; //new BluetoothSerial();
 		this.bleIsEnabled = true;
