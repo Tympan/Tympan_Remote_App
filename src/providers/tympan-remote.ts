@@ -50,7 +50,6 @@ export class TympanRemote {
 	public btSerialIsEnabled: boolean;
 	public btSerial: any; //BluetoothSerial;
 	public bleIsEnabled: boolean = true;
-	//public bluetoothle: BluetoothLE;
 	public _emulate: boolean = false; // show emulated devices?
 	public connected: boolean = false;
 	public showLogs: boolean = false;
@@ -438,24 +437,7 @@ export class TympanRemote {
         	console.log(res);
         });
 */
-			//console.log('STOPPINGSCAN.');
-			//this.bluetoothle.stopScan();
-			//console.log('STartING SCAN.');
-			/*
-			this.bluetoothle.startScan({}).subscribe((data)=>{
-				console.log('Starting scan.')
-				console.log(data);
-				console.log(data.advertisement);
-				//console.log(data.advertisement)
-				//;
-			});
-			*/
-/*
-			this.bluetoothle.retrieveConnected({}).then((data)=>{
-				console.log('Retrieving connected:')
-				console.log(data);
-			});
-*/	 
+
         /*
 		console.log('testing');
 		this.adjustComponentById('algA','label','6^');
