@@ -46,7 +46,6 @@ import {
 	providedIn: 'root'
 })
 export class TympanRemote {
-	public bluetooth: boolean = false;
 	public btSerialIsEnabled: boolean;
 	public btSerial: any; //BluetoothSerial;
 	public bleIsEnabled: boolean = true;
@@ -163,10 +162,8 @@ export class TympanRemote {
 		this._allDevices = [];
 		this._activeDeviceIdx = -1;
 		this._config = {};
-		this.bluetooth = false;
 
 		this.disconnect(); // start by being disconnected.  Also resets to default prescription.
-
 
 		const DEVICE_1: TympanDeviceConfig = {
 		  id: 'mo:ck:01',
@@ -188,7 +185,6 @@ export class TympanRemote {
 		this.addDevice(new TympanBLE(DEVICE_1));
 		this.addDevice(new TympanBLE(DEVICE_2));
 
-		console.log('almost ready');
 		this.whenReady();
 	}
 
@@ -257,38 +253,52 @@ export class TympanRemote {
 		this.logger.log('Checking BT status...');
 		if (!this.platform.is('cordova')) {
 			this.logger.log('Bluetooth is unavailable; not a cordova platform');
-			this.bluetooth = false;
+			this.btSerialIsEnabled = false;
+			this.bleIsEnabled = false;
 			return Promise.resolve(false);
+		} else if (this.platform.is('android')) {
+			return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION)
+			.then((perm)=>{
+				this.logger.log('Has fine location permission? '+perm.hasPermission);
+				return Promise.resolve(true);
+	    }).then(()=>{
+	      return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH);
+			}).then((perm)=>{
+				this.logger.log('Has bluetooth permission? '+perm.hasPermission);
+				return Promise.resolve(true);
+			}).then(()=>{
+				return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH_ADMIN);
+			}).then((perm)=>{
+				this.logger.log('Has bluetooth admin permission? '+perm.hasPermission);
+				return Promise.resolve(true);
+			//}).then(()=>{
+				//this.btSerial.isEnabled();
+			}).then(()=>{
+				this.logger.log('Bluetooth is enabled.');
+				//this.bluetooth = true;
+				return Promise.resolve(true);
+			},()=>{
+				this.logger.log('Bluetooth is not enabled.');
+				//this.bluetooth = false;
+				return Promise.resolve(false);
+			}).catch(()=>{
+				this.logger.log('Error checking bluetooth status');
+				return Promise.resolve(false);
+			});
+		} else if (this.platform.is('ios')) {
+			// iOS doesn't do Bluetooth Serial for Tympan.
+			this.btSerialIsEnabled = false;
+			// Check if BLE is enabled:
+			return this.ble.isEnabled().then(()=>{
+				this.logger.log('BLE is enabled.');
+				this.bleIsEnabled = true;
+				return this.bleIsEnabled;
+			}).catch(()=>{
+				this.logger.log('BLE is not enabled.');
+				this.bleIsEnabled = false;
+				return this.bleIsEnabled;
+			});
 		}
-
-		return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION)
-		.then((perm)=>{
-			this.logger.log('Has fine location permission? '+perm.hasPermission);
-			return Promise.resolve(true);
-        }).then(()=>{
-        	return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH);
-		}).then((perm)=>{
-			this.logger.log('Has bluetooth permission? '+perm.hasPermission);
-			return Promise.resolve(true);
-		}).then(()=>{
-			return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH_ADMIN);
-		}).then((perm)=>{
-			this.logger.log('Has bluetooth admin permission? '+perm.hasPermission);
-			return Promise.resolve(true);
-		}).then(()=>{
-			//this.btSerial.isEnabled();
-		}).then(()=>{
-			this.logger.log('Bluetooth is enabled.');
-			this.bluetooth = true;
-			return Promise.resolve(true);
-		},()=>{
-			this.logger.log('Bluetooth is not enabled.');
-			this.bluetooth = false;
-			return Promise.resolve(false);
-		}).catch(()=>{
-			this.logger.log('Error checking bluetooth status');
-			return Promise.resolve(false);
-		});
 	}
 
 	public disconnect() {
@@ -395,7 +405,7 @@ export class TympanRemote {
             console.log(list);
         });
         */
-        //this.checkBluetoothStatus();
+    this.checkBluetoothStatus();
 		/*
     let msg = stringToArrayBuffer('howdy');
     let handler = (device)=> {
@@ -463,7 +473,7 @@ export class TympanRemote {
 	}
 
 	public subscribe() {
-		if (this.bluetooth && this.btSerial) {
+		if (this.btSerialIsEnabled && this.btSerial) {
 			this.logger.log('subscribing');
 			//this.btSerial.subscribe('\n').subscribe((data)=>{this.interpretDataFromDevice(data);});
 		}
@@ -573,25 +583,7 @@ export class TympanRemote {
 		}
 
 		this.logger.log(`Sending ${s} to ${this.activeDevice.name}`);  
-		if (this.bluetooth) {
-			/*
-			this.btSerial.write(s).then(()=>{
-				if (s == ']'){
-					this.showSerialPlotter = true;
-				}
-				if (s == '}'){
-					this.showSerialPlotter = false;
-				}
-				this.logger.log(`Successfully sent ${s}`);
-			}).catch(()=>{
-				this.logger.log(`Failed to send ${s}`);
-			});
-			*/
-			this.activeDevice.write(s);
-		} else {
-			this.logger.log('mock sending.');
-			//this.mockSend(s);
-		}
+		this.activeDevice.write(s);
 	}
 
 	public formatData(){
@@ -658,7 +650,8 @@ export class TympanRemote {
 
 		let charStr = DATASTREAM_START_CHAR + numberAsCharStr(dataStr.length,'int32') + DATASTREAM_SEPARATOR + dataStr + DATASTREAM_END_CHAR;
 
-		if (this.bluetooth) {
+		if (true) {
+			this.logger.log('Not sending card; feature not enabled yet.');
 			/*
 			this.btSerial.write(charStr).then(()=>{
 				//this.logger.log(`Successfully sent ${charStr}`);
@@ -669,8 +662,6 @@ export class TympanRemote {
 		} else {
 			this.logger.log('INACTIVE.  SEND FAIL.');
 		}
-
-		this.logger.log("Sending " + DATASTREAM_START_CHAR + ", length = " + dataStr.length.toString());
 	}
 
 	public writeTRDataFile(csv: string) {
