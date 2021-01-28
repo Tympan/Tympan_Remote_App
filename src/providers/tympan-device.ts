@@ -67,6 +67,7 @@ export abstract class TympanDevice {
   public emulated: boolean;
   protected _config: any;
   protected parent: TympanRemote;
+  public available: boolean;
 
   protected plotter: Plotter;
   protected logger: Logger;
@@ -106,7 +107,7 @@ export abstract class TympanDevice {
   }
 
   /* The abstract functions that all extended classes must implement: */
-  public abstract connect(success, fail): Promise<any>;
+  public abstract connect(onDisconnect: ()=>void): Promise<any>;
 
   public abstract write(msg: string);
 
@@ -410,8 +411,8 @@ export class TympanBTSerial extends TympanDevice {
     super(dev as TympanDeviceConfig);
   }
 
-  public connect(success, fail): Promise<any> {
-    return Promise.resolve(true);
+  public connect(onDisconnect: ()=>void) {
+    return Promise.reject('No BT Serial implemented.');
   }
 
   public write(msg: string) {}
@@ -437,33 +438,66 @@ export class TympanBLE extends TympanDevice {
     this.incomingMessage = null;
   }
 
-  public connect(success, fail): Promise<any> {
-    try {
-      this.logger.log(`Attempting to connect to ${this.name}`);
-      var thisDev = this;
-      let onConnect = function() {
-        thisDev.onConnect(success);
+  public connect(TRonDisconnect: ()=>void): Promise<any> {
+    const CONNECTION_TIMEOUT_MS = 10000;
+
+    this.status = 'Connecting...';
+
+    return new Promise((resolve,reject)=>{
+      // First, start a timeout to see if the connection attempt hangs up
+      // (android waits 20 seconds before killing a connection attempt, whereas iOS will never kill it and will hang forever.
+      let connectionTimeout = setTimeout(()=>{
+        this.logger.log('Connection attempt is taking too long; killing.');
+        this.ble.disconnect(this.id).then(()=>{
+          let msg = 'FORCE disconnected SUCCESS';
+          reject(new Error(msg));
+        }).catch(()=>{
+          let msg = 'FORCE disconnected FAIL'
+          reject(new Error(msg));
+        }).finally(()=>{
+          this.status = '';
+        });
+      }, CONNECTION_TIMEOUT_MS);
+
+      // Try to connect.
+      try {
+        this.logger.log(`Attempting to connect to ${this.name}`);  //`
+        var thisDev = this;
+        // Define the function that happens on a successful connect; end by resolving the promise.
+        let connectFn = function() {
+          clearTimeout(connectionTimeout);
+          thisDev.onConnect().then(()=>{
+            resolve('Successfully connected...##');
+          });
+        };
+        // Define the function that happens when the device is disconnected.
+        let disconnectFn = function() {
+          thisDev.onDisconnect().then(()=>{
+            TRonDisconnect();
+          });
+        };
+        this.ble.connect(this.id).subscribe(connectFn, disconnectFn);
+      } catch {
+        let msg = `Could not connect to ${this.id}`;
+        this.status = '';
+        this.logger.log(msg);
+        reject(msg);
       }
-      let onDisconnect = function() {
-        thisDev.onDisconnect(fail);
-      }
-      this.ble.connect(this.id).subscribe(onConnect, onDisconnect);
-    } catch {
-      let msg = `Could not connect to ${this.id}`;
-      this.logger.log(msg);
-      return Promise.reject(new Error(msg));
-    }
+    });
+  }
+
+  public disconnect() {
+    this.ble.disconnect(this.id)
+    .then(this.onDisconnect);
   }
 
   /*
    * onConnect():
    * This function is called when the device has been connected.
    */
-  public onConnect(fn) {
-    this.logger.log(`Connected to ${this.name}`);
+  public onConnect(): Promise<any> {
+    this.logger.log(`Connected to ${this.name}`);   //`
     this.status = 'Connected';
-    // Run the success callback:
-    fn();
 
     this.ble.startNotification(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID)
     .subscribe((data)=>{
@@ -472,17 +506,17 @@ export class TympanBLE extends TympanDevice {
 
     // Ask the device to describe its pages:
     let msg = stringToArrayBuffer('J');
-    this.ble.write(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID, msg);
+    return this.ble.write(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID, msg);
   }
 
   /*
    * onDisconnect():
    * This function is called when the device has been disconnected.
    */
-  public onDisconnect(fn) {
+  public onDisconnect() {
     this.logger.log(`Disconnected from ${this.name}`);
     this.status = '';
-    fn();
+    return Promise.resolve(null);
   }
 
   public write(msg: string) {

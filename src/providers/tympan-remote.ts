@@ -325,29 +325,30 @@ export class TympanRemote {
 		if (dev.emulated) {
 			this.activeDeviceIdx = devIdx;
 			this.connected = true;
-			dev.status = 'connected';
 			let toastId = await this.TRToast.presentToast('Connecting...');
 			this.TRToast.dismissToast(toastId);
 		} else {
 			this.logger.log(`setAD: connecting to ${dev.name} (${dev.id})`);
-			dev.status = 'Connecting...';
 			let toastId = await this.TRToast.presentToast('Connecting');
-			let thisTR = this;
-			let success = function() {
-				thisTR.logger.log('Connection succeeded.');
-				thisTR.connected = true;
-				thisTR.activeDeviceIdx = devIdx;
-				thisTR.TRToast.dismissToast(toastId);
+			// Set up the disconnect function, for when the device and app become disconnected (no matter which end caused the disconnect)
+			var onDisconnect = function() {
+				console.log('TR recognizes that device '+dev.id+' has been disconnected.');
+				this.connected = false;
+				this.activeDeviceIdx = -1;
 			}
-			let fail = function () {
-				thisTR.logger.log('Connection failed');
-				thisTR.connected = false;
-				thisTR.activeDeviceIdx = -1;
-				thisTR.TRToast.dismissToast(toastId);
-				thisTR.TRToast.presentToast('Bluetooth connection failed.',2000);
-			}
-			dev.connect(success,fail);
-
+			// Attempt to connect:
+			dev.connect(onDisconnect).then(()=>{
+				this.logger.log('Connection succeeded.');
+				this.connected = true;
+				this.activeDeviceIdx = devIdx;
+				this.TRToast.dismissToast(toastId);
+			}).catch(()=>{
+				this.logger.log('Connection failed');
+				this.connected = false;
+				this.activeDeviceIdx = -1;
+				this.TRToast.dismissToast(toastId);
+				this.TRToast.presentToast('Bluetooth connection failed.',2000);
+			});
 
 /*
 			this.btSerial.connect(dev.id).subscribe(()=>{
