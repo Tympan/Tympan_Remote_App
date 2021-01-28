@@ -393,10 +393,10 @@ export class TympanRemote {
 
 	public async updateDeviceList() {
 		this.logger.log('Updating device list:');
-        
+    
+    // Add Bluetooth Serial devices:
 		if (this.btSerialIsEnabled) {
-
-/*			
+			/*			
 			this.btSerial.list().then((btDevices)=>{
 				let activeBtDeviceIds = btDevices.map((d)=>{return d.id;});
 				// First, get rid of all devices that have lost bluetooth:
@@ -413,28 +413,28 @@ export class TympanRemote {
 					device.emulated = false;
 					this.addDevice(device);
 				}
-                // Then add unpaired devices:
-                if (0) {
-	                return this.btSerial.discoverUnpaired().then((btDevices)=>{
-	                    for (let idx = 0; idx<btDevices.length; idx++) {
-	                        let device = btDevices[idx];
-	                        if (device.name != undefined) {
-	                            this.logger.log(`Found unpaired device ${device.name}; adding.`);
-	                            device.emulated = false;
-	                            this.addDevice(device);                            
-	                        } else {
-	                            this.logger.log(`Found undefined unpaired device ${device.name}; not adding.`);
-	                        }
-	                    }
-	                });
-                else {
-	               	return Promise.resolve(1);
+        // Then add unpaired devices:
+        if (0) {
+          return this.btSerial.discoverUnpaired().then((btDevices)=>{
+            for (let idx = 0; idx<btDevices.length; idx++) {
+              let device = btDevices[idx];
+              if (device.name != undefined) {
+                this.logger.log(`Found unpaired device ${device.name}; adding.`);
+                device.emulated = false;
+                this.addDevice(device);                            
+              } else {
+                this.logger.log(`Found undefined unpaired device ${device.name}; not adding.`);
+              }
+            }
+          });
+        else {
+         	return Promise.resolve(1);
 
                 }
 			},()=>{
 				this.logger.log(`Failed to get device list.`);
 			});
-*/			
+			*/			
 		}
 
 		// Add BLE devices:
@@ -443,7 +443,7 @@ export class TympanRemote {
 
 			this.ble.scan([ADAFRUIT_SERVICE_UUID],20)
 			.subscribe((device)=>{
-					// on device detection, add it to the list of contacted devices
+				// on device detection, add it to the list of contacted devices
 				this.logger.log(`Detected device! name: ${device.name}, id: ${device.id}`);
 				console.log(JSON.stringify(device));
 				console.log(device);
