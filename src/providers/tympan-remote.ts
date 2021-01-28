@@ -58,7 +58,6 @@ export class TympanRemote {
 	// properties related to the connected device:
 	private _allDevices: TympanDevice[];
 	private _activeDeviceIdx: number;
-	private _config: any = {};
 	
 	get activeDevice() {
 		if (this.connected && this._activeDeviceIdx>=0) {
@@ -124,11 +123,14 @@ export class TympanRemote {
 		} else {
 			return undefined;
 		}
-		//return this._config.prescription.pages;
 	}
 
 	get devIcon(): string {
-		return this._config.devIcon;
+		if (this.activeDevice && this.activeDevice._config && this.activeDevice._config.devIcon) {
+			return this.activeDevice._config.devIcon;
+		} else {
+			return undefined;
+		}
 	}
 
 	get activeDeviceIdx() {
@@ -161,7 +163,6 @@ export class TympanRemote {
 		this.showSerialPlotter = false;
 		this._allDevices = [];
 		this._activeDeviceIdx = -1;
-		this._config = {};
 
 		this.disconnect(); // start by being disconnected.  Also resets to default prescription.
 
@@ -296,9 +297,7 @@ export class TympanRemote {
 			device.status = '';
 		}
 
-		this._config = DEFAULT_CONFIG;
 		/*
-		this.setConfig(DEFAULT_CONFIG);
 		if (this.bluetooth) {
 			//this.btSerial.disconnect();
 		}
