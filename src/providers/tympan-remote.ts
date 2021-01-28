@@ -118,16 +118,16 @@ export class TympanRemote {
 	}
 
 	get prescriptionPages() {
-		if (this.activeDevice && this.activeDevice._config && this.activeDevice._config.prescription) {
-			return this.activeDevice._config.prescription.pages;
+		if (this.activeDevice) {
+			return this.activeDevice.prescriptionPages;
 		} else {
 			return undefined;
 		}
 	}
 
 	get devIcon(): string {
-		if (this.activeDevice && this.activeDevice._config && this.activeDevice._config.devIcon) {
-			return this.activeDevice._config.devIcon;
+		if (this.activeDevice) {
+			return this.activeDevice.devIcon;
 		} else {
 			return undefined;
 		}
@@ -290,6 +290,7 @@ export class TympanRemote {
 		}
 	}
 
+	/* Disconnect from all devices */
 	public disconnect() {
 		this._activeDeviceIdx = -1;
 		this.connected = false;
@@ -493,8 +494,10 @@ export class TympanRemote {
 			return;
 		}
 
-		this.logger.log(`Sending ${s} to ${this.activeDevice.name}`);  
-		this.activeDevice.write(s);
+		if (this.activeDevice) {
+			this.logger.log(`Sending ${s} to ${this.activeDevice.name}`);  
+			this.activeDevice.write(s);			
+		}
 	}
 
 	public formatData(){

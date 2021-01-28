@@ -65,7 +65,7 @@ export abstract class TympanDevice {
   public address?: string;
   public rssi?: number;
   public emulated: boolean;
-  public _config: any;
+  protected _config: any;
   protected parent: TympanRemote;
 
   protected plotter: Plotter;
@@ -88,15 +88,27 @@ export abstract class TympanDevice {
     //this.btType = dev.btType;
   }
 
+  /* Public getters: */
+  get prescriptionPages() {
+    if (this._config && this._config.prescription) {
+      return this._config.prescription.pages;
+    } else {
+      return undefined;
+    }
+  }
+
+  get devIcon(): string {
+    if (this._config) {
+      return this._config.devIcon;
+    } else {
+      return undefined;
+    }
+  }
+
   /* The abstract functions that all extended classes must implement: */
   public abstract connect(success, fail): Promise<any>;
 
   public abstract write(msg: string);
-
-  /* Common public functions: */
-  public sayHello() {    
-    //this.send('J');
-  }
 
   /* Common protected functions that can be used by extended classes: */
   protected interpretDataFromDevice(data: string) {
