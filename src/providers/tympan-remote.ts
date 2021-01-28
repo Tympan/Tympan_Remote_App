@@ -393,71 +393,73 @@ export class TympanRemote {
 
 	public async updateDeviceList() {
 		this.logger.log('Updating device list:');
-    
-    // Add Bluetooth Serial devices:
-		if (this.btSerialIsEnabled) {
-			/*			
-			this.btSerial.list().then((btDevices)=>{
-				let activeBtDeviceIds = btDevices.map((d)=>{return d.id;});
-				// First, get rid of all devices that have lost bluetooth:
-				for (let i = this._allDevices.length-1; i>=0; i--) {
-					let storedDevice = this._allDevices[i];
-					if (!activeBtDeviceIds.includes(storedDevice.id) && !storedDevice.emulated) {
-						this.removeDeviceWithId(storedDevice.id);
+		// Make sure we know the bluetooth status first:
+    this.checkBluetoothStatus().then(()=>{
+	    // Add Bluetooth Serial devices:
+			if (this.btSerialIsEnabled) {
+				/*			
+				this.btSerial.list().then((btDevices)=>{
+					let activeBtDeviceIds = btDevices.map((d)=>{return d.id;});
+					// First, get rid of all devices that have lost bluetooth:
+					for (let i = this._allDevices.length-1; i>=0; i--) {
+						let storedDevice = this._allDevices[i];
+						if (!activeBtDeviceIds.includes(storedDevice.id) && !storedDevice.emulated) {
+							this.removeDeviceWithId(storedDevice.id);
+						}
 					}
-				}
-				// Then add new devices:
-				for (let idx = 0; idx<btDevices.length; idx++) {
-					let device = btDevices[idx];
-					this.logger.log(`Found device ${device.name}`);
-					device.emulated = false;
-					this.addDevice(device);
-				}
-        // Then add unpaired devices:
-        if (0) {
-          return this.btSerial.discoverUnpaired().then((btDevices)=>{
-            for (let idx = 0; idx<btDevices.length; idx++) {
-              let device = btDevices[idx];
-              if (device.name != undefined) {
-                this.logger.log(`Found unpaired device ${device.name}; adding.`);
-                device.emulated = false;
-                this.addDevice(device);                            
-              } else {
-                this.logger.log(`Found undefined unpaired device ${device.name}; not adding.`);
-              }
-            }
-          });
-        else {
-         	return Promise.resolve(1);
+					// Then add new devices:
+					for (let idx = 0; idx<btDevices.length; idx++) {
+						let device = btDevices[idx];
+						this.logger.log(`Found device ${device.name}`);
+						device.emulated = false;
+						this.addDevice(device);
+					}
+	        // Then add unpaired devices:
+	        if (0) {
+	          return this.btSerial.discoverUnpaired().then((btDevices)=>{
+	            for (let idx = 0; idx<btDevices.length; idx++) {
+	              let device = btDevices[idx];
+	              if (device.name != undefined) {
+	                this.logger.log(`Found unpaired device ${device.name}; adding.`);
+	                device.emulated = false;
+	                this.addDevice(device);                            
+	              } else {
+	                this.logger.log(`Found undefined unpaired device ${device.name}; not adding.`);
+	              }
+	            }
+	          });
+	        else {
+	         	return Promise.resolve(1);
 
-                }
-			},()=>{
-				this.logger.log(`Failed to get device list.`);
-			});
-			*/			
-		}
+	                }
+				},()=>{
+					this.logger.log(`Failed to get device list.`);
+				});
+				*/			
+			}
 
-		// Add BLE devices:
-		if (this.bleIsEnabled) {
-			this.logger.log('scanning for BLE devices...');
+			// Add BLE devices:
+			if (this.bleIsEnabled) {
+				this.logger.log('scanning for BLE devices...');
 
-			this.ble.scan([ADAFRUIT_SERVICE_UUID],20)
-			.subscribe((device)=>{
-				// on device detection, add it to the list of contacted devices
-				this.logger.log(`Detected device! name: ${device.name}, id: ${device.id}`);
-				console.log(JSON.stringify(device));
-				console.log(device);
-				let tympConf: TympanBLEConfig = {
-					id: device.id,
-					name: device.name,
-					emulated: false,
-					rssi: device.rssi,
-					parent: this
-				};
-				// Add the device to the list:
-				this.addDevice(new TympanBLE(tympConf));
-			});
-		}
+				this.ble.scan([ADAFRUIT_SERVICE_UUID],20)
+				.subscribe((device)=>{
+					// on device detection, add it to the list of contacted devices
+					this.logger.log(`Detected device! name: ${device.name}, id: ${device.id}`);
+					console.log(JSON.stringify(device));
+					console.log(device);
+					let tympConf: TympanBLEConfig = {
+						id: device.id,
+						name: device.name,
+						emulated: false,
+						rssi: device.rssi,
+						parent: this
+					};
+					// Add the device to the list:
+					this.addDevice(new TympanBLE(tympConf));
+				});
+			}
+		});
 	}
 
 	public setUpPages() {
