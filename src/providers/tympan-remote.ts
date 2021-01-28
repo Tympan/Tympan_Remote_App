@@ -189,25 +189,13 @@ export class TympanRemote {
 	}
 
 	private async whenReady(): Promise<any> {
-
-		let handler = (device)=> {
-			return this.zone.run(()=> {
-				this.logger.log(JSON.stringify(device));
-				console.log(`Detected device xx:\n ${JSON.stringify(device)}\n`);
-			});
-		};
-
 		// When the platform is ready, get the bluetooth going
 		return this.platform.ready()
 		.then(()=>{
-			return true; // this.ble.scan([ADAFRUIT_SERVICE_UUID],20).subscribe(handler);
-		})
-		.then(()=>{
 			return this.checkBluetoothStatus();
 		}).then(()=>{
-			this.logger.log('hello');
 			this.updateDeviceList();
-			return Promise.resolve(true);
+			return true;
 		});
 	}
 
@@ -393,83 +381,7 @@ export class TympanRemote {
 
 	public testFn() {
 		console.log("Running the test function...");
-        /*
-		var canvas = <HTMLCanvasElement> document.getElementById('myChart');
-		console.log(canvas);
-		*/
-    
-		//this.btSerial.isEnabled().then(()=>{this.logger.log('Is Enabled.');},()=>{this.logger.log('Is Not Enabled.');});
-		//this.btSerial.isConnected().then(()=>{this.logger.log('Is Connected.');},()=>{this.logger.log('Is Not Connected.');});
-        /*
-        this.btSerial.discoverUnpaired().then((list)=>{
-            console.log(list);
-        });
-        */
     this.checkBluetoothStatus();
-		/*
-    let msg = stringToArrayBuffer('howdy');
-    let handler = (device)=> {
-      console.log('Detected device!');
-      console.log(JSON.stringify(device));
-      this.logger.log(JSON.stringify(device));
-
-   		let onConnect = (dev)=> {
-   			this.logger.log('Connected!');
-   			console.log('Connected to:');
-   			console.log(dev);
-   			//this.ble.write(device.id,ADAFRUIT_SERVICE_UUID,ADAFRUIT_CHARACTERISTIC_UUID,msg);
-   		};
-   		let onDisconnect = ()=> {
-   			this.logger.log('Disconnected!');
-   		};
-
-      this.ble.connect(device.id).subscribe(onConnect,onDisconnect);
-    };
-
-    this.logger.log('scanning...');
-		this.ble.scan([ADAFRUIT_SERVICE_UUID],20).subscribe(handler);
-		*/
-
-/*
-      	console.log("\n\nSTARTING SCAN:.");
-        this.ble.scan([],10).subscribe((data)=>{
-        	console.log("\n\n\n\n\nGOT SOMETHING.");
-        	console.log(data);
-        	if (data.name && data.name == 'iPhone') {
-        		console.log("Not connecting to some iPhone");
-        	} else {
-        		console.log(`CONNECTING to ${data.id}`);
-	        	this.ble.connect(data.id).subscribe((p1)=>{
-	        		console.log(`Just connected to ${data.id}`);
-	        		console.log(p1);
-	        	},(f)=>{
-	        		console.log(`failed to connect to ${data.id}`);
-	        		console.log(f);
-	        	});
-	        }
-        });
-
-        console.log("\n\nWhich peripherals are out there?");
-        this.ble.connectedPeripheralsWithServices(["BC2F4CC6-AAEF-4351-9034-D66268E328F0"]).then((res)=>{
-        	console.log("cpws: Connected peripheral list");
-        	console.log(res);
-        });
-*/
-
-        /*
-		console.log('testing');
-		this.adjustComponentById('algA','label','6^');
-		this.adjustComponentById('algB','label','37!!');
-		this.adjustComponentById('algC','style',BUTTON_STYLE_ON);
-        */
-    
-    /*
-    console.log("\n\nGenerating list:");
-    this.ble.list().then((list)=>{
-    	console.log('list: found list:');
-    	console.log(list);
-    });
-    */
 	}
 
 	public subscribe() {
