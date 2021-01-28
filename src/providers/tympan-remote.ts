@@ -6,6 +6,7 @@ import { BLE } from '@ionic-native/ble/ngx';
 import { File } from '@ionic-native/file/ngx';
 import { Logger } from './logger';
 import { Plotter } from './plotter';
+import { ToastManager } from './toast-manager';
 
 const ADAFRUIT_SERVICE_UUID = "BC2F4CC6-AAEF-4351-9034-D66268E328F0";
 const ADAFRUIT_CHARACTERISTIC_UUID = "06D1E5E7-79AD-4A71-8FAA-373789F7D93C";
@@ -148,7 +149,8 @@ export class TympanRemote {
 		private platform: Platform, 
 		private zone: NgZone, 
 		private logger: Logger, 
-		private plotter: Plotter, 
+		private plotter: Plotter,
+		private TRToast: ToastManager, 
 		private androidPermissions: AndroidPermissions, 
 		private file: File) 
 	{
@@ -324,25 +326,28 @@ export class TympanRemote {
 			this.activeDeviceIdx = devIdx;
 			this.connected = true;
 			dev.status = 'connected';
-			let toast = await this.presentToast('Connecting...');
-			console.log(toast);
-			toast.dismiss();
+			let toastId = await this.TRToast.presentToast('Connecting...');
+			this.TRToast.dismissToast(toastId);
 		} else {
 			this.logger.log(`setAD: connecting to ${dev.name} (${dev.id})`);
 			dev.status = 'Connecting...';
+			let toastId = await this.TRToast.presentToast('Connecting');
 			let thisTR = this;
 			let success = function() {
+				thisTR.logger.log('Connection succeeded.');
 				thisTR.connected = true;
 				thisTR.activeDeviceIdx = devIdx;
+				thisTR.TRToast.dismissToast(toastId);
 			}
 			let fail = function () {
 				thisTR.logger.log('Connection failed');
 				thisTR.connected = false;
 				thisTR.activeDeviceIdx = -1;
+				thisTR.TRToast.dismissToast(toastId);
+				thisTR.TRToast.presentToast('Bluetooth connection failed.',2000);
 			}
 			dev.connect(success,fail);
 
-			//let toast = await this.presentToast('Connecting');
 
 /*
 			this.btSerial.connect(dev.id).subscribe(()=>{
@@ -365,18 +370,6 @@ export class TympanRemote {
 			});      
 */
 		}
-	}
-
-	public async presentToast(msg: string, duration_ms?: number) {
-		const toast = document.createElement('ion-toast');
-		toast.message = msg;
-		if (duration_ms != undefined) {
-			toast.duration = duration_ms;
-		}
-		toast.position = 'top';
-		toast.color = 'primary';
-		document.body.appendChild(toast);
-		return toast.present().then(()=>{return toast;});
 	}
 
 	public testFn() {
