@@ -470,8 +470,9 @@ export class TympanBLE extends TympanDevice {
       this.bufferHandler(data);
     });
 
-    let msg = stringToArrayBuffer('howdy');
-    //this.ble.write(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID, msg);
+    // Ask the device to describe its pages:
+    let msg = stringToArrayBuffer('J');
+    this.ble.write(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID, msg);
   }
 
   /*
