@@ -29,6 +29,7 @@ import {
 import { relativeTimeThreshold } from 'moment';
 
 export enum ByteOrder { MSB, LSB }
+export enum TympanDeviceState { AVAILABLE, UNAVAILABLE, PENDING }
 
 /**
  * This interface contains the information that needs to be provided
@@ -59,12 +60,13 @@ export interface TympanBLEConfig extends TympanDeviceConfig {
 export abstract class TympanDevice {  
   public id: string;
   public name: string;
-  public status: string;
   public uuid?: string;
   public class?: number;
   public address?: string;
   public rssi?: number;
   public emulated: boolean;
+  public state: TympanDeviceState;
+  public status: string;
   protected _config: any;
   protected parent: TympanRemote;
   protected notifyOnDisconnect: (TympanDevice)=>void;
@@ -81,6 +83,7 @@ export abstract class TympanDevice {
     this.emulated = dev.emulated;
     this.status = '';
     this._config = {};
+    this.state = TympanDeviceState.PENDING;
 
     this.plotter = dev.parent.plotter;
     this.logger = dev.parent.logger;

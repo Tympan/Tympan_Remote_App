@@ -38,7 +38,8 @@ import {
 	TympanBLE,
 	numberAsCharStr,
 	isNumeric,
-	stringToArrayBuffer
+	stringToArrayBuffer,
+	TympanDeviceState
 } from './tympan-device';
 
 /**
@@ -57,6 +58,7 @@ export class TympanRemote {
 	public showDevOptions: boolean = false;
 	public showSerialMonitor: boolean = false;
 	public showSerialPlotter: boolean = true;
+	public scanning: boolean = false;
 	// properties related to the connected device:
 	private _allDevices: TympanDevice[];
 	private _activeDeviceIdx: number;
@@ -77,25 +79,6 @@ export class TympanRemote {
 		}
 	}
 
-	get deviceIds(): string[] {
-		// Should only return emulated devices if emulate
-		let deviceIds: string[] = [];
-		for (let i=0; i<this._allDevices.length; i++) {
-			let dev = this._allDevices[i];
-			//this.logger.log(dev);
-			if (dev.emulated && !this._emulate) {
-				// do nothing
-				console.log('doing nothing');
-			} else {
-				this.logger.log(`Pushing ${dev.id}`);
-				deviceIds.push(dev.id);
-			}
-		}
-		console.log('Device ids:');
-		console.log(deviceIds);
-		return deviceIds;
-	}
-
 	get emulate(): boolean {
 		return this._emulate;
 	}
@@ -113,9 +96,9 @@ export class TympanRemote {
 
 	get devices(): any {
 		if (this._emulate) {
-			return this._allDevices;
+			return this._allDevices.filter(dev=>(dev.state===TympanDeviceState.AVAILABLE));
 		} else {
-			return this._allDevices.filter(dev=>!dev.emulated);
+			return this._allDevices.filter(dev=>(!dev.emulated && (dev.state===TympanDeviceState.AVAILABLE)));
 		}
 	}
 
@@ -198,7 +181,7 @@ export class TympanRemote {
 		.then(()=>{
 			return this.checkBluetoothStatus();
 		}).then(()=>{
-			this.updateDeviceList();
+			//this.updateDeviceList();
 			return true;
 		});
 	}
@@ -214,6 +197,8 @@ export class TympanRemote {
 		} else {
 			// Update the device in some way?
 		}
+		this.getDeviceWithId(dev.id).state = TympanDeviceState.AVAILABLE;
+
 	}
 
 	public removeDeviceWithId(devId: string) {
@@ -412,12 +397,29 @@ export class TympanRemote {
 	}
 
 	public async updateDeviceList() {
+		let priorDevIds = this.devices.map(d=>d.id);
+		console.log('current device ids:');
+		console.log(priorDevIds);
+
+		let newDevIds = [];
+		let thisTR = this;
+		let finishScan = function() {
+			thisTR.scanning = false;
+			for (let i=0; i<priorDevIds.length; i++) {
+				let priorId = priorDevIds[i];
+				if (!newDevIds.includes(priorId)) {
+					thisTR.getDeviceWithId(priorId).state = TympanDeviceState.UNAVAILABLE;
+				}
+			}
+		}
+
 		this.logger.log('Updating device list:');
 		// Make sure we know the bluetooth status first:
     this.checkBluetoothStatus().then(()=>{
 	    // Add Bluetooth Serial devices:
 			if (this.btSerialIsEnabled) {
 				/*			
+				this.scanning = true;
 				this.btSerial.list().then((btDevices)=>{
 					let activeBtDeviceIds = btDevices.map((d)=>{return d.id;});
 					// First, get rid of all devices that have lost bluetooth:
@@ -461,23 +463,36 @@ export class TympanRemote {
 			// Add BLE devices:
 			if (this.bleIsEnabled) {
 				this.logger.log('scanning for BLE devices...');
+				this.scanning = true;
+
+				let scanTimeout = setTimeout(()=>{
+						console.log('Scan timeout called.');
+						finishScan();
+					}, BLE_SCAN_DURATION_SEC*1000);
 
 				this.ble.scan([ADAFRUIT_SERVICE_UUID],BLE_SCAN_DURATION_SEC)
-				.subscribe((device)=>{
-					// on device detection, add it to the list of contacted devices
-					this.logger.log(`Detected device! name: ${device.name}, id: ${device.id}`);
-					console.log(JSON.stringify(device));
-					console.log(device);
-					let tympConf: TympanBLEConfig = {
-						id: device.id,
-						name: device.name,
-						emulated: false,
-						rssi: device.rssi,
-						parent: this
-					};
-					// Add the device to the list:
-					this.addDevice(new TympanBLE(tympConf));
-				});
+				.subscribe(
+					(device)=>{
+						// on device detection, add it to the list of contacted devices
+						this.logger.log(`Detected device! name: ${device.name}, id: ${device.id}`);
+						console.log(device);
+						newDevIds.push(device.id);
+						let tympConf: TympanBLEConfig = {
+							id: device.id,
+							name: device.name,
+							emulated: false,
+							rssi: device.rssi,
+							parent: this
+						};
+						// Add the device to the list:
+						this.addDevice(new TympanBLE(tympConf));
+					},
+					()=>{
+						console.log('Scan fail.');
+						clearTimeout(scanTimeout);
+						finishScan();
+					}
+				);
 			}
 		});
 	}
