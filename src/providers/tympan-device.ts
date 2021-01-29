@@ -109,6 +109,8 @@ export abstract class TympanDevice {
   /* The abstract functions that all extended classes must implement: */
   public abstract connect(onDisconnect: (TympanDevice)=>void): Promise<any>;
 
+  public abstract disconnect();
+
   public abstract write(msg: string);
 
   /* Common protected functions that can be used by extended classes: */
@@ -415,6 +417,8 @@ export class TympanBTSerial extends TympanDevice {
     return Promise.reject('No BT Serial implemented.');
   }
 
+  public disconnect() {};
+
   public write(msg: string) {}
 }
 
@@ -486,7 +490,9 @@ export class TympanBLE extends TympanDevice {
 
   public disconnect() {
     this.ble.disconnect(this.id)
-    .then(this.onDisconnect);
+    .then(()=>{
+      this.onDisconnect();
+    });
   }
 
   /*

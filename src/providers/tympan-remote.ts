@@ -103,7 +103,7 @@ export class TympanRemote {
 	set emulate(tf: boolean) {
 		console.log(`setting emulate to ${tf}`);
 		if ((tf === false) && this.activeDevice && (this.activeDevice.emulated===true)) {
-			this.disconnect();
+			this.disconnectFromAll();
 		}
 		console.log(this._allDevices);
 		this.zone.run(()=>{
@@ -167,7 +167,7 @@ export class TympanRemote {
 		this._allDevices = [];
 		this._activeDeviceIdx = -1;
 
-		this.disconnect(); // start by being disconnected.  Also resets to default prescription.
+		this.disconnectFromAll(); // start by being disconnected.  Also resets to default prescription.
 
 		const DEVICE_1: TympanDeviceConfig = {
 		  id: 'mo:ck:01',
@@ -293,12 +293,24 @@ export class TympanRemote {
 		}
 	}
 
-	/* Disconnect from all devices */
-	public disconnect() {
-		this._activeDeviceIdx = -1;
+	/* 
+	 * Disconnect from a device with id.
+	 */
+	public disconnectFromId(id: string) {
+		let device = this.getDeviceWithId(id);
+		if (device) {
+			device.disconnect();
+		}
+	}
+
+	/* 
+	 * Disconnect from a device with id.
+	 */
+	public disconnectFromAll() {
+		this.activeDeviceIdx = -1;
 		this.connected = false;
-		for (let device of this._allDevices) {
-			device.status = '';
+		for (let device of this.devices) {
+			device.disconnect();
 		}
 
 		/*
@@ -328,7 +340,7 @@ export class TympanRemote {
 	public async connectToId(id: string) {
 
 		this.logger.log(`remote.connectToId: setting device with id ${id} as active.`);
-		this.disconnect();
+		this.disconnectFromAll();
 
 		let devIdx = this.getDeviceIdxWithId(id);
 		let dev = this._allDevices[devIdx];
@@ -347,7 +359,6 @@ export class TympanRemote {
 			let toastId = await this.TRToast.presentToast('Connecting');
 			// Set up the disconnect function, for when the device and app become disconnected (no matter which end caused the disconnect)
 			var onDisconnect = function() {
-				console.log('TR recognizes that device '+dev.id+' has been disconnected.');
 				this.connected = false;
 				this.activeDeviceIdx = -1;
 			}
