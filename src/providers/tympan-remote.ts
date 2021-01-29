@@ -10,6 +10,7 @@ import { ToastManager } from './toast-manager';
 
 const ADAFRUIT_SERVICE_UUID = "BC2F4CC6-AAEF-4351-9034-D66268E328F0";
 const ADAFRUIT_CHARACTERISTIC_UUID = "06D1E5E7-79AD-4A71-8FAA-373789F7D93C";
+const BLE_SCAN_DURATION_SEC = 20;
 
 import {
 	DATASTREAM_START_CHAR,
@@ -311,15 +312,29 @@ export class TympanRemote {
 		id=!id
 	}
 
+	/*
+	 * Do some things once a device is disconnected.
+	 * Typically, this function is called by a device, once the device realizes it is disconnected 
+	 * (no matter which end initiates the device disconnect)
+	 */ 
+	public onDisconnectDevice(device: TympanDevice) {
+		if (this.isActiveId(device.id)) {
+			this.activeDeviceIdx = -1;
+			this.connected = false;
+			this.TRToast.presentToast(`Disconnected from ${device.name}`,2000);
+		}
+	}
+
 	public async connectToId(id: string) {
 
 		this.logger.log(`remote.connectToId: setting device with id ${id} as active.`);
 		this.disconnect();
+
 		let devIdx = this.getDeviceIdxWithId(id);
 		let dev = this._allDevices[devIdx];
 		if (devIdx<0) {
 			this.logger.log('Could not find device.');
-			this._activeDeviceIdx = -1;
+			this.activeDeviceIdx = -1;
 			return;
 		}
 		if (dev.emulated) {
@@ -328,7 +343,7 @@ export class TympanRemote {
 			let toastId = await this.TRToast.presentToast('Connecting...');
 			this.TRToast.dismissToast(toastId);
 		} else {
-			this.logger.log(`setAD: connecting to ${dev.name} (${dev.id})`);
+			this.logger.log(`Connecting to ${dev.name} (${dev.id})`);
 			let toastId = await this.TRToast.presentToast('Connecting');
 			// Set up the disconnect function, for when the device and app become disconnected (no matter which end caused the disconnect)
 			var onDisconnect = function() {
@@ -337,7 +352,7 @@ export class TympanRemote {
 				this.activeDeviceIdx = -1;
 			}
 			// Attempt to connect:
-			dev.connect(onDisconnect).then(()=>{
+			dev.connect((d)=>{this.onDisconnectDevice(d);}).then(()=>{
 				this.logger.log('Connection succeeded.');
 				this.connected = true;
 				this.activeDeviceIdx = devIdx;
@@ -436,7 +451,7 @@ export class TympanRemote {
 			if (this.bleIsEnabled) {
 				this.logger.log('scanning for BLE devices...');
 
-				this.ble.scan([ADAFRUIT_SERVICE_UUID],20)
+				this.ble.scan([ADAFRUIT_SERVICE_UUID],BLE_SCAN_DURATION_SEC)
 				.subscribe((device)=>{
 					// on device detection, add it to the list of contacted devices
 					this.logger.log(`Detected device! name: ${device.name}, id: ${device.id}`);

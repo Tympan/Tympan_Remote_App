@@ -67,7 +67,7 @@ export abstract class TympanDevice {
   public emulated: boolean;
   protected _config: any;
   protected parent: TympanRemote;
-  public available: boolean;
+  protected notifyOnDisconnect: (TympanDevice)=>void;
 
   protected plotter: Plotter;
   protected logger: Logger;
@@ -107,7 +107,7 @@ export abstract class TympanDevice {
   }
 
   /* The abstract functions that all extended classes must implement: */
-  public abstract connect(onDisconnect: ()=>void): Promise<any>;
+  public abstract connect(onDisconnect: (TympanDevice)=>void): Promise<any>;
 
   public abstract write(msg: string);
 
@@ -411,7 +411,7 @@ export class TympanBTSerial extends TympanDevice {
     super(dev as TympanDeviceConfig);
   }
 
-  public connect(onDisconnect: ()=>void) {
+  public connect(onDisconnect: (TympanDevice)=>void): Promise<any> {
     return Promise.reject('No BT Serial implemented.');
   }
 
@@ -438,10 +438,11 @@ export class TympanBLE extends TympanDevice {
     this.incomingMessage = null;
   }
 
-  public connect(TRonDisconnect: ()=>void): Promise<any> {
+  public connect(TRonDisconnect: (TympanDevice)=>void): Promise<any> {
     const CONNECTION_TIMEOUT_MS = 10000;
 
     this.status = 'Connecting...';
+    this.notifyOnDisconnect = TRonDisconnect;
 
     return new Promise((resolve,reject)=>{
       // First, start a timeout to see if the connection attempt hangs up
@@ -470,12 +471,9 @@ export class TympanBLE extends TympanDevice {
             resolve('Successfully connected...##');
           });
         };
-        // Define the function that happens when the device is disconnected.
         let disconnectFn = function() {
-          thisDev.onDisconnect().then(()=>{
-            TRonDisconnect();
-          });
-        };
+          thisDev.onDisconnect();
+        }
         this.ble.connect(this.id).subscribe(connectFn, disconnectFn);
       } catch {
         let msg = `Could not connect to ${this.id}`;
@@ -512,11 +510,13 @@ export class TympanBLE extends TympanDevice {
   /*
    * onDisconnect():
    * This function is called when the device has been disconnected.
+   * The disconnection could be initiated by the app, or it could be
+   * due to a dropped connection.
    */
   public onDisconnect() {
     this.logger.log(`Disconnected from ${this.name}`);
     this.status = '';
-    return Promise.resolve(null);
+    this.notifyOnDisconnect(this);
   }
 
   public write(msg: string) {
