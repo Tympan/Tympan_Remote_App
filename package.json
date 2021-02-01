@@ -14,11 +14,12 @@
 		"e2e": "ng e2e",
 		"cordova": "cordova",
 		"ionic": "ionic",
+		"prerun": "date",
 		"ionic.add.ios": "ionic cordova platform add ios",
-		"ionic.build.ios": "ionic cordova build ios -- --buildFlag=\"-UseModernBuildSystem=0\"",
-		"ionic.build.android": "ionic cordova build android",
-		"ionic.release.android": "ionic cordova build android --prod --release",
-		"ionic.run.android": "ionic cordova run android",
+		"ionic.build.ios": "npm run prerun && ionic cordova build ios -- --buildFlag=\"-UseModernBuildSystem=0\"",
+		"ionic.build.android": "npm run prerun && ionic cordova build android",
+		"ionic.release.android": "npm run prerun && ionic cordova build android --prod --release",
+		"ionic.run.android": "npm run prerun && ionic cordova run android",
 		"resources": "ionic cordova resources --cordova-res"
 	},
 	"dependencies": {
@@ -30,6 +31,7 @@
 		"@angular/router": "^9.1.9",
 		"@ionic-native/android-permissions": "^5.26.0",
 		"@ionic-native/app-version": "^5.26.0",
+		"@ionic-native/ble": "^5.28.0",
 		"@ionic-native/bluetooth-serial": "^5.26.0",
 		"@ionic-native/core": "^5.26.0",
 		"@ionic-native/file": "^5.26.0",
@@ -42,8 +44,10 @@
 		"chartjs-plugin-streaming": "^1.8.0",
 		"cordova": "^9.0.0",
 		"cordova-android": "^8.1.0",
+		"cordova-ios": "^5.1.1",
 		"cordova-plugin-android-permissions": "1.0.2",
 		"cordova-plugin-app-version": "^0.1.9",
+		"cordova-plugin-ble-central": "^1.2.5",
 		"cordova-plugin-bluetooth-serial": "~0.4.7",
 		"cordova-plugin-device": "^2.0.3",
 		"cordova-plugin-file": "6.0.2",
@@ -100,10 +104,14 @@
 			"cordova-plugin-bluetooth-serial": {},
 			"cordova-plugin-app-version": {},
 			"cordova-plugin-android-permissions": {},
-			"cordova-plugin-file": {}
+			"cordova-plugin-file": {},
+			"cordova-plugin-ble-central": {
+				"BLUETOOTH_USAGE_DESCRIPTION": "To communicate with Tympan devices"
+			}
 		},
 		"platforms": [
-			"android"
+			"android",
+			"ios"
 		]
 	}
 }

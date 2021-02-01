@@ -4,9 +4,6 @@ import {
   DATASTREAM_PREFIX_DSL,
   DATASTREAM_PREFIX_GHA,
   DATASTREAM_PREFIX_AFC,
-  numberAsCharStr,
-  charStrToNumber,
-  isNumeric
 } from './tympan-config';
 
 

@@ -6,7 +6,7 @@ import { Chart } from 'chart.js';
 import { tick } from '@angular/core/testing';
 import { 
   isNumeric,
- } from '../../providers/tympan-config';
+ } from '../../providers/tympan-device';
 
 
 @Component({

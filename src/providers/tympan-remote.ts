@@ -1,15 +1,18 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
-import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
+//import { BluetoothSerial } from '@ionic-native/bluetooth-serial/ngx';
+import { BLE } from '@ionic-native/ble/ngx';
 import { File } from '@ionic-native/file/ngx';
 import { Logger } from './logger';
 import { Plotter } from './plotter';
+import { ToastManager } from './toast-manager';
+
+const ADAFRUIT_SERVICE_UUID = "BC2F4CC6-AAEF-4351-9034-D66268E328F0";
+const ADAFRUIT_CHARACTERISTIC_UUID = "06D1E5E7-79AD-4A71-8FAA-373789F7D93C";
+const BLE_SCAN_DURATION_SEC = 20;
 
 import {
-	iDevice,
-	DEVICE_1,
-	DEVICE_2,
 	DATASTREAM_START_CHAR,
 	DATASTREAM_SEPARATOR,
 	DATASTREAM_END_CHAR,
@@ -17,10 +20,7 @@ import {
 	BUTTON_STYLE_OFF,
 	BUTTON_STYLE_NONE,
 	BOYSTOWN_PAGE_PLOT,
-	DEFAULT_CONFIG,
-	numberAsCharStr,
-	charStrToNumber,
-	isNumeric
+	DEFAULT_CONFIG
 } from './tympan-config';
 
 import {
@@ -29,6 +29,19 @@ import {
 	AFC
 } from './prescriptions';
 
+import {
+	TympanDeviceConfig, //interface
+	TympanBTSerialConfig, //interface
+	TympanBLEConfig, //interface
+	TympanDevice,
+	TympanBTSerial,
+	TympanBLE,
+	numberAsCharStr,
+	isNumeric,
+	stringToArrayBuffer,
+	TympanDeviceState
+} from './tympan-device';
+
 /**
  * This class contains the variables and methods for the Tympan Remote app.
  */
@@ -36,18 +49,19 @@ import {
 	providedIn: 'root'
 })
 export class TympanRemote {
-	public bluetooth: boolean = false;
-	public btSerial: BluetoothSerial;
+	public btSerialIsEnabled: boolean;
+	public btSerial: any; //BluetoothSerial;
+	public bleIsEnabled: boolean = true;
 	public _emulate: boolean = false; // show emulated devices?
 	public connected: boolean = false;
 	public showLogs: boolean = false;
 	public showDevOptions: boolean = false;
 	public showSerialMonitor: boolean = false;
 	public showSerialPlotter: boolean = true;
+	public scanning: boolean = false;
 	// properties related to the connected device:
-	private _allDevices: iDevice[];
+	private _allDevices: TympanDevice[];
 	private _activeDeviceIdx: number;
-	private _config: any = {};
 	
 	get activeDevice() {
 		if (this.connected && this._activeDeviceIdx>=0) {
@@ -65,25 +79,6 @@ export class TympanRemote {
 		}
 	}
 
-	get deviceIds(): string[] {
-		// Should only return emulated devices if emulate
-		let deviceIds: string[] = [];
-		for (let i=0; i<this._allDevices.length; i++) {
-			let dev = this._allDevices[i];
-			//this.logger.log(dev);
-			if (dev.emulated && !this._emulate) {
-				// do nothing
-				console.log('doing nothing');
-			} else {
-				this.logger.log(`Pushing ${dev.id}`);
-				deviceIds.push(dev.id);
-			}
-		}
-		console.log('Device ids:');
-		console.log(deviceIds);
-		return deviceIds;
-	}
-
 	get emulate(): boolean {
 		return this._emulate;
 	}
@@ -91,7 +86,7 @@ export class TympanRemote {
 	set emulate(tf: boolean) {
 		console.log(`setting emulate to ${tf}`);
 		if ((tf === false) && this.activeDevice && (this.activeDevice.emulated===true)) {
-			this.disconnect();
+			this.disconnectFromAll();
 		}
 		console.log(this._allDevices);
 		this.zone.run(()=>{
@@ -101,18 +96,26 @@ export class TympanRemote {
 
 	get devices(): any {
 		if (this._emulate) {
-			return this._allDevices;
+			return this._allDevices.filter(dev=>(dev.state===TympanDeviceState.AVAILABLE));
 		} else {
-			return this._allDevices.filter(dev=>!dev.emulated);
+			return this._allDevices.filter(dev=>(!dev.emulated && (dev.state===TympanDeviceState.AVAILABLE)));
 		}
 	}
 
 	get prescriptionPages() {
-		return this._config.prescription.pages;
+		if (this.activeDevice) {
+			return this.activeDevice.prescriptionPages;
+		} else {
+			return undefined;
+		}
 	}
 
 	get devIcon(): string {
-		return this._config.devIcon;
+		if (this.activeDevice) {
+			return this.activeDevice.devIcon;
+		} else {
+			return undefined;
+		}
 	}
 
 	get activeDeviceIdx() {
@@ -125,8 +128,19 @@ export class TympanRemote {
 		})
 	}
 
-	constructor(private platform: Platform, private zone: NgZone, private logger: Logger, private plotter: Plotter, private androidPermissions: AndroidPermissions, private file: File) {
-		this.btSerial = new BluetoothSerial();
+	constructor(
+		public ble: BLE, 
+		private platform: Platform, 
+		private zone: NgZone, 
+		private logger: Logger, 
+		private plotter: Plotter,
+		private TRToast: ToastManager, 
+		private androidPermissions: AndroidPermissions, 
+		private file: File) 
+	{
+		this.btSerialIsEnabled = false;
+		this.btSerial = undefined; //new BluetoothSerial();
+		this.bleIsEnabled = true;
 		this._emulate = false;
 		this.connected = false;
 		this.showLogs = false;
@@ -135,14 +149,28 @@ export class TympanRemote {
 		this.showSerialPlotter = false;
 		this._allDevices = [];
 		this._activeDeviceIdx = -1;
-		this._config = {};
-		this.bluetooth = false;
 
-		this.disconnect(); // start by being disconnected.  Also resets to default prescription.
+		this.disconnectFromAll(); // start by being disconnected.  Also resets to default prescription.
+
+		const DEVICE_1: TympanDeviceConfig = {
+		  id: 'mo:ck:01',
+		  name: 'mock1',
+		  status: '',
+		  emulated: true,
+		  parent: this
+		};
+
+		const DEVICE_2: TympanDeviceConfig = {
+		  id: 'mo:ck:02',
+		  name: 'mock2',
+		  status: '',
+		  emulated: true,
+		  parent: this
+		};
 
 		// Add mock devices:
-		this.addDevice(DEVICE_1);
-		this.addDevice(DEVICE_2);
+		this.addDevice(new TympanBLE(DEVICE_1));
+		this.addDevice(new TympanBLE(DEVICE_2));
 
 		this.whenReady();
 	}
@@ -153,9 +181,8 @@ export class TympanRemote {
 		.then(()=>{
 			return this.checkBluetoothStatus();
 		}).then(()=>{
-			this.logger.log('hello');
-			this.updateDeviceList();
-			return Promise.resolve(true);
+			//this.updateDeviceList();
+			return true;
 		});
 	}
 
@@ -163,13 +190,15 @@ export class TympanRemote {
 		return this._allDevices.findIndex((dev)=>{return dev.id === id;});
 	}
 
-	public addDevice(dev: iDevice) {
+	public addDevice(dev: TympanDevice) {
 		let idx = this.getDeviceIdxWithId(dev.id);
 		if (idx<0) {
-			this._allDevices.push(dev);
+			this.zone.run(()=>{this._allDevices.push(dev)});
 		} else {
 			// Update the device in some way?
 		}
+		this.getDeviceWithId(dev.id).state = TympanDeviceState.AVAILABLE;
+
 	}
 
 	public removeDeviceWithId(devId: string) {
@@ -189,103 +218,6 @@ export class TympanRemote {
 		return device;
 	}
 
-	public buildPrescriptionPages(presc: any): any {
-
-		let pages = [];
-
-		if (presc && presc.type == 'BoysTown') {
-			for (let pageName of presc.pages) {
-				console.log(pageName);
-				switch (pageName) {
-					case 'multiband': {
-						pages.push(new DSL().asPage());
-						break;
-					}
-					case 'broadband': {
-						pages.push(new WDRC().asPage());
-						break;
-					}
-					case 'afc': {
-						pages.push(new AFC().asPage());
-						break;
-					}
-					case 'plot': {
-						pages.push(BOYSTOWN_PAGE_PLOT);
-						break;
-					}
-					case 'serialMonitor': {
-						this.showSerialMonitor = true;
-						break;
-					}
-					case 'serialPlotter': {
-						this.showSerialPlotter = true;
-					}
-				}
-			}
-		} else {
-			pages = [{
-				'title':'prescriptions',
-				'cards':[{'name': 'No Prescription', 'buttons': []}]
-			}];
-		}
-
-		this.initializePages(pages);
-		return pages;
-	}
-
-	public setConfig(cfgObj: any) {
-
-		let newConfig = {};
-
-		if (cfgObj.icon) {
-			newConfig['devIcon'] = '/assets/devIcon/' + cfgObj.icon;
-		} else {
-			newConfig['devIcon'] = '/assets/devIcon/tympan.png';
-		}
-		if (cfgObj.pages) {
-			this.initializePages(cfgObj.pages);
-		}
-		if (cfgObj.prescription) {
-			newConfig['prescription'] = cfgObj.prescription;
-			newConfig['prescription'].pages = cfgObj.pages.concat(this.buildPrescriptionPages(cfgObj.prescription));
-		} else {
-			newConfig['prescription'] = {};
-			newConfig['prescription'].pages = cfgObj.pages;
-		}
-
-		this.zone.run(()=>{
-			this._config = newConfig;
-			//this.btn = btnStyle;      
-		});  	
-	}
-
-	public initializePages(pages: any) {
-		// Create variables to control cycling through tables:
-		for (let page of pages) {
-			if (page.cards) {
-				for (let card of page.cards) {
-					if (card.inputs) {
-						for (let input of card.inputs) {
-							if (input.type==='grid') {
-								input['rowNums'] = Array(input.numRows).fill(0).map((x,i)=>i);
-								input['currentCol'] = 0;
-							}
-						}            
-					}
-					if (card.buttons) {
-						for (let button of card.buttons) {
-							if (!button.cmd) {
-								button.style = BUTTON_STYLE_NONE;
-							} else {
-								button.style = BUTTON_STYLE_OFF;
-							}
-						}            
-					}
-				}        
-			}
-		}
-	}
-
 	/*
 	 * Disconnect and delete any devices (useful for page reload or
 	 *  change in bluetooth config)
@@ -298,371 +230,271 @@ export class TympanRemote {
 		this.logger.log('Checking BT status...');
 		if (!this.platform.is('cordova')) {
 			this.logger.log('Bluetooth is unavailable; not a cordova platform');
-			this.bluetooth = false;
+			this.btSerialIsEnabled = false;
+			this.bleIsEnabled = false;
 			return Promise.resolve(false);
+		} else if (this.platform.is('android')) {
+			return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION)
+			.then((perm)=>{
+				this.logger.log('Has fine location permission? '+perm.hasPermission);
+				return Promise.resolve(true);
+	    }).then(()=>{
+	      return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH);
+			}).then((perm)=>{
+				this.logger.log('Has bluetooth permission? '+perm.hasPermission);
+				return Promise.resolve(true);
+			}).then(()=>{
+				return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH_ADMIN);
+			}).then((perm)=>{
+				this.logger.log('Has bluetooth admin permission? '+perm.hasPermission);
+				return Promise.resolve(true);
+			//}).then(()=>{
+				//this.btSerial.isEnabled();
+			}).then(()=>{
+				this.logger.log('Bluetooth is enabled.');
+				//this.bluetooth = true;
+				return Promise.resolve(true);
+			},()=>{
+				this.logger.log('Bluetooth is not enabled.');
+				//this.bluetooth = false;
+				return Promise.resolve(false);
+			}).catch(()=>{
+				this.logger.log('Error checking bluetooth status');
+				return Promise.resolve(false);
+			});
+		} else if (this.platform.is('ios')) {
+			// iOS doesn't do Bluetooth Serial for Tympan.
+			this.btSerialIsEnabled = false;
+			// Check if BLE is enabled:
+			return this.ble.isEnabled().then(()=>{
+				this.logger.log('BLE is enabled.');
+				this.bleIsEnabled = true;
+				return this.bleIsEnabled;
+			}).catch(()=>{
+				this.logger.log('BLE is not enabled.');
+				this.bleIsEnabled = false;
+				return this.bleIsEnabled;
+			});
 		}
-
-		return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION)
-		.then((perm)=>{
-			this.logger.log('Has fine location permission? '+perm.hasPermission);
-			return Promise.resolve(true);
-        }).then(()=>{
-        	return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH);
-		}).then((perm)=>{
-			this.logger.log('Has bluetooth permission? '+perm.hasPermission);
-			return Promise.resolve(true);
-		}).then(()=>{
-			return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH_ADMIN);
-		}).then((perm)=>{
-			this.logger.log('Has bluetooth admin permission? '+perm.hasPermission);
-			return Promise.resolve(true);
-		}).then(()=>{
-			this.btSerial.isEnabled();
-		}).then(()=>{
-			this.logger.log('Bluetooth is enabled.');
-			this.bluetooth = true;
-			return Promise.resolve(true);
-		},()=>{
-			this.logger.log('Bluetooth is not enabled.');
-			this.bluetooth = false;
-			return Promise.resolve(false);
-		}).catch(()=>{
-			this.logger.log('Error checking bluetooth status');
-			return Promise.resolve(false);
-		});
 	}
 
-	public disconnect() {
-		this._activeDeviceIdx = -1;
+	/* 
+	 * Disconnect from a device with id.
+	 */
+	public disconnectFromId(id: string) {
+		let device = this.getDeviceWithId(id);
+		if (device) {
+			device.disconnect();
+		}
+	}
+
+	/* 
+	 * Disconnect from a device with id.
+	 */
+	public disconnectFromAll() {
+		this.activeDeviceIdx = -1;
 		this.connected = false;
-		for (let device of this._allDevices) {
-			device.status = '';
+		for (let device of this.devices) {
+			device.disconnect();
 		}
-		this.setConfig(DEFAULT_CONFIG);
+
+		/*
 		if (this.bluetooth) {
-			this.btSerial.disconnect();
+			//this.btSerial.disconnect();
 		}
+		*/
 	}
 
 	public toggleState(id){
 		id=!id
 	}
 
+	/*
+	 * Do some things once a device is disconnected.
+	 * Typically, this function is called by a device, once the device realizes it is disconnected 
+	 * (no matter which end initiates the device disconnect)
+	 */ 
+	public onDisconnectDevice(device: TympanDevice) {
+		if (this.isActiveId(device.id)) {
+			this.activeDeviceIdx = -1;
+			this.connected = false;
+			this.TRToast.presentToast(`Disconnected from ${device.name}`,2000);
+		}
+	}
+
 	public async connectToId(id: string) {
 
 		this.logger.log(`remote.connectToId: setting device with id ${id} as active.`);
-		this.disconnect();
+		this.disconnectFromAll();
+
 		let devIdx = this.getDeviceIdxWithId(id);
 		let dev = this._allDevices[devIdx];
 		if (devIdx<0) {
 			this.logger.log('Could not find device.');
-			this._activeDeviceIdx = -1;
+			this.activeDeviceIdx = -1;
 			return;
 		}
 		if (dev.emulated) {
 			this.activeDeviceIdx = devIdx;
 			this.connected = true;
-			dev.status = 'connected';
-			let toast = await this.presentToast('Connecting...');
-			console.log(toast);
-			toast.dismiss();
+			let toastId = await this.TRToast.presentToast('Connecting...');
+			this.TRToast.dismissToast(toastId);
 		} else {
-			this.logger.log(`setAD: connecting to ${dev.name} (${dev.id})`); //  `
-			dev.status = 'Connecting...';
-			let toast = await this.presentToast('Connecting');
+			this.logger.log(`Connecting to ${dev.name} (${dev.id})`);
+			let toastId = await this.TRToast.presentToast('Connecting');
+			// Set up the disconnect function, for when the device and app become disconnected (no matter which end caused the disconnect)
+			var onDisconnect = function() {
+				this.connected = false;
+				this.activeDeviceIdx = -1;
+			}
+			// Attempt to connect:
+			dev.connect((d)=>{this.onDisconnectDevice(d);}).then(()=>{
+				this.logger.log('Connection succeeded.');
+				this.connected = true;
+				this.activeDeviceIdx = devIdx;
+				this.TRToast.dismissToast(toastId);
+			}).catch(()=>{
+				this.logger.log('Connection failed');
+				this.connected = false;
+				this.activeDeviceIdx = -1;
+				this.TRToast.dismissToast(toastId);
+				this.TRToast.presentToast('Bluetooth connection failed.',2000);
+			});
 
+/*
 			this.btSerial.connect(dev.id).subscribe(()=>{
 				this.logger.log('CONNECTED');
 				this.activeDeviceIdx = this.getDeviceIdxWithId(dev.id);
 				this.connected = true;
 				dev.status = "Connected";
-				toast.dismiss();
+				//toast.dismiss();
 				this.subscribe();
 				this.sayHello();
 			},()=>{
 				this.zone.run(()=>{
 					this.logger.log('CONNECTION FAIL');
-					toast.dismiss();
+					//toast.dismiss();
 					this.presentToast('Bluetooth connection failed.',2000);
 					this.activeDeviceIdx = -1;
 					dev.status = 'Connection fail.';
 					this.connected = false;          
 				});
 			});      
-		}
-	}
-
-	public async presentToast(msg: string, duration_ms?: number) {
-		const toast = document.createElement('ion-toast');
-		toast.message = msg;
-		if (duration_ms != undefined) {
-			toast.duration = duration_ms;
-		}
-		toast.position = 'top';
-		toast.color = 'primary';
-		document.body.appendChild(toast);
-		return toast.present().then(()=>{return toast;});
-	}
-
-	public adjustComponentById(id: string, field: string, property: any) {
-		let adjustableFields = ['label','style'];
-		if (!adjustableFields.includes(field)) {
-			this.logger.log(`Cannot set the ${field} of ${id}: invalid field.`);
-			return;
-		}
-		for (let page of this._config.prescription.pages) {
-			if (page.cards) {
-				for (let card of page.cards) {
-					if (card.buttons) {
-						for (let btn of card.buttons) {
-							if (btn.id == id) {
-								btn[field] = property;
-							}
-						}					
-					}
-				}				
-			}
+*/
 		}
 	}
 
 	public testFn() {
 		console.log("Running the test function...");
-        /*
-		var canvas = <HTMLCanvasElement> document.getElementById('myChart');
-		console.log(canvas);
-		*/
-    
-		this.btSerial.isEnabled().then(()=>{this.logger.log('Is Enabled.');},()=>{this.logger.log('Is Not Enabled.');});
-		this.btSerial.isConnected().then(()=>{this.logger.log('Is Connected.');},()=>{this.logger.log('Is Not Connected.');});
-        this.btSerial.discoverUnpaired().then((list)=>{
-            console.log(list);
-        });
-        this.checkBluetoothStatus();
-	 
-        /*
-		console.log('testing');
-		this.adjustComponentById('algA','label','6^');
-		this.adjustComponentById('algB','label','37!!');
-		this.adjustComponentById('algC','style',BUTTON_STYLE_ON);
-        */
+    this.checkBluetoothStatus();
 	}
 
 	public subscribe() {
-		if (this.bluetooth && this.btSerial) {
+		if (this.btSerialIsEnabled && this.btSerial) {
 			this.logger.log('subscribing');
-			this.btSerial.subscribe('\n').subscribe((data)=>{this.interpretDataFromDevice(data);});
+			//this.btSerial.subscribe('\n').subscribe((data)=>{this.interpretDataFromDevice(data);});
 		}
-	}
-
-	public interpretDataFromDevice(data: string) {
-		//this.logger.log(`>${data}`);
-		if (data.length>5 && data.slice(0,5)=='JSON=') {
-			this.parseConfigStringFromDevice(data);
-		} else if (data.length>6 && data.slice(0,6)=='STATE=') {
-			this.parseStateStringFromDevice(data);
-		} else if (data.length>5 && data.slice(0,5)=='TEXT=') {
-			this.parseTextStringFromDevice(data);
-		} else if (data.length>6 && data.slice(0,6)=='PRESC=') {
-			this.parsePrescriptionStringFromDevice(data);
-		} else if (data.length>1 && data.slice(0,1)=='P') {
-			this.parsePlotterStringFromDevice(data);
-		}
-	}
-
-	public parsePlotterStringFromDevice(data: string) {
-		//this.logger.log('Found serial plotting data from arduino:');
-		this.plotter.parsePlotterStringFromDevice(data);
-	}
-
-	public parseConfigStringFromDevice(data: string) {
-		this.logger.log('Found json config from arduino:');
-		let cfgStr = data.slice(5).replace(/'/g,'"');
-		this.logger.log(cfgStr);
-		try {
-			let cfgObj = JSON.parse(cfgStr);
-			this.setConfig(cfgObj);
-		} catch(err) {
-			this.logger.log(`Invalid json string: ${err}`);
-			for (let idx = 0; idx<cfgStr.length; idx=idx+20) {
-				this.logger.log(`${idx}: ${cfgStr.slice(idx,idx+20)}`);
-			}
-		}
-	}
-
-	public parseStateStringFromDevice(data: string) {
-		//this.logger.log('Found state string from arduino:');
-		let stateStr = data.slice(6);
-		//this.logger.log(stateStr);
-		let parts = stateStr.split(':');
-		let featType = parts[0];
-		let id = parts[1];
-		let val = parts[2];
-		/* We're splitting on ":", but maybe the user wanted to display a message that included a colon? */
-		for (let idx = 3; idx<parts.length; idx++) {
-			val += ':';
-			val += parts[idx];
-		}
-		this.zone.run(()=>{
-			try {
-				switch (featType) {
-					case 'BTN':
-						if (val[0]==='0') {
-							this.adjustComponentById(id,'style',BUTTON_STYLE_OFF);
-						} else if (val[0]==='1') {
-							this.adjustComponentById(id,'style',BUTTON_STYLE_ON);
-						} else {
-							throw 'Button state must be 0 or 1';
-						}
-						break;
-					case 'SLI':
-						break;
-					case 'NUM':
-						break;
-					case 'TXT':
-						break;
-				}
-				//this.logger.log('Updating pages...');
-			}
-			catch(err) {
-				this.logger.log(`Invalid state string: ${err}`);
-			}      
-		});
-	}
-
-	public parseTextStringFromDevice(data: string) {
-		//this.logger.log('Found state string from arduino:');
-		let textStr = data.slice(5);
-		//this.logger.log(stateStr);
-		let parts = textStr.split(':');
-		let featType = parts[0];
-		let id = parts[1];
-		let val = parts[2];
-		/* We're splitting on ":", but maybe the user wanted to display a message that included a colon? */
-		for (let idx = 3; idx<parts.length; idx++) {
-			val += ':';
-			val += parts[idx];
-		}
-		this.zone.run(()=>{
-			try {
-				this.adjustComponentById(id,'label',val);
-				//this.logger.log('Updating pages...');
-			}
-			catch(err) {
-				this.logger.log(`Invalid text string: ${err}`);
-			}      
-		});
-	}
-
-	public parsePrescriptionStringFromDevice(data: string) {
-		//this.logger.log('Found state string from arduino:');
-		let prescStr = data.slice(6);
-		//this.logger.log(prescStr);
-		let parts = prescStr.split(':');
-		let prescType = parts[0];
-		let val = parts[1];
-		/* We're splitting on ":", but maybe the user wanted to display a message that included a colon? */
-		for (let idx = 2; idx<parts.length; idx++) {
-			val += ':';
-			val += parts[idx];
-		}
-		this.logger.log(`Parsing ${prescType} prescription.`);
-
-		this.zone.run(()=>{
-			try {
-				switch (prescType) {
-					case 'DSL': 
-						{
-							let dsl = new DSL();
-							dsl.fromDataStream(val);
-							let updatedPage = dsl.asPage();
-							this.initializePages([updatedPage]);
-							for (let pageNo in this._config.prescription.pages) {
-								let page = this._config.prescription.pages[pageNo];
-								if (page.id === 'dsl') {
-									this._config.prescription.pages[pageNo] = updatedPage;
-								}
-							}
-						}
-						break;
-					case 'AFC': 
-						{
-							let afc = new AFC();
-							afc.fromDataStream(val);
-							let updatedPage = afc.asPage();
-							this.initializePages([updatedPage]);
-							for (let pageNo in this._config.prescription.pages) {
-								let page = this._config.prescription.pages[pageNo];
-								if (page.id === 'afc') {
-									this._config.prescription.pages[pageNo] = updatedPage;
-								}
-							}
-						}
-						break;
-					case 'GHA': 
-						{
-							let gha = new WDRC();
-							gha.fromDataStream(val);
-							let updatedPage = gha.asPage();
-							this.initializePages([updatedPage]);
-							for (let pageNo in this._config.prescription.pages) {
-								let page = this._config.prescription.pages[pageNo];
-								if (page.id === 'gha') {
-									this._config.prescription.pages[pageNo] = updatedPage;
-								}
-							}
-						}
-						break;
-				}
-				//this._config.prescriptionPages()
-				//this.logger.log('Updating pages...');
-			}
-			catch(err) {
-				this.logger.log(`Invalid state string: ${err}`);
-			}      
-		});
-	}
-
-	public sayHello() {    
-		this.send('J');
 	}
 
 	public async updateDeviceList() {
-		this.logger.log('Updating device list:');
-        
-		if (this.bluetooth) {
-			this.btSerial.list().then((btDevices)=>{
-				let activeBtDeviceIds = btDevices.map((d)=>{return d.id;});
-				// First, get rid of all devices that have lost bluetooth:
-				for (let i = this._allDevices.length-1; i>=0; i--) {
-					let storedDevice = this._allDevices[i];
-					if (!activeBtDeviceIds.includes(storedDevice.id) && !storedDevice.emulated) {
-						this.removeDeviceWithId(storedDevice.id);
-					}
+		let priorDevIds = this.devices.map(d=>d.id);
+		console.log('current device ids:');
+		console.log(priorDevIds);
+
+		let newDevIds = [];
+		let thisTR = this;
+		let finishScan = function() {
+			thisTR.scanning = false;
+			for (let i=0; i<priorDevIds.length; i++) {
+				let priorId = priorDevIds[i];
+				if (!newDevIds.includes(priorId)) {
+					thisTR.getDeviceWithId(priorId).state = TympanDeviceState.UNAVAILABLE;
 				}
-				// Then add new devices:
-				for (let idx = 0; idx<btDevices.length; idx++) {
-					let device = btDevices[idx];
-					this.logger.log(`Found device ${device.name}`);
-					device.emulated = false;
-					this.addDevice(device);
-				}
-                // Then add unpaired devices:
-                return this.btSerial.discoverUnpaired().then((btDevices)=>{
-                    for (let idx = 0; idx<btDevices.length; idx++) {
-                        let device = btDevices[idx];
-                        if (device.name != undefined) {
-                            this.logger.log(`Found unpaired device ${device.name}; adding.`);
-                            device.emulated = false;
-                            this.addDevice(device);                            
-                        } else {
-                            this.logger.log(`Found undefined unpaired device ${device.name}; not adding.`);
-                        }
-                    }
-                });
-			},()=>{
-				this.logger.log(`Failed to get device list.`);
-			});
+			}
 		}
+
+		this.logger.log('Updating device list:');
+		// Make sure we know the bluetooth status first:
+    this.checkBluetoothStatus().then(()=>{
+	    // Add Bluetooth Serial devices:
+			if (this.btSerialIsEnabled) {
+				/*			
+				this.scanning = true;
+				this.btSerial.list().then((btDevices)=>{
+					let activeBtDeviceIds = btDevices.map((d)=>{return d.id;});
+					// First, get rid of all devices that have lost bluetooth:
+					for (let i = this._allDevices.length-1; i>=0; i--) {
+						let storedDevice = this._allDevices[i];
+						if (!activeBtDeviceIds.includes(storedDevice.id) && !storedDevice.emulated) {
+							this.removeDeviceWithId(storedDevice.id);
+						}
+					}
+					// Then add new devices:
+					for (let idx = 0; idx<btDevices.length; idx++) {
+						let device = btDevices[idx];
+						this.logger.log(`Found device ${device.name}`);
+						device.emulated = false;
+						this.addDevice(device);
+					}
+	        // Then add unpaired devices:
+	        if (0) {
+	          return this.btSerial.discoverUnpaired().then((btDevices)=>{
+	            for (let idx = 0; idx<btDevices.length; idx++) {
+	              let device = btDevices[idx];
+	              if (device.name != undefined) {
+	                this.logger.log(`Found unpaired device ${device.name}; adding.`);
+	                device.emulated = false;
+	                this.addDevice(device);                            
+	              } else {
+	                this.logger.log(`Found undefined unpaired device ${device.name}; not adding.`);
+	              }
+	            }
+	          });
+	        else {
+	         	return Promise.resolve(1);
+
+	                }
+				},()=>{
+					this.logger.log(`Failed to get device list.`);
+				});
+				*/			
+			}
+
+			// Add BLE devices:
+			if (this.bleIsEnabled) {
+				this.logger.log('scanning for BLE devices...');
+				this.scanning = true;
+
+				let scanTimeout = setTimeout(()=>{
+						console.log('Scan timeout called.');
+						finishScan();
+					}, BLE_SCAN_DURATION_SEC*1000);
+
+				this.ble.scan([ADAFRUIT_SERVICE_UUID],BLE_SCAN_DURATION_SEC)
+				.subscribe(
+					(device)=>{
+						// on device detection, add it to the list of contacted devices
+						this.logger.log(`Detected device! name: ${device.name}, id: ${device.id}`);
+						console.log(device);
+						newDevIds.push(device.id);
+						let tympConf: TympanBLEConfig = {
+							id: device.id,
+							name: device.name,
+							emulated: false,
+							rssi: device.rssi,
+							parent: this
+						};
+						// Add the device to the list:
+						this.addDevice(new TympanBLE(tympConf));
+					},
+					()=>{
+						console.log('Scan fail.');
+						clearTimeout(scanTimeout);
+						finishScan();
+					}
+				);
+			}
+		});
 	}
 
 	public setUpPages() {
@@ -699,22 +531,9 @@ export class TympanRemote {
 			return;
 		}
 
-		this.logger.log(`Sending ${s} to ${this.activeDevice.name}`);  
-		if (this.bluetooth) {
-			this.btSerial.write(s).then(()=>{
-				if (s == ']'){
-					this.showSerialPlotter = true;
-				}
-				if (s == '}'){
-					this.showSerialPlotter = false;
-				}
-				this.logger.log(`Successfully sent ${s}`);
-			}).catch(()=>{
-				this.logger.log(`Failed to send ${s}`);
-			});
-		} else {
-			this.logger.log('mock sending.');
-			//this.mockSend(s);
+		if (this.activeDevice) {
+			this.logger.log(`Sending ${s} to ${this.activeDevice.name}`);  
+			this.activeDevice.write(s);			
 		}
 	}
 
@@ -782,17 +601,18 @@ export class TympanRemote {
 
 		let charStr = DATASTREAM_START_CHAR + numberAsCharStr(dataStr.length,'int32') + DATASTREAM_SEPARATOR + dataStr + DATASTREAM_END_CHAR;
 
-		if (this.bluetooth) {
+		if (true) {
+			this.logger.log('Not sending card; feature not enabled yet.');
+			/*
 			this.btSerial.write(charStr).then(()=>{
 				//this.logger.log(`Successfully sent ${charStr}`);
 			}).catch(()=>{
 				this.logger.log(`Failed to send ${charStr}`);
 			});
+			*/
 		} else {
 			this.logger.log('INACTIVE.  SEND FAIL.');
 		}
-
-		this.logger.log("Sending " + DATASTREAM_START_CHAR + ", length = " + dataStr.length.toString());
 	}
 
 	public writeTRDataFile(csv: string) {
