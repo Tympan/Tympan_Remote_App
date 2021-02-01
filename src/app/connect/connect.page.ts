@@ -31,7 +31,7 @@ export class ConnectPage {
     public toggleActive(id: string) {
       if (this.remote.isActiveId(id)) {
         this.logger.log(`Setting ${id} as inactive`);
-        this.remote.disconnect();
+        this.remote.disconnectFromId(id);
       } else {
         this.logger.log(`Setting ${id} as active`);
         this.remote.connectToId(id);        

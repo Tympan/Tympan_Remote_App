@@ -29,6 +29,7 @@ import {
 import { relativeTimeThreshold } from 'moment';
 
 export enum ByteOrder { MSB, LSB }
+export enum TympanDeviceState { AVAILABLE, UNAVAILABLE, PENDING }
 
 /**
  * This interface contains the information that needs to be provided
@@ -59,14 +60,16 @@ export interface TympanBLEConfig extends TympanDeviceConfig {
 export abstract class TympanDevice {  
   public id: string;
   public name: string;
-  public status: string;
   public uuid?: string;
   public class?: number;
   public address?: string;
   public rssi?: number;
   public emulated: boolean;
-  public _config: any;
+  public state: TympanDeviceState;
+  public status: string;
+  protected _config: any;
   protected parent: TympanRemote;
+  protected notifyOnDisconnect: (TympanDevice)=>void;
 
   protected plotter: Plotter;
   protected logger: Logger;
@@ -80,22 +83,38 @@ export abstract class TympanDevice {
     this.emulated = dev.emulated;
     this.status = '';
     this._config = {};
+    this.state = TympanDeviceState.PENDING;
 
     this.plotter = dev.parent.plotter;
     this.logger = dev.parent.logger;
     this.zone = dev.parent.zone;
+    this.parent = dev.parent;
     //this.btType = dev.btType;
   }
 
+  /* Public getters: */
+  get prescriptionPages() {
+    if (this._config && this._config.prescription) {
+      return this._config.prescription.pages;
+    } else {
+      return undefined;
+    }
+  }
+
+  get devIcon(): string {
+    if (this._config) {
+      return this._config.devIcon;
+    } else {
+      return undefined;
+    }
+  }
+
   /* The abstract functions that all extended classes must implement: */
-  public abstract connect(success, fail): Promise<any>;
+  public abstract connect(onDisconnect: (TympanDevice)=>void): Promise<any>;
+
+  public abstract disconnect();
 
   public abstract write(msg: string);
-
-  /* Common public functions: */
-  public sayHello() {    
-    //this.send('J');
-  }
 
   /* Common protected functions that can be used by extended classes: */
   protected interpretDataFromDevice(data: string) {
@@ -151,9 +170,9 @@ export abstract class TympanDevice {
         switch (featType) {
           case 'BTN':
             if (val[0]==='0') {
-              this.parent.adjustComponentById(id,'style',BUTTON_STYLE_OFF);
+              this.adjustComponentById(id,'style',BUTTON_STYLE_OFF);
             } else if (val[0]==='1') {
-              this.parent.adjustComponentById(id,'style',BUTTON_STYLE_ON);
+              this.adjustComponentById(id,'style',BUTTON_STYLE_ON);
             } else {
               throw 'Button state must be 0 or 1';
             }
@@ -188,7 +207,7 @@ export abstract class TympanDevice {
     }
     this.zone.run(()=>{
       try {
-        this.parent.adjustComponentById(id,'label',val);
+        this.adjustComponentById(id,'label',val);
         //this.logger.log('Updating pages...');
       }
       catch(err) {
@@ -360,8 +379,34 @@ export abstract class TympanDevice {
       }
     }
   }
+
+  protected adjustComponentById(id: string, field: string, property: any) {
+    let adjustableFields = ['label', 'style'];
+    if (!adjustableFields.includes(field)) {
+      this.logger.log(`Cannot set the ${field} of ${id}: invalid field.`);
+      return;
+    }
+    for (let page of this._config.prescription.pages) {
+      if (page.cards) {
+        for (let card of page.cards) {
+          if (card.buttons) {
+            for (let btn of card.buttons) {
+              if (btn.id == id) {
+                btn[field] = property;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
+/***************************************************************
+*
+* TYMPAN SERIAL
+*
+****************************************************************/
 /**
  * Class TympanBTSerial
  * A Class extending TympanDevice for devices using Bluetooth Serial communication.
@@ -371,71 +416,116 @@ export class TympanBTSerial extends TympanDevice {
     super(dev as TympanDeviceConfig);
   }
 
-  public connect(success, fail): Promise<any> {
-    return Promise.resolve(true);
+  public connect(onDisconnect: (TympanDevice)=>void): Promise<any> {
+    return Promise.reject('No BT Serial implemented.');
   }
+
+  public disconnect() {};
 
   public write(msg: string) {}
 }
 
+/***************************************************************
+*
+* TYMPAN BLE
+*
+****************************************************************/
+interface iMessage { msg: string, msgLen: number, packetsReceived: number }
 /**
  * Class TympanBLE
  * A Class extending TympanDevice for devices using Bluetooth Low Energy communication.
  */
 export class TympanBLE extends TympanDevice {
   public ble: BLE;
+  private incomingMessage: iMessage | null;
 
   constructor(dev: TympanBLEConfig) {
     super(dev as TympanDeviceConfig);
     this.ble = dev.parent.ble;
+    this.incomingMessage = null;
   }
 
-  public connect(success, fail): Promise<any> {
-    try {
-      this.logger.log(`Attempting to connect to ${this.name}`);
-      var thisDev = this;
-      let onConnect = function() {
-        thisDev.onConnect(success);
+  public connect(TRonDisconnect: (TympanDevice)=>void): Promise<any> {
+    const CONNECTION_TIMEOUT_MS = 10000;
+
+    this.status = 'Connecting...';
+    this.notifyOnDisconnect = TRonDisconnect;
+
+    return new Promise((resolve,reject)=>{
+      // First, start a timeout to see if the connection attempt hangs up
+      // (android waits 20 seconds before killing a connection attempt, whereas iOS will never kill it and will hang forever.
+      let connectionTimeout = setTimeout(()=>{
+        this.logger.log('Connection attempt is taking too long; killing.');
+        this.ble.disconnect(this.id).then(()=>{
+          let msg = 'FORCE disconnected SUCCESS';
+          reject(new Error(msg));
+        }).catch(()=>{
+          let msg = 'FORCE disconnected FAIL'
+          reject(new Error(msg));
+        }).finally(()=>{
+          this.status = '';
+        });
+      }, CONNECTION_TIMEOUT_MS);
+
+      // Try to connect.
+      try {
+        this.logger.log(`Attempting to connect to ${this.name}`);  //`
+        var thisDev = this;
+        // Define the function that happens on a successful connect; end by resolving the promise.
+        let connectFn = function() {
+          clearTimeout(connectionTimeout);
+          thisDev.onConnect().then(()=>{
+            resolve('Successfully connected...##');
+          });
+        };
+        let disconnectFn = function() {
+          thisDev.onDisconnect();
+        }
+        this.ble.connect(this.id).subscribe(connectFn, disconnectFn);
+      } catch {
+        let msg = `Could not connect to ${this.id}`;
+        this.status = '';
+        this.logger.log(msg);
+        reject(msg);
       }
-      let onDisconnect = function() {
-        thisDev.onDisconnect(fail);
-      }
-      this.ble.connect(this.id).subscribe(onConnect, onDisconnect);
-    } catch {
-      let msg = `Could not connect to ${this.id}`;
-      this.logger.log(msg);
-      return Promise.reject(new Error(msg));
-    }
+    });
+  }
+
+  public disconnect() {
+    this.ble.disconnect(this.id)
+    .then(()=>{
+      this.onDisconnect();
+    });
   }
 
   /*
    * onConnect():
    * This function is called when the device has been connected.
    */
-  public onConnect(fn) {
-    this.logger.log(`Connected to ${this.name}`);
+  public onConnect(): Promise<any> {
+    this.logger.log(`Connected to ${this.name}`);   //`
     this.status = 'Connected';
-    // Run the success callback:
-    fn();
 
     this.ble.startNotification(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID)
-    .subscribe((buffer)=>{
-      let str = arrayBufferToString(buffer[0]);
-      this.logger.log('>> ' + str);
+    .subscribe((data)=>{
+      this.bufferHandler(data);
     });
 
-    let msg = stringToArrayBuffer('howdy');
-    this.ble.write(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID, msg);
+    // Ask the device to describe its pages:
+    let msg = stringToArrayBuffer('J');
+    return this.ble.write(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID, msg);
   }
 
   /*
    * onDisconnect():
    * This function is called when the device has been disconnected.
+   * The disconnection could be initiated by the app, or it could be
+   * due to a dropped connection.
    */
-  public onDisconnect(fn) {
+  public onDisconnect() {
     this.logger.log(`Disconnected from ${this.name}`);
     this.status = '';
-    fn();
+    this.notifyOnDisconnect(this);
   }
 
   public write(msg: string) {
@@ -443,13 +533,97 @@ export class TympanBLE extends TympanDevice {
     this.ble.write(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID, ab);
   }
 
+  public bufferHandler(data) {
+    // Message types, by their first byte+:
+    // 0xABADCODEFF : A header packet
+    // 0XFn : A payload packet, where n is the packet counter mod 16
+    // 0xCC : A short packet
+    let thisDev = this;
+
+    // Functions for identifying a packet's type:
+    function isHeaderPacket(pkt: Uint8Array) {
+      const hc = [0xAB, 0xAD, 0xC0, 0xDE, 0xFF];
+      const HEADER_CODE = String.fromCharCode.apply(null, hc);
+      return pkt.byteLength === 7 && String.fromCharCode.apply(null, pkt.slice(0, 5)) == HEADER_CODE;
+    }
+    function isPayloadPacket(pkt: Uint8Array) {
+      //console.log('0x'+pkt[0].toString(16) + ': ' + String.fromCharCode.apply(null, pkt.slice(1)));
+      return pkt.byteLength > 0 && (pkt[0]>>4===0x0F);
+    }
+    function isShortPacket(pkt: Uint8Array) {
+      return pkt.byteLength > 0 && (pkt[0] === 0xCC);
+    }
+
+    // Functions for handling packets:
+    function handleHeaderPacket(pkt: Uint8Array) {
+      console.log('Found a header!!!: ' + uint8ArrayToHexString(pkt));
+      thisDev.incomingMessage = {
+        msg: '',
+        msgLen: (pkt[5] & 0x7F) << 7 | (pkt[6] & 0xFE) >> 1,
+        packetsReceived: 0
+      }
+    }
+    function handlePayloadPacket(pkt: Uint8Array) {
+      if (thisDev.incomingMessage === null) {
+        thisDev.logger.log('ERROR: Received unexpected message packet (no preceding header)');
+        return;
+      }
+      const idx = pkt[0] & 0x0F;
+      if (idx === (thisDev.incomingMessage.packetsReceived & 0x0F)) {
+        thisDev.incomingMessage.msg += String.fromCharCode.apply(null, pkt.slice(1));
+        thisDev.incomingMessage.packetsReceived++;
+        if (thisDev.incomingMessage.msg.length === thisDev.incomingMessage.msgLen) {
+          let msg = thisDev.incomingMessage.msg;
+          thisDev.incomingMessage = null;
+          console.log('Interpreting message:');
+          console.log(msg);
+          thisDev.interpretDataFromDevice(msg);
+        } else if (thisDev.incomingMessage.msg.length > thisDev.incomingMessage.msgLen) {
+          thisDev.logger.log('ERROR: Received more characters than expected, based on the header');
+          console.log(thisDev.incomingMessage);
+          thisDev.incomingMessage = null;
+        }
+      } else {
+        thisDev.logger.log('ERROR: out of order packets.  Expected ' + thisDev.incomingMessage.packetsReceived + ' but got ' + idx + ' instead.');
+      }
+    }
+    function handleShortPacket(pkt: Uint8Array) {
+      thisDev.interpretDataFromDevice(String.fromCharCode.apply(null, pkt.slice(1)));
+    }
+
+    // Deal with the arriving packet:
+    let pkt = new Uint8Array(data[0]);
+
+    if (this.incomingMessage === null) {
+      // here we're listening for anything except a payload packet:
+      if (isHeaderPacket(pkt)) {
+        //this.logger.log('Found a header packet.');
+        handleHeaderPacket(pkt);
+      } else if (isShortPacket(pkt)) {
+        handleShortPacket(pkt);
+      } else {
+        this.logger.log('Uknown packet type. Maybe it is just a string? Passing it along.');
+        this.interpretDataFromDevice(arrayBufferToString(pkt));
+      }
+    } else {
+      // I better receive a payload packet...
+      if (isPayloadPacket(pkt)) {
+        handlePayloadPacket(pkt);
+      } else {
+        this.logger.log("Was expecting a payload packet, but didn't get one.  Resetting listening.");
+        this.incomingMessage = null;
+      }
+    }
+  }
+
 }
 
 
-/******************************************************************
- * HELPER FUNCTIONS 
- ******************************************************************
- */
+/***************************************************************
+*
+* GENERAL HELPER FUNCTIONS
+*
+****************************************************************/
 
 export function numberAsCharStr(num: number, numType: string): string {
   let str = '';
@@ -540,4 +714,12 @@ export function stringToArrayBuffer(str: string) {
 
 export function arrayBufferToString(buf: ArrayBuffer): string {
   return String.fromCharCode.apply(null, new Uint8Array(buf));
+}
+
+export function uint8ArrayToHexString(arr: Uint8Array) {
+  let hx = '0x';
+  arr.forEach((s)=>{
+    hx += (s).toString(16).toUpperCase().padStart(2, '0');
+  });
+  return hx;
 }
