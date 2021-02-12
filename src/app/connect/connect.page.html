@@ -19,7 +19,7 @@
 				<ion-col size-xs="6">{{ dev.status }}</ion-col>
 			</ion-item>
 			<ion-button strong=true (click)="remote.updateDeviceList()" [disabled]="remote.scanning">
-				{{ remote.scanning ? "Scanning..." : "Rescan for Devices"}}
+				{{ remote.scanning ? "Scanning..." : "Scan for Devices"}}
 			</ion-button>
 		</ion-card-content>
 	</ion-card>
@@ -31,11 +31,13 @@
 				<ion-item>
 					<ion-label>Show serial monitor</ion-label>
 					<ion-toggle [(ngModel)]="remote.showSerialMonitor"></ion-toggle>
-				</ion-item> 
+				</ion-item>
+				<!-- 
 				<ion-item>
 					<ion-label>Show serial plotter</ion-label>
 					<ion-toggle [(ngModel)]="remote.showSerialPlotter"></ion-toggle>
 				</ion-item> 
+				-->
 				<ion-item>
 					<ion-label>Show logs in footer</ion-label>
 					<ion-toggle [(ngModel)]="remote.showLogs"></ion-toggle>

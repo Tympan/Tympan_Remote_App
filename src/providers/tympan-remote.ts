@@ -405,6 +405,7 @@ export class TympanRemote {
 		let thisTR = this;
 		let finishScan = function() {
 			thisTR.scanning = false;
+			thisTR.logger.log('Done scanning.');
 			for (let i=0; i<priorDevIds.length; i++) {
 				let priorId = priorDevIds[i];
 				if (!newDevIds.includes(priorId)) {
