@@ -14,7 +14,7 @@
 		"e2e": "ng e2e",
 		"cordova": "cordova",
 		"ionic": "ionic",
-		"prerun": "date",
+		"prerun": "node bin/show-date.js",
 		"ionic.add.ios": "ionic cordova platform add ios",
 		"ionic.build.ios": "npm run prerun && ionic cordova build ios -- --buildFlag=\"-UseModernBuildSystem=0\"",
 		"ionic.build.android": "npm run prerun && ionic cordova build android",
