@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="119" id="com.creare.tympanRemote" ios-CFBundleVersion="1" version="1.0.3" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="121" id="com.creare.tympanRemote" ios-CFBundleVersion="1" version="1.0.3" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Tympan Remote</name>
     <description>A BLE controller for a Tympan device.</description>
     <author email="kxm@creare.com" href="https://shop.tympan.org/">The Tympan Team</author>
@@ -89,5 +89,4 @@
     <plugin name="cordova-plugin-device" spec="2.0.2" />
     <plugin name="cordova-plugin-splashscreen" spec="5.0.2" />
     <plugin name="cordova-plugin-ionic-keyboard" spec="^2.0.5" />
-    <plugin name="cordova-plugin-bluetooth-serial" spec="~0.4.7" />
 </widget>
