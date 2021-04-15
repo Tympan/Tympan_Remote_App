@@ -1,6 +1,6 @@
 # Tympan Remote App
 
-Mobile App for Controlling Tympan. Built with ionic 5.  Available for Android devices on the [Play Store](https://play.google.com/store/apps/details?id=com.creare.tympanRemote).
+Mobile App for Controlling Tympan. Built with ionic 5.  Available for Android devices on the [Play Store](https://play.google.com/store/apps/details?id=com.creare.tympanRemote) and iOS devices on the App Store (soon).
 
 ## Quick Start
 
@@ -14,21 +14,18 @@ Mobile App for Controlling Tympan. Built with ionic 5.  Available for Android de
 $ npm install
 ```
 
-Add the ionic Bluetooth classic plugin:
+To run build for android:
 
 ```bash
-$ npm run ionic cordova plugin add cordova-plugin-bluetooth-serial
-```
-
-Add the android platform:
-
-```bash
-$ npm run ionic cordova platform add android
-```
-
-To build:
-```bash
+$ npm run ionic.prepare.android
 $ npm run ionic.build.android
+```
+
+For iOS:
+
+```bash
+$ npm run ionic.prepare.ios
+$ npm run ionic.build.ios
 ```
 
 To serve it locally:
