@@ -293,15 +293,17 @@ export class TympanRemote {
 			}).then(()=>{
 				this.logger.log('Is BLE plugin enabled?');
 				return this.ble.isEnabled();
-			}).then(()=>{
-				this.logger.log('Bluetooth is enabled.');
-				//this.bluetooth = true;
-				return Promise.resolve(true);
-			},()=>{
-				this.logger.log('Bluetooth is not enabled.');
-				//this.bluetooth = false;
-				return Promise.resolve(false);
-			}).catch(()=>{
+			}).then(
+				()=>{
+					this.logger.log('Bluetooth is enabled.');
+					//this.bluetooth = true;
+					return Promise.resolve(true);
+				},()=>{
+					this.logger.log('Bluetooth is not enabled.');
+					//this.bluetooth = false;
+					return Promise.resolve(false);
+				}
+			).catch(()=>{
 				this.logger.log('Error checking bluetooth status');
 				return Promise.resolve(false);
 			});
