@@ -176,13 +176,15 @@ export class TympanRemote {
 
 	private async whenReady(): Promise<any> {
 		// When the platform is ready, get the bluetooth going
-		return this.platform.ready()
+		return this.platform.ready();
+		/*
 		.then(()=>{
 			return this.checkBluetoothStatus();
 		}).then(()=>{
 			//this.updateDeviceList();
 			return true;
 		});
+		*/
 	}
 
 	private getDeviceIdxWithId(id: string) {
@@ -225,6 +227,23 @@ export class TympanRemote {
 		// Should reset the bluetooth connection, disconnecting from any connected device.
 	}
 
+	public async presentAlert(message: string) {
+		const alert = document.createElement('ion-alert');
+		alert.header = 'Your Data';
+		//alert.subHeader = 'Subtitle';
+		alert.cssClass = 'permissionsAlertMessage';
+		alert.message = message;
+		alert.buttons = ['OK'];
+
+		document.body.appendChild(alert);
+		await alert.present();
+
+		const { role } = await alert.onDidDismiss();
+		console.log('onDidDismiss resolved with role', role);
+
+		return role;
+	}
+
 	public async assertPermission(permission: any, message: string): Promise<any> {
 		return this.androidPermissions.checkPermission(permission)
 		.then((perm)=>{
@@ -237,7 +256,11 @@ export class TympanRemote {
 		}).catch((perm)=>{
 			console.log(perm);
 			this.logger.log(`Permission ${permission} not established; requesting:`);
-			return this.androidPermissions.requestPermission(permission);
+
+			return this.presentAlert(message).then(()=>{
+				return this.androidPermissions.requestPermission(permission);
+			});
+
 		});
 	}
 
@@ -249,13 +272,15 @@ export class TympanRemote {
 			this.bleIsEnabled = false;
 			return Promise.resolve(false);
 		} else if (this.platform.is('android')) {
-			return this.assertPermission(this.androidPermissions.PERMISSION.BLUETOOTH, 'App uses bluetooth to talk to Tympan device')
+			let longLocationMsg = "This app uses Bluetooth to talk to Tympan devices. Since it possible an app <i>could</i> try to use Bluetooth to discern the user's location, Some versions of Android require that 'fine location access' and 'background location access' be granted in order to use Bluetooth.  Note that the Tympan Remote App <b>NEVER</b> does anything with your location (see for yourself at github.com/Tympan). However, you still must grant this app access to 'fine location' for the app to work. We apologize for this inconvenience.";
+
+			return this.assertPermission(this.androidPermissions.PERMISSION.BLUETOOTH, "This app uses Bluetooth Low Energy (BLE) to talk to Tympan devices.  Please grant permission for this app to communiate via Bluetooth")
 			.then(()=>{
-				return this.assertPermission(this.androidPermissions.PERMISSION.BLUETOOTH_ADMIN, 'App needs to be able to connect to bluetooth devices');
+				return this.assertPermission(this.androidPermissions.PERMISSION.BLUETOOTH_ADMIN, "This app uses Bluetooth Low Energy (BLE) to talk to Tympan devices.  Please grant permission for this app to configure the Bluetooth");
 			}).then(()=>{
-				return this.assertPermission(this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION, 'App requires location permission to use bluetooth');
+				return this.assertPermission(this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION, longLocationMsg);
 			}).then(()=>{
-				return this.assertPermission("android.permission.ACCESS_BACKGROUND_LOCATION", 'App requires background location to communicate to bluetooth when in background mode');
+				return this.assertPermission("android.permission.ACCESS_BACKGROUND_LOCATION", longLocationMsg);
 			}).then(()=>{
 				this.logger.log('Is BLE plugin enabled?');
 				return this.ble.isEnabled();
@@ -396,6 +421,8 @@ export class TympanRemote {
 	public testFn() {
 		console.log("Running the test function...");
     	this.checkBluetoothStatus();
+		let longLocationMsg = "This app uses Bluetooth to talk to Tympan devices. Since it possible an app <i>could</i> try to use Bluetooth to discern the user's location, Some versions of Android require that 'fine location access' and 'background location access' be granted in order to use Bluetooth.  Note that the Tympan Remote App <b>NEVER</b> does anything with your location (see for yourself at github.com/Tympan). However, you still must grant this app access to 'fine location' for the app to work. We apologize for this inconvenience.";
+		this.presentAlert(longLocationMsg);
 	}
 
 	public subscribe() {
