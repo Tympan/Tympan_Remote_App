@@ -226,6 +226,22 @@ export class TympanRemote {
 		// Should reset the bluetooth connection, disconnecting from any connected device.
 	}
 
+	public async assertPermission(permission: any, message: string): Promise<any> {
+		return this.androidPermissions.checkPermission(permission)
+		.then((perm)=>{
+			this.logger.log(`Has ${permission} permission? ${perm.hasPermission}`);
+			if (perm.hasPermission) {
+				return Promise.resolve(perm.hasPermission);
+			} else {
+				return Promise.reject(`Permission ${permission} not granted`);
+			}
+		}).catch((perm)=>{
+			console.log(perm);
+			this.logger.log(`Permission ${permission} not established; requesting:`);
+			return this.androidPermissions.requestPermission(permission);
+		});
+	}
+
 	public async checkBluetoothStatus(): Promise<any> {
 		this.logger.log('Checking BT status...');
 		if (!this.platform.is('cordova')) {
@@ -234,22 +250,16 @@ export class TympanRemote {
 			this.bleIsEnabled = false;
 			return Promise.resolve(false);
 		} else if (this.platform.is('android')) {
-			return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION)
-			.then((perm)=>{
-				this.logger.log('Has fine location permission? '+perm.hasPermission);
-				return Promise.resolve(true);
-	    }).then(()=>{
-	      return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH);
-			}).then((perm)=>{
-				this.logger.log('Has bluetooth permission? '+perm.hasPermission);
-				return Promise.resolve(true);
+			return this.assertPermission(this.androidPermissions.PERMISSION.BLUETOOTH, 'App uses bluetooth to talk to Tympan device')
+			.then(()=>{
+				return this.assertPermission(this.androidPermissions.PERMISSION.BLUETOOTH_ADMIN, 'App needs to be able to connect to bluetooth devices');
 			}).then(()=>{
-				return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH_ADMIN);
-			}).then((perm)=>{
-				this.logger.log('Has bluetooth admin permission? '+perm.hasPermission);
-				return Promise.resolve(true);
-			//}).then(()=>{
-				//this.btSerial.isEnabled();
+				return this.assertPermission(this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION, 'App requires location permission to use bluetooth');
+			}).then(()=>{
+				return this.assertPermission("android.permission.ACCESS_BACKGROUND_LOCATION", 'App requires background location to communicate to bluetooth when in background mode');
+			}).then(()=>{
+				this.logger.log('Is BLE plugin enabled?');
+				return this.ble.isEnabled();
 			}).then(()=>{
 				this.logger.log('Bluetooth is enabled.');
 				//this.bluetooth = true;
@@ -386,7 +396,7 @@ export class TympanRemote {
 
 	public testFn() {
 		console.log("Running the test function...");
-    this.checkBluetoothStatus();
+    	this.checkBluetoothStatus();
 	}
 
 	public subscribe() {
@@ -416,7 +426,7 @@ export class TympanRemote {
 
 		this.logger.log('Updating device list:');
 		// Make sure we know the bluetooth status first:
-    this.checkBluetoothStatus().then(()=>{
+    	this.checkBluetoothStatus().then(()=>{
 	    // Add Bluetooth Serial devices:
 			if (this.btSerialIsEnabled) {
 				/*			
