@@ -129,7 +129,7 @@ export abstract class TympanDevice {
       this.parsePrescriptionStringFromDevice(data);
     } else if (data.length>1 && data.slice(0,1)=='P') {
       this.parsePlotterStringFromDevice(data);
-    } else if (data.length>4 && data.slice(0,4)=="LOG=") {
+    } else if (data.length>4 && data.slice(0,4)=='LOG=') {
       this.logger.log(data.slice(4));
     }
   }
