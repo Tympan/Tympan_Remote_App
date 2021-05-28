@@ -13,6 +13,7 @@
 		"lint": "ng lint",
 		"e2e": "ng e2e",
 		"cordova": "cordova",
+		"clean": "shx rm -rf www/* && shx rm -rf platforms/* && shx rm -rf plugins/*",
 		"ionic": "ionic",
 		"prerun": "node bin/show-date.js",
 		"ionic.add.ios": "ionic cordova platform add ios",
@@ -63,6 +64,7 @@
 		"ng2-charts": "^2.4.2",
 		"node-sass": "^5.0.0",
 		"rxjs": "^6.6.3",
+		"shx": "^0.3.3",
 		"zone.js": "^0.10.3"
 	},
 	"devDependencies": {
