@@ -149,7 +149,8 @@ export class TympanRemote {
 
 	private async whenReady(): Promise<any> {
 		// When the platform is ready, get the bluetooth going
-		return this.platform.ready()
+		return this.platform.ready(); 
+		/* don't do bluetooth, since we need permission first.
 		.then(()=>{
 			return this.checkBluetoothStatus();
 		}).then(()=>{
@@ -157,6 +158,7 @@ export class TympanRemote {
 			this.updateDeviceList();
 			return Promise.resolve(true);
 		});
+		*/
 	}
 
 	private getDeviceIdxWithId(id: string) {
@@ -294,42 +296,92 @@ export class TympanRemote {
 		// Should reset the bluetooth connection, disconnecting from any connected device.
 	}
 
+	public async presentAlert(message: string) {
+		const alert = document.createElement('ion-alert');
+		alert.header = 'Your Data';
+		//alert.subHeader = 'Subtitle';
+		alert.cssClass = 'permissionsAlertMessage';
+		alert.message = message;
+		alert.buttons = ['OK'];
+
+		document.body.appendChild(alert);
+		await alert.present();
+
+		const { role } = await alert.onDidDismiss();
+		console.log('onDidDismiss resolved with role', role);
+
+		return role;
+	}
+
+	/* 
+	 * Request an array of permissions
+	 */
+	public async requestPermissions(permissions: string[]): Promise<any> {
+		let permissionsGranted = true;
+		for (let permission of permissions) {
+			let r = await this.androidPermissions.requestPermission(permission);
+			permissionsGranted = permissionsGranted && r.hasPermission;
+		}
+		return permissionsGranted ? Promise.resolve(true) : Promise.reject(false);
+	}
+
+	/* 
+	 * Assert that an array of permissions has been granted.  If they are not,
+	 * the message will be displayed in an alert to the user and then the user
+	 * will be asked to grant the permissions.
+	 */
+	public async assertPermissions(permissions: string[], message: string): Promise<any> {
+		let hasPermissions = true;
+		for (let permission of permissions) {
+			let p = await this.androidPermissions.checkPermission(permission);
+			hasPermissions = hasPermissions && p.hasPermission;
+		}
+		if (hasPermissions) {
+			return Promise.resolve(true);
+		} else {
+			return this.presentAlert(message).then(()=>{
+				return this.requestPermissions(permissions);
+			});
+		}
+	}
+
 	public async checkBluetoothStatus(): Promise<any> {
 		this.logger.log('Checking BT status...');
 		if (!this.platform.is('cordova')) {
 			this.logger.log('Bluetooth is unavailable; not a cordova platform');
 			this.bluetooth = false;
 			return Promise.resolve(false);
-		}
+		} else if (this.platform.is('android')) {
+			let bluetoothPermissions = ["android.permission.BLUETOOTH","android.permission.BLUETOOTH_ADMIN"];
+			let bluetoothMessage = "This app uses Bluetooth to talk to Tympan devices.  Please grant permission for this app to communiate via Bluetooth.";
+			let locationPermissions  = ["android.permission.ACCESS_FINE_LOCATION"];
+			let locationMessage = "This uses Bluetooth to talk to Tympan devices. In order to use Bluetooth, this app requires access to your location.  Note that the Tympan Remote App <b>NEVER</b> does anything with your location (see for yourself at github.com/Tympan). However, you still must grant this app access to your location for the app to work.  We apologize for this inconvenience.";
 
-		return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.ACCESS_FINE_LOCATION)
-		.then((perm)=>{
-			this.logger.log('Has fine location permission? '+perm.hasPermission);
-			return Promise.resolve(true);
-        }).then(()=>{
-        	return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH);
-		}).then((perm)=>{
-			this.logger.log('Has bluetooth permission? '+perm.hasPermission);
-			return Promise.resolve(true);
-		}).then(()=>{
-			return this.androidPermissions.checkPermission(this.androidPermissions.PERMISSION.BLUETOOTH_ADMIN);
-		}).then((perm)=>{
-			this.logger.log('Has bluetooth admin permission? '+perm.hasPermission);
-			return Promise.resolve(true);
-		}).then(()=>{
-			this.btSerial.isEnabled();
-		}).then(()=>{
-			this.logger.log('Bluetooth is enabled.');
-			this.bluetooth = true;
-			return Promise.resolve(true);
-		},()=>{
-			this.logger.log('Bluetooth is not enabled.');
+			return this.assertPermissions(bluetoothPermissions, bluetoothMessage)
+			.then(()=>{
+				return this.assertPermissions(locationPermissions, locationMessage);
+			}).then(()=>{
+				this.logger.log('Is Bluetooth plugin enabled?');
+				return this.btSerial.isEnabled();
+			}).then(
+				()=>{
+					this.logger.log('Bluetooth is enabled.');
+					this.bluetooth = true;
+					return Promise.resolve(true);
+				},()=>{
+					this.logger.log('Bluetooth is not enabled.');
+					this.bluetooth = false;
+					return Promise.resolve(false);
+				}
+			).catch(()=>{
+				this.logger.log('Error checking bluetooth status');
+				return Promise.resolve(false);
+			});
+		} else if (this.platform.is('ios')) {
+			// iOS doesn't do Bluetooth Serial for Tympan.
 			this.bluetooth = false;
 			return Promise.resolve(false);
-		}).catch(()=>{
-			this.logger.log('Error checking bluetooth status');
-			return Promise.resolve(false);
-		});
+		}
 	}
 
 	public disconnect() {
@@ -629,6 +681,8 @@ export class TympanRemote {
 	public async updateDeviceList() {
 		this.logger.log('Updating device list:');
         
+		await this.checkBluetoothStatus();
+
 		if (this.bluetooth) {
 			this.btSerial.list().then((btDevices)=>{
 				let activeBtDeviceIds = btDevices.map((d)=>{return d.id;});
