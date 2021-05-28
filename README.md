@@ -4,7 +4,7 @@ Mobile App for Controlling Tympan. Built with ionic 5.  Available for Android de
 
 ## Privacy Policy
 
-As you can see in the source code, this app doesn't do anything with your data - doesn't save it, doesn't send it anywhere.  It does use Bluetooth, which on an Android phone means that the app must have some of the following permissions (depending on which version of Android you're running): bluetooth, bluetooth admin, coarse location access, fine location access, background location access.  Even though your phone's location *could* be figured out through a Bluetooth connection, this app doesn't do that.
+As you can see in the source code, this app doesn't do anything with your data - doesn't save it, doesn't send it anywhere.  It does use Bluetooth, which on an Android device means that the app must have some of the following permissions (depending on which version of Android you're running): bluetooth, bluetooth admin, coarse location access, and fine location access.  Even though your phone's location *could* be figured out through a Bluetooth connection, this app doesn't do that.
 
 ## Quick Start
 
