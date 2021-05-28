@@ -285,7 +285,7 @@ export class TympanRemote {
 			let bluetoothPermissions = ["android.permission.BLUETOOTH","android.permission.BLUETOOTH_ADMIN"];
 			let bluetoothMessage = "This app uses Bluetooth Low Energy (BLE) to talk to Tympan devices.  Please grant permission for this app to communiate via Bluetooth.";
 			let locationPermissions  = ["android.permission.ACCESS_FINE_LOCATION","android.permission.ACCESS_BACKGROUND_LOCATION"];
-			let locationMessage = "This app uses Bluetooth to talk to Tympan devices. Since it possible an app <i>could</i> try to use Bluetooth to discern the user's location, Some versions of Android require that 'fine location access' and 'background location access' be granted in order to use Bluetooth.  Note that the Tympan Remote App <b>NEVER</b> does anything with your location (see for yourself at github.com/Tympan). However, you still must grant this app access to your location at all times for the app to work. We apologize for this inconvenience.";
+			let locationMessage = "This uses Bluetooth to talk to Tympan devices, even when in the app is in the background. In order to use Bluetooth, this app requires access to your location always.  Note that the Tympan Remote App <b>NEVER</b> does anything with your location (see for yourself at github.com/Tympan). However, you still must grant this app access to your location at all times for the app to work.  We apologize for this inconvenience.";
 
 			return this.assertPermissions(bluetoothPermissions, bluetoothMessage)
 			.then(()=>{
