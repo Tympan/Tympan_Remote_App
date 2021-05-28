@@ -1,3 +1,5 @@
 ## Privacy Policy
 
-As you can see in the source code, this app doesn't do anything with your data - doesn't save it, doesn't send it anywhere.  It does use Bluetooth, which on an Android device means that the app must have some of the following permissions (depending on which version of Android you're running): bluetooth, bluetooth admin, coarse location access, and fine location access.  Even though your phone's location *could* be figured out through a Bluetooth connection, this app doesn't do that.
+This app uses Bluetooth, which on an Android device means that the app must have access to your location while you're using it.  This app does not store your location.  It does not send your location to anywhere.
+
+The goal of this app is to allow Bluetooth communication with an Arduino device with a BC127 bluetooth chip - that's it.
