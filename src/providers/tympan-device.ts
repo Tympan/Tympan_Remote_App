@@ -526,7 +526,9 @@ export class TympanBLE extends TympanDevice {
   public onDisconnect() {
     this.logger.log(`Disconnected from ${this.name}`);
     this.status = '';
-    this.notifyOnDisconnect(this);
+    if (this.notifyOnDisconnect !== undefined) {
+      this.notifyOnDisconnect(this);
+    }
   }
 
   public write(msg: string) {
