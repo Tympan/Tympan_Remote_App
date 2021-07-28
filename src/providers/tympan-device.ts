@@ -556,6 +556,11 @@ export class TympanBLE extends TympanDevice {
     function isShortPacket(pkt: Uint8Array) {
       return pkt.byteLength > 0 && (pkt[0] === 0xCC);
     }
+    function isIndicativeOfBluetoothError(pkt: Uint8Array) {
+      const hc = [0x31, 0x34, 0x20];
+      const HEADER_CODE = String.fromCharCode.apply(null, hc);
+      return pkt.byteLength >= 3 && String.fromCharCode.apply(null, pkt.slice(0, 3)) == HEADER_CODE;
+    }
 
     // Functions for handling packets:
     function handleHeaderPacket(pkt: Uint8Array) {
@@ -606,6 +611,10 @@ export class TympanBLE extends TympanDevice {
         handleShortPacket(pkt);
       } else {
         this.logger.log('Uknown packet type. Maybe it is just a string? Passing it along.');
+        if (isIndicativeOfBluetoothError(pkt)) {
+          this.logger.log('Packet suggests there may be a BLE firmware mismatch.');
+        }
+        this.logger.log(uint8ArrayToHexString(pkt));
         this.interpretDataFromDevice(arrayBufferToString(pkt));
       }
     } else {
