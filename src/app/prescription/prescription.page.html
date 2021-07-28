@@ -2,7 +2,7 @@
 	<ion-slides pager="true" class="custom-bullets">
 
 		<!-- STANDARD PAGES -->
-		<ion-slide *ngFor="let page of remote.prescriptionPages; let pageIdx = index">
+		<ion-slide *ngFor="let page of remote.prescriptionPages; let pageIdx = index" class="sliderCard">
 			<div style="width:100% !important; margin:4px;">
 				<p class="pageTitle">{{page.title}}</p>
 				<ion-card *ngFor="let card of page.cards; let cardIdx = index" class="sliderCard">
@@ -73,7 +73,7 @@
 
 		<!-- SERIAL MONITOR SLIDE, IF REQUESTED IN 'DEVELOPER SETTINGS'-->
 		<ion-slide *ngIf="remote.showSerialMonitor" class="sliderCard">
-			<div style="width:100% !important; margin:4px; height: 500px;">
+			<div style="width:100% !important; margin:4px;">
 				<p class="pageTitle">Full Logs</p>
 				<ion-card>
 					<ion-item>
@@ -89,11 +89,11 @@
 
 		<!-- SERIAL PLOTTER SLIDE, IF REQUESTED IN 'DEVELOPER SETTINGS'-->
 		<ion-slide *ngIf="remote.showSerialPlotter" class="sliderCard">
-				<div style="width:100% !important; margin:4px; height: 500px;">
-			<p class="pageTitle">Serial Plotter</p>
-			<ion-button strong=true (click)="makeSerialPlot()">Start Plot</ion-button>
-			<ion-button strong=true (click)="stopSerialPlot()">Stop Plot</ion-button>
-			<canvas #lineCanvas id='myChart' height=300px></canvas>
+			<div style="width:100% !important; margin:4px;">
+				<p class="pageTitle">Serial Plotter</p>
+				<ion-button strong=true (click)="makeSerialPlot()">Start Plot</ion-button>
+				<ion-button strong=true (click)="stopSerialPlot()">Stop Plot</ion-button>
+				<canvas #lineCanvas id='myChart' height=300px></canvas>
 			</div>
 		</ion-slide>   
 
