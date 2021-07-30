@@ -19,7 +19,8 @@ import {
 	BUTTON_STYLE_OFF,
 	BUTTON_STYLE_NONE,
 	BOYSTOWN_PAGE_PLOT,
-	DEFAULT_CONFIG
+	DEFAULT_CONFIG,
+	DEFAULT_CONFIG2,
 } from './tympan-config';
 
 import {
@@ -156,6 +157,7 @@ export class TympanRemote {
 		  name: 'mock1',
 		  status: '',
 		  emulated: true,
+		  emulatedProperties: {config: DEFAULT_CONFIG},
 		  parent: this
 		};
 
@@ -164,6 +166,7 @@ export class TympanRemote {
 		  name: 'mock2',
 		  status: '',
 		  emulated: true,
+		  emulatedProperties: {config: DEFAULT_CONFIG2},
 		  parent: this
 		};
 

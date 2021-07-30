@@ -45,6 +45,7 @@ export interface TympanDeviceConfig {
   address?: string;
   rssi?: number;
   emulated: boolean;
+  emulatedProperties?: any;
   parent: TympanRemote;
 }
 
@@ -93,7 +94,7 @@ export abstract class TympanDevice {
     this.zone = dev.parent.zone;
     this.parent = dev.parent;
     //this.btType = dev.btType;
-    this.emulatedProperties = {}; 
+    this.emulatedProperties = dev.emulatedProperties; 
   }
 
   /* Public getters: */
@@ -416,7 +417,8 @@ export abstract class TympanDevice {
     console.log(`Mock Tympan received message (length=${msg.length}):`+msg+'(EOM)')
     switch (msg) {
       case 'J':
-        this.emulateTympanSendingMessage('JSON='+JSON.stringify(DEFAULT_CONFIG).replace(/"/g,"'"));
+        let cfg = this.emulatedProperties && this.emulatedProperties.config ? this.emulatedProperties.config : DEFAULT_CONFIG;
+        this.emulateTympanSendingMessage('JSON='+JSON.stringify(cfg).replace(/"/g,"'"));
         break;
       case 'H':
         this.emulateTympanSendingMessage('LOG=Testing123456789abcdefg.');
@@ -623,7 +625,6 @@ export class TympanBLE extends TympanDevice {
     if (msg.length < BLE_MAX_TRANSMISSION_LENGTH) {
       // "short" message
       let ab = stringToArrayBuffer(String.fromCharCode.apply(null, [BLE_SHORTPACKET_PREFIX_BYTE])+msg);
-      console.log('Short message; sending '+msg);
       sendArrayBuffer(ab);
     } else {
       // Too long.  Send a header packet, followed by payload packets.
@@ -633,7 +634,6 @@ export class TympanBLE extends TympanDevice {
       let chunk = String.fromCharCode.apply(null, [(msglen&0xFFFF)>>7 | 0x80 , (msglen&0x7F) << 1 | 0x01]);
       let ab = stringToArrayBuffer(prefix.concat(chunk));
       sendArrayBuffer(ab);
-      console.log('Continuing...');
       let pointer = 0;
       let payloadCounter = 0;
       while (pointer < msg.length) {

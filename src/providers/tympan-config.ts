@@ -85,6 +85,12 @@ export const DEFAULT_CONFIG = {
   'prescription': {'type':'BoysTown','pages':['multiband','broadband','afc','plot']}
 };
 
+export const DEFAULT_CONFIG2 = {
+  'icon': 'tympan.png',
+  'prescription': {'type':'BoysTown','pages':['multiband','broadband','afc','plot']}
+};
+
+
 /*
 const DEFAULT_CONFIG = {
   'icon':'tympan.png',
