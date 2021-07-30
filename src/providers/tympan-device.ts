@@ -300,6 +300,8 @@ export abstract class TympanDevice {
     }
     if (cfgObj.pages) {
       this.initializePages(cfgObj.pages);
+    } else {
+      cfgObj.pages = [];
     }
     if (cfgObj.prescription) {
       newConfig['prescription'] = cfgObj.prescription;
