@@ -379,54 +379,47 @@ export class TympanRemote {
 			this.activeDeviceIdx = -1;
 			return;
 		}
-		if (dev.emulated) {
-			this.activeDeviceIdx = devIdx;
+		this.logger.log(`Connecting to ${dev.name} (${dev.id})`);
+		let toastId = await this.TRToast.presentToast('Connecting');
+		// Set up the disconnect function, for when the device and app become disconnected (no matter which end caused the disconnect)
+		var onDisconnect = function() {
+			this.connected = false;
+			this.activeDeviceIdx = -1;
+		}
+		// Attempt to connect:
+		dev.connect((d)=>{this.onDisconnectDevice(d);}).then(()=>{
+			this.logger.log('Connection succeeded.');
 			this.connected = true;
-			let toastId = await this.TRToast.presentToast('Connecting...');
+			this.activeDeviceIdx = devIdx;
 			this.TRToast.dismissToast(toastId);
-		} else {
-			this.logger.log(`Connecting to ${dev.name} (${dev.id})`);
-			let toastId = await this.TRToast.presentToast('Connecting');
-			// Set up the disconnect function, for when the device and app become disconnected (no matter which end caused the disconnect)
-			var onDisconnect = function() {
-				this.connected = false;
-				this.activeDeviceIdx = -1;
-			}
-			// Attempt to connect:
-			dev.connect((d)=>{this.onDisconnectDevice(d);}).then(()=>{
-				this.logger.log('Connection succeeded.');
-				this.connected = true;
-				this.activeDeviceIdx = devIdx;
-				this.TRToast.dismissToast(toastId);
-			}).catch(()=>{
-				this.logger.log('Connection failed');
-				this.connected = false;
-				this.activeDeviceIdx = -1;
-				this.TRToast.dismissToast(toastId);
-				this.TRToast.presentToast('Bluetooth connection failed.',2000);
-			});
+		}).catch(()=>{
+			this.logger.log('Connection failed');
+			this.connected = false;
+			this.activeDeviceIdx = -1;
+			this.TRToast.dismissToast(toastId);
+			this.TRToast.presentToast('Bluetooth connection failed.',2000);
+		});
 
 /*
-			this.btSerial.connect(dev.id).subscribe(()=>{
-				this.logger.log('CONNECTED');
-				this.activeDeviceIdx = this.getDeviceIdxWithId(dev.id);
-				this.connected = true;
-				dev.status = "Connected";
+		this.btSerial.connect(dev.id).subscribe(()=>{
+			this.logger.log('CONNECTED');
+			this.activeDeviceIdx = this.getDeviceIdxWithId(dev.id);
+			this.connected = true;
+			dev.status = "Connected";
+			//toast.dismiss();
+			this.subscribe();
+			this.sayHello();
+		},()=>{
+			this.zone.run(()=>{
+				this.logger.log('CONNECTION FAIL');
 				//toast.dismiss();
-				this.subscribe();
-				this.sayHello();
-			},()=>{
-				this.zone.run(()=>{
-					this.logger.log('CONNECTION FAIL');
-					//toast.dismiss();
-					this.presentToast('Bluetooth connection failed.',2000);
-					this.activeDeviceIdx = -1;
-					dev.status = 'Connection fail.';
-					this.connected = false;          
-				});
-			});      
+				this.presentToast('Bluetooth connection failed.',2000);
+				this.activeDeviceIdx = -1;
+				dev.status = 'Connection fail.';
+				this.connected = false;          
+			});
+		});      
 */
-		}
 	}
 
 	public testFn() {

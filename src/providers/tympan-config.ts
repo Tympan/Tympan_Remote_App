@@ -10,6 +10,11 @@ export const DATASTREAM_END_CHAR = String.fromCharCode(0x04);
 export const DATASTREAM_PREFIX_GHA = 'gha';
 export const DATASTREAM_PREFIX_DSL = 'dsl';
 export const DATASTREAM_PREFIX_AFC = 'afc';
+export const BLE_MAX_TRANSMISSION_LENGTH = 20;
+export const BLE_HEADERPACKET_PREFIX = [0xAB, 0xAD, 0xC0, 0xDE, 0xFF];
+export const BLE_PAYLOADPACKET_PREFIX_HIGHNIBBLE = 0x0F;
+export const BLE_SHORTPACKET_PREFIX_BYTE = 0xCC;
+
 
 /* Button styling: */
 export const BUTTON_STYLE_ON = {color: 'success', isOn: true, class: 'btn-on'};

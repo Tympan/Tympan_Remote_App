@@ -17,6 +17,10 @@ import {
   DATASTREAM_START_CHAR,
   DATASTREAM_SEPARATOR,
   DATASTREAM_END_CHAR,
+  BLE_MAX_TRANSMISSION_LENGTH,
+  BLE_HEADERPACKET_PREFIX,
+  BLE_PAYLOADPACKET_PREFIX_HIGHNIBBLE,
+  BLE_SHORTPACKET_PREFIX_BYTE,
   BUTTON_STYLE_ON,
   BUTTON_STYLE_OFF,
   BUTTON_STYLE_NONE,
@@ -25,7 +29,6 @@ import {
   ADAFRUIT_SERVICE_UUID,
   ADAFRUIT_CHARACTERISTIC_UUID,
 } from './tympan-config';
-import { relativeTimeThreshold } from 'moment';
 
 export enum ByteOrder { MSB, LSB }
 export enum TympanDeviceState { AVAILABLE, UNAVAILABLE, PENDING }
@@ -64,6 +67,7 @@ export abstract class TympanDevice {
   public address?: string;
   public rssi?: number;
   public emulated: boolean;
+  protected emulatedProperties: any; // The "memory" on the emulated Tympan device
   public state: TympanDeviceState;
   public status: string;
   protected _config: any;
@@ -89,6 +93,7 @@ export abstract class TympanDevice {
     this.zone = dev.parent.zone;
     this.parent = dev.parent;
     //this.btType = dev.btType;
+    this.emulatedProperties = {}; 
   }
 
   /* Public getters: */
@@ -401,6 +406,30 @@ export abstract class TympanDevice {
       }
     }
   }
+
+  /*
+   * Emualte a the behavior of a Tympan when it receives a message:
+   */
+  protected emulateTympanHandlingMessage(msg: string) {
+    console.log(`Mock Tympan received message (length=${msg.length}):`+msg+'(EOM)')
+    switch (msg) {
+      case 'J':
+        this.emulateTympanSendingMessage('JSON='+JSON.stringify(DEFAULT_CONFIG).replace(/"/g,"'"));
+        break;
+      case 'H':
+        this.emulateTympanSendingMessage('LOG=Testing123456789abcdefg.');
+        break;
+      case 'L':
+        this.emulateTympanSendingMessage('LOG=T12');
+        break;
+    }
+  }
+
+  /* 
+   * Emulate a message coming back to the app, in whatever form it arrives (arraybuffer packets, etc) 
+   */
+  protected abstract emulateTympanSendingMessage(msg: string);
+
 }
 
 /***************************************************************
@@ -424,6 +453,9 @@ export class TympanBTSerial extends TympanDevice {
   public disconnect() {};
 
   public write(msg: string) {}
+
+  protected emulateTympanSendingMessage(msg: string) {}
+
 }
 
 /***************************************************************
@@ -451,6 +483,11 @@ export class TympanBLE extends TympanDevice {
 
     this.status = 'Connecting...';
     this.notifyOnDisconnect = TRonDisconnect;
+
+    if (this.emulated) {
+      this.onConnect();
+      return Promise.resolve();
+    }
 
     return new Promise((resolve,reject)=>{
       // First, start a timeout to see if the connection attempt hangs up
@@ -493,31 +530,38 @@ export class TympanBLE extends TympanDevice {
   }
 
   public disconnect() {
-    this.ble.disconnect(this.id)
-    .then(()=>{
+    if (this.emulated) {
       this.onDisconnect();
-    });
+    } else {
+      this.ble.disconnect(this.id)
+      .then(()=>{
+        this.onDisconnect();
+      });  
+    }
   }
 
-  /*
+  /**
    * onConnect():
    * This function is called when the device has been connected.
    */
   public onConnect(): Promise<any> {
-    this.logger.log(`Connected to ${this.name}`);   //`
+    this.logger.log(`Connected to ${this.name}`);
     this.status = 'Connected';
 
-    this.ble.startNotification(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID)
-    .subscribe((data)=>{
-      this.bufferHandler(data);
-    });
+    // Subscribe to the device
+    if (!this.emulated) {
+      this.ble.startNotification(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID)
+      .subscribe((data)=>{
+        this.bufferHandler(data);
+      });  
+    }
 
     // Ask the device to describe its pages:
-    let msg = stringToArrayBuffer('J');
-    return this.ble.write(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID, msg);
+    let msg = 'J';
+    return this.write(msg);
   }
 
-  /*
+  /**
    * onDisconnect():
    * This function is called when the device has been disconnected.
    * The disconnection could be initiated by the app, or it could be
@@ -531,10 +575,78 @@ export class TympanBLE extends TympanDevice {
     }
   }
 
-  public write(msg: string) {
-    let ab = stringToArrayBuffer(msg);
-    this.ble.write(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID, ab);
+  public write(msg: string): Promise<any> {
+    if (this.emulated) {
+      /* For now we're going to bypass the breaking down of messages into smaller
+       * bits and then reassembling them in memory.
+       * If we wanted to do that later, we'd have to write a "emulateBLEDataTransmissionFromApp"
+       * which would generate the bits of the message and then call "emulateBLEDataReceptionByTympan"
+       * which would handle the bits of the message, string them together, and pass it to 
+       * "emulateTympanHandlingMessage".
+       */
+      this.emulateTympanHandlingMessage(msg);
+      return Promise.resolve();
+    } else {
+      let ab = stringToArrayBuffer(msg);
+      return this.ble.write(this.id, ADAFRUIT_SERVICE_UUID, ADAFRUIT_CHARACTERISTIC_UUID, ab);
+    }
   }
+
+  /**
+   * Emulate what the BLE library would do:
+   * Take a message, break it up into chunks, and send the chunks as array buffers.
+   */
+  protected emulateTympanSendingMessage(msg: string) {
+
+    //console.log(`emulating the sending of $msg.length}: ${msg}`);
+    const thisDev = this;
+    function sendString(str: string) {
+      let data = [];
+      data[0] = str;
+      thisDev.bufferHandler(data);
+    }
+
+    function sendByteArray(arr: Uint8Array) {
+      let data = [];
+      data[0] = arr;
+      thisDev.bufferHandler(data);
+    }
+
+    function sendArrayBuffer(ab: ArrayBuffer) {
+      let data = [];
+      data[0] = ab;
+      thisDev.bufferHandler(data);
+    }
+
+    if (msg.length < BLE_MAX_TRANSMISSION_LENGTH) {
+      // "short" message
+      let ab = stringToArrayBuffer(String.fromCharCode.apply(null, [BLE_SHORTPACKET_PREFIX_BYTE])+msg);
+      console.log('Short message; sending '+msg);
+      sendArrayBuffer(ab);
+    } else {
+      // Too long.  Send a header packet, followed by payload packets.
+      const msglen = msg.length;
+      let prefix = String.fromCharCode.apply(null, BLE_HEADERPACKET_PREFIX);
+      /* The chunk is the message length xxxxxx in 14 bits, with a preceding and trailing 1 bit. */
+      let chunk = String.fromCharCode.apply(null, [(msglen&0xFFFF)>>7 | 0x80 , (msglen&0x7F) << 1 | 0x01]);
+      let ab = stringToArrayBuffer(prefix.concat(chunk));
+      sendArrayBuffer(ab);
+      console.log('Continuing...');
+      let pointer = 0;
+      let payloadCounter = 0;
+      while (pointer < msg.length) {
+        let len = BLE_MAX_TRANSMISSION_LENGTH - 1;
+        let prefix = String.fromCharCode.apply(null, [(BLE_PAYLOADPACKET_PREFIX_HIGHNIBBLE<<4) + (payloadCounter%16)]);
+        let chunk = msg.slice(pointer,pointer+len);
+        let ab = stringToArrayBuffer(prefix.concat(chunk));
+        sendArrayBuffer(ab);
+        pointer += len;
+        payloadCounter++;
+      }
+
+    }
+  }
+
 
   public bufferHandler(data) {
     // Message types, by their first byte+:
@@ -545,16 +657,15 @@ export class TympanBLE extends TympanDevice {
 
     // Functions for identifying a packet's type:
     function isHeaderPacket(pkt: Uint8Array) {
-      const hc = [0xAB, 0xAD, 0xC0, 0xDE, 0xFF];
-      const HEADER_CODE = String.fromCharCode.apply(null, hc);
+      const HEADER_CODE = String.fromCharCode.apply(null, BLE_HEADERPACKET_PREFIX);
       return pkt.byteLength === 7 && String.fromCharCode.apply(null, pkt.slice(0, 5)) == HEADER_CODE;
     }
     function isPayloadPacket(pkt: Uint8Array) {
       //console.log('0x'+pkt[0].toString(16) + ': ' + String.fromCharCode.apply(null, pkt.slice(1)));
-      return pkt.byteLength > 0 && (pkt[0]>>4===0x0F);
+      return pkt.byteLength > 0 && (pkt[0]>>4===0x0F); // BLE_PAYLOADPACKET_PREFIX_HIGHNIBBLE
     }
     function isShortPacket(pkt: Uint8Array) {
-      return pkt.byteLength > 0 && (pkt[0] === 0xCC);
+      return pkt.byteLength > 0 && (pkt[0] === BLE_SHORTPACKET_PREFIX_BYTE);
     }
     function isIndicativeOfBluetoothError(pkt: Uint8Array) {
       const hc = [0x31, 0x34, 0x20];
