@@ -41,6 +41,7 @@ import {
 	stringToArrayBuffer,
 	TympanDeviceState
 } from './tympan-device';
+import { Router } from '@angular/router';
 
 /**
  * This class contains the variables and methods for the Tympan Remote app.
@@ -131,6 +132,7 @@ export class TympanRemote {
 	constructor(
 		public ble: BLE, 
 		private platform: Platform, 
+		private router: Router,
 		private zone: NgZone, 
 		private logger: Logger, 
 		private plotter: Plotter,
@@ -368,6 +370,7 @@ export class TympanRemote {
 			this.connected = false;
 			this.TRToast.presentToast(`Disconnected from ${device.name}`,2000);
 		}
+		this.router.navigateByUrl('tabs/connect')
 	}
 
 	public async connectToId(id: string) {
