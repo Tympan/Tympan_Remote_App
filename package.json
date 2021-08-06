@@ -108,7 +108,9 @@
 			"cordova-plugin-file": {},
 			"cordova-plugin-ionic-webview": {},
 			"cordova-plugin-ble-central": {
-				"ACCESS_BACKGROUND_LOCATION": "false"
+				"ACCESS_BACKGROUND_LOCATION": "false",
+				"IOS_INIT_ON_LOAD": "true",
+				"BLUETOOTH_USAGE_DESCRIPTION": "To connect to a Tympan device"
 			}
 		},
 		"platforms": [
