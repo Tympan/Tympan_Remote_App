@@ -3,6 +3,7 @@ import { BLE } from '@ionic-native/ble/ngx';
 import ieee754 from 'ieee754';
 import { Logger } from './logger';
 import { Plotter } from './plotter';
+import { ToastManager } from './toast-manager';
 import { TympanRemote} from './tympan-remote';
 
 //import { BluetoothType } from './tympan-remote'; 
@@ -77,7 +78,8 @@ export abstract class TympanDevice {
 
   protected plotter: Plotter;
   protected logger: Logger;
-  protected zone: NgZone
+  protected zone: NgZone;
+  protected TRToast: ToastManager;
   
   //public btType: BluetoothType;
 
@@ -92,6 +94,7 @@ export abstract class TympanDevice {
     this.plotter = dev.parent.plotter;
     this.logger = dev.parent.logger;
     this.zone = dev.parent.zone;
+    this.TRToast = dev.parent.TRToast;
     this.parent = dev.parent;
     //this.btType = dev.btType;
     this.emulatedProperties = dev.emulatedProperties; 
@@ -184,7 +187,9 @@ export abstract class TympanDevice {
       for (let idx = 0; idx<cfgStr.length; idx=idx+20) {
         this.logger.log(`${idx}: ${cfgStr.slice(idx,idx+20)}`);
       }
+      this.TRToast.presentToast('Improper JSON config string.',3000);
     }
+    this.status='connected';
   }
 
   protected parseStateStringFromDevice(data: string) {
@@ -724,6 +729,10 @@ export class TympanBLE extends TympanDevice {
       if (idx === (thisDev.incomingMessage.packetsReceived & 0x0F)) {
         thisDev.incomingMessage.msg += String.fromCharCode.apply(null, pkt.slice(1));
         thisDev.incomingMessage.packetsReceived++;
+        if (thisDev.incomingMessage.packetsReceived === 1 && thisDev.incomingMessage.msg.startsWith('JSON=')) {
+          thisDev.status = 'Receiving JSON...'
+        }
+  
         if (thisDev.incomingMessage.msg.length === thisDev.incomingMessage.msgLen) {
           let msg = thisDev.incomingMessage.msg;
           thisDev.incomingMessage = null;
