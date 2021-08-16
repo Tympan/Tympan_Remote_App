@@ -2,7 +2,7 @@
 	<ion-slides pager="true" class="custom-bullets">
 
 		<!-- STANDARD PAGES -->
-		<ion-slide *ngFor="let page of remote.prescriptionPages; let pageIdx = index" class="sliderCard">
+		<ion-slide *ngFor="let page of remote.prescriptionPages; let pageIdx = index" class="sliderPage">
 			<div style="width:100% !important; margin:4px;">
 				<p class="pageTitle">{{page.title}}</p>
 				<ion-card *ngFor="let card of page.cards; let cardIdx = index" class="sliderCard">
@@ -72,7 +72,7 @@
 		</ion-slide>    
 
 		<!-- SERIAL MONITOR SLIDE, IF REQUESTED IN 'DEVELOPER SETTINGS'-->
-		<ion-slide *ngIf="remote.showSerialMonitor" class="sliderCard">
+		<ion-slide *ngIf="remote.showSerialMonitor" class="sliderPage">
 			<div style="width:100% !important; margin:4px;">
 				<p class="pageTitle">Full Logs</p>
 				<ion-card>
@@ -88,7 +88,7 @@
 		</ion-slide>
 
 		<!-- SERIAL PLOTTER SLIDE, IF REQUESTED IN 'DEVELOPER SETTINGS'-->
-		<ion-slide *ngIf="remote.showSerialPlotter" class="sliderCard">
+		<ion-slide *ngIf="remote.showSerialPlotter" class="sliderPage">
 			<div style="width:100% !important; margin:4px;">
 				<p class="pageTitle">Serial Plotter</p>
 				<ion-button strong=true (click)="makeSerialPlot()">Start Plot</ion-button>
