@@ -122,7 +122,35 @@ export abstract class TympanDevice {
   public abstract write(msg: string);
 
   /* Common protected functions that can be used by extended classes: */
+
+  /**
+   * interpretDataFromDevice: Take a "message" that came from the Tympan
+   * (after it has been unpacked/reassembled from the BLE packets) and do
+   * something with it.  Note that a many messages can be combined into a 
+   * single longer message using the DATASTREAM_SEPARATOR as a separation
+   * character, so in this function we first split the string on that char
+   * before passing it along to the interpreter.
+   * 
+   * @param data The string "message" 
+   */
   protected interpretDataFromDevice(data: string) {
+    let separator_loc = data.indexOf(DATASTREAM_SEPARATOR);
+    if (separator_loc<0) {
+      this.interpretSingleMessageFromDevice(data);
+    } else {
+      let first_msg = data.slice(0,separator_loc);
+      this.interpretSingleMessageFromDevice(first_msg);
+      this.interpretDataFromDevice(data.slice(separator_loc+1));
+    }
+  }
+
+  /**
+   * Parse a single string "message".  This message shouldn't be multiple
+   * messages glued together with the interstitial DATASTREAM_SEPARATOR char.
+   * 
+   * @param data The string message
+   */
+  protected interpretSingleMessageFromDevice(data:string) {
     //this.logger.log(`>${data}`);
     if (data.length>5 && data.slice(0,5)=='JSON=') {
       this.parseConfigStringFromDevice(data);
@@ -426,7 +454,10 @@ export abstract class TympanDevice {
       case 'L':
         this.emulateTympanSendingMessage('LOG=T12');
         break;
-    }
+        case 's':
+          this.emulateTympanSendingMessage('LOG=T12'+DATASTREAM_SEPARATOR+'LOG=yes');
+          break;
+      }
   }
 
   /* 
