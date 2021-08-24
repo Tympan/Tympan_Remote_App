@@ -189,7 +189,7 @@ export abstract class TympanDevice {
       }
       this.TRToast.presentToast('Improper JSON config string.',3000);
     }
-    this.status='connected';
+    this.setStatus('connected');
   }
 
   protected parseStateStringFromDevice(data: string) {
@@ -349,6 +349,12 @@ export abstract class TympanDevice {
       this._config = newConfig;
       //this.btn = btnStyle;      
     });   
+  }
+
+  public setStatus(str: string) {
+    this.zone.run(()=>{
+      this.status = str;
+    });
   }
 
   protected buildPrescriptionPages(presc: any): any {
@@ -521,7 +527,7 @@ export class TympanBLE extends TympanDevice {
   public connect(TRonDisconnect: (TympanDevice)=>void): Promise<any> {
     const CONNECTION_TIMEOUT_MS = 10000;
 
-    this.status = 'Connecting...';
+    this.setStatus('Connecting...');
     this.notifyOnDisconnect = TRonDisconnect;
 
     if (this.emulated) {
@@ -541,7 +547,7 @@ export class TympanBLE extends TympanDevice {
           let msg = 'FORCE disconnected FAIL'
           reject(new Error(msg));
         }).finally(()=>{
-          this.status = '';
+          this.setStatus('');
         });
       }, CONNECTION_TIMEOUT_MS);
 
@@ -562,7 +568,7 @@ export class TympanBLE extends TympanDevice {
         this.ble.connect(this.id).subscribe(connectFn, disconnectFn);
       } catch {
         let msg = `Could not connect to ${this.id}`;
-        this.status = '';
+        this.setStatus('');
         this.logger.log(msg);
         reject(msg);
       }
@@ -586,7 +592,7 @@ export class TympanBLE extends TympanDevice {
    */
   public onConnect(): Promise<any> {
     this.logger.log(`Connected to ${this.name}`);
-    this.status = 'Connected';
+    this.setStatus('Connected');
 
     // Subscribe to the device
     if (!this.emulated) {
@@ -609,7 +615,7 @@ export class TympanBLE extends TympanDevice {
    */
   public onDisconnect() {
     this.logger.log(`Disconnected from ${this.name}`);
-    this.status = '';
+    this.setStatus('');
     if (this.notifyOnDisconnect !== undefined) {
       this.notifyOnDisconnect(this);
     }
@@ -730,7 +736,7 @@ export class TympanBLE extends TympanDevice {
         thisDev.incomingMessage.msg += String.fromCharCode.apply(null, pkt.slice(1));
         thisDev.incomingMessage.packetsReceived++;
         if (thisDev.incomingMessage.packetsReceived === 1 && thisDev.incomingMessage.msg.startsWith('JSON=')) {
-          thisDev.status = 'Receiving JSON...'
+          thisDev.setStatus('Receiving JSON...');
         }
   
         if (thisDev.incomingMessage.msg.length === thisDev.incomingMessage.msgLen) {
