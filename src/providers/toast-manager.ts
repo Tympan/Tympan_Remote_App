@@ -7,8 +7,8 @@ import { Injectable, NgZone } from '@angular/core';
   providedIn: 'root'
 })
 export class ToastManager {
-  private toastId: string;
-  private toastItem: any;
+  public toastId: string;
+  public toastItem: any;
 
   constructor(private zone: NgZone) {
     this.toastId = undefined;
@@ -34,9 +34,12 @@ export class ToastManager {
     toast.color = 'primary';
     // Prepare the function that is called when the toast is dismissed:
     let thisTM = this;
-    toast.onWillDismiss().then(()=>{
-      thisTM.toastId = undefined;
-      this.toastItem = undefined;
+    toast.onDidDismiss().then(()=>{
+      // If the currently-shown toast is this one, wipe it out.
+      if (toastId === thisTM.toastId) {
+        thisTM.toastId = undefined;
+        thisTM.toastItem = undefined;  
+      }
     });
     // Present the toast:
     document.body.appendChild(toast);
@@ -50,6 +53,14 @@ export class ToastManager {
   public dismissToast(id: string) {
     if (this.toastId == id) {
       this.toastItem.dismiss();
+    }
+  }
+
+  public toastHasDismissed(id: string): Promise<any> {
+    if (id === this.toastId) {
+      return this.toastItem.onDidDismiss();
+    } else {
+      return Promise.resolve();
     }
   }
 }

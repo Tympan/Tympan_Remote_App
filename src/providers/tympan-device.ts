@@ -74,7 +74,7 @@ export abstract class TympanDevice {
   public status: string;
   protected _config: any;
   protected parent: TympanRemote;
-  protected notifyOnDisconnect: (TympanDevice)=>void;
+  protected notifyOnDisconnect: (TympanDevice, boolean)=>void;
 
   protected plotter: Plotter;
   protected logger: Logger;
@@ -118,7 +118,7 @@ export abstract class TympanDevice {
   }
 
   /* The abstract functions that all extended classes must implement: */
-  public abstract connect(onDisconnect: (TympanDevice)=>void): Promise<any>;
+  public abstract connect(TRonDisconnect: (TympanDevice, boolean)=>void): Promise<any>;
 
   public abstract disconnect();
 
@@ -492,7 +492,7 @@ export class TympanBTSerial extends TympanDevice {
     super(dev as TympanDeviceConfig);
   }
 
-  public connect(onDisconnect: (TympanDevice)=>void): Promise<any> {
+  public connect(TRonDisconnect: (TympanDevice, boolean)=>void): Promise<any> {
     return Promise.reject('No BT Serial implemented.');
   }
 
@@ -524,7 +524,7 @@ export class TympanBLE extends TympanDevice {
     this.incomingMessage = null;
   }
 
-  public connect(TRonDisconnect: (TympanDevice)=>void): Promise<any> {
+  public connect(TRonDisconnect: (TympanDevice, boolean)=>void): Promise<any> {
     const CONNECTION_TIMEOUT_MS = 10000;
 
     this.setStatus('Connecting...');
@@ -563,7 +563,7 @@ export class TympanBLE extends TympanDevice {
           });
         };
         let disconnectFn = function() {
-          thisDev.onDisconnect();
+          thisDev.onDisconnect(false);
         }
         this.ble.connect(this.id).subscribe(connectFn, disconnectFn);
       } catch {
@@ -576,12 +576,13 @@ export class TympanBLE extends TympanDevice {
   }
 
   public disconnect() {
+    let appInitiated = true;
     if (this.emulated) {
-      this.onDisconnect();
+      this.onDisconnect(appInitiated);
     } else {
       this.ble.disconnect(this.id)
       .then(()=>{
-        this.onDisconnect();
+        this.onDisconnect(appInitiated);
       });  
     }
   }
@@ -611,13 +612,15 @@ export class TympanBLE extends TympanDevice {
    * onDisconnect():
    * This function is called when the device has been disconnected.
    * The disconnection could be initiated by the app, or it could be
-   * due to a dropped connection.
+   * due to a dropped connection.  Since the behavior can be different
+   * if the disconnection is app-initiated or device-initiated, the variable
+   * 'appInitiated' should be passed to this function.
    */
-  public onDisconnect() {
+  public onDisconnect(appInitiated=true) {
     this.logger.log(`Disconnected from ${this.name}`);
     this.setStatus('');
     if (this.notifyOnDisconnect !== undefined) {
-      this.notifyOnDisconnect(this);
+      this.notifyOnDisconnect(this,appInitiated);
     }
   }
 
