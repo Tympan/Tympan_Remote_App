@@ -739,7 +739,7 @@ export class TympanBLE extends TympanDevice {
         thisDev.incomingMessage.msg += String.fromCharCode.apply(null, pkt.slice(1));
         thisDev.incomingMessage.packetsReceived++;
         if (thisDev.incomingMessage.packetsReceived === 1 && thisDev.incomingMessage.msg.startsWith('JSON=')) {
-          thisDev.setStatus('Receiving JSON...');
+          thisDev.setStatus('Receiving...');
         }
   
         if (thisDev.incomingMessage.msg.length === thisDev.incomingMessage.msgLen) {
