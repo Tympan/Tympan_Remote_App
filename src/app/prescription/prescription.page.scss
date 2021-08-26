@@ -65,16 +65,21 @@ logHeader {
 }
 
 .pageTitle {
-	margin: 5px 5px 0px 0px;
+	margin: 0px;
 	text-align: center;
 	font-size: 28px;	
+}
+
+.sliderPage {
+	padding: 5px;
+	display: block;
+	overflow-y: scroll;
 }
 
 .sliderCard {
 	border: thin solid gray;
 	margin: 5px 5px 0px 0px;
-	padding: 10px;
-	display: block
+	padding: 0px;
 }
 
 .sliderCardHeader {

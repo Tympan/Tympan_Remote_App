@@ -362,18 +362,31 @@ export class TympanRemote {
 	/*
 	 * Do some things once a device is disconnected.
 	 * Typically, this function is called by a device, once the device realizes it is disconnected 
-	 * (no matter which end initiates the device disconnect)
+	 * (no matter which end initiates the device disconnect).
+	 * If the app initiated the disconnect, then appInitiated should be set to true.
 	 */ 
-	public onDisconnectDevice(device: TympanDevice) {
+	public onDisconnectDevice(device: TympanDevice, appInitiated=false) {
+		let toastId;
 		if (this.isActiveId(device.id)) {
 			this.activeDeviceIdx = -1;
 			this.connected = false;
-			this.TRToast.presentToast(`Disconnected from ${device.name}`,2000);
+			toastId = this.TRToast.presentToast(`Disconnected from ${device.name}`,2000);
 		}
-		this.router.navigateByUrl('tabs/connect')
+		this.zone.run(()=>{this.router.navigateByUrl('tabs/connect')});
+		if (appInitiated==false) {
+			toastId.then((id)=>{
+				this.TRToast.toastHasDismissed(id).then(()=>{
+					return this.updateDeviceList();
+				});	
+			});
+		}
 	}
 
 	public async connectToId(id: string) {
+		if (this.scanning) {
+			this.logger.log('Cannot connect during scan.');
+			return;
+		}
 
 		this.logger.log(`remote.connectToId: setting device with id ${id} as active.`);
 		this.disconnectFromAll();
@@ -387,13 +400,9 @@ export class TympanRemote {
 		}
 		this.logger.log(`Connecting to ${dev.name} (${dev.id})`);
 		let toastId = await this.TRToast.presentToast('Connecting');
-		// Set up the disconnect function, for when the device and app become disconnected (no matter which end caused the disconnect)
-		var onDisconnect = function() {
-			this.connected = false;
-			this.activeDeviceIdx = -1;
-		}
+
 		// Attempt to connect:
-		dev.connect((d)=>{this.onDisconnectDevice(d);}).then(()=>{
+		dev.connect((d,appInit)=>{this.onDisconnectDevice(d,appInit);}).then(()=>{
 			this.logger.log('Connection succeeded.');
 			this.connected = true;
 			this.activeDeviceIdx = devIdx;
@@ -447,11 +456,16 @@ export class TympanRemote {
 		console.log('current device ids:');
 		console.log(priorDevIds);
 
+		let scanningToast = undefined;
+
 		let newDevIds = [];
 		let thisTR = this;
 		let finishScan = function() {
 			thisTR.scanning = false;
 			thisTR.logger.log('Done scanning.');
+			if (scanningToast !== undefined) {
+				thisTR.TRToast.dismissToast(scanningToast);
+			}
 			for (let i=0; i<priorDevIds.length; i++) {
 				let priorId = priorDevIds[i];
 				if (!newDevIds.includes(priorId)) {
@@ -506,6 +520,8 @@ export class TympanRemote {
 				});
 				*/			
 			}
+			return 0;
+		}).then(()=>{
 
 			// Add BLE devices:
 			if (this.bleIsEnabled) {
@@ -517,29 +533,37 @@ export class TympanRemote {
 						finishScan();
 					}, BLE_SCAN_DURATION_SEC*1000);
 
-				this.ble.scan([ADAFRUIT_SERVICE_UUID],BLE_SCAN_DURATION_SEC)
-				.subscribe(
-					(device)=>{
-						// on device detection, add it to the list of contacted devices
-						this.logger.log(`Detected device! name: ${device.name}, id: ${device.id}`);
-						console.log(device);
-						newDevIds.push(device.id);
-						let tympConf: TympanBLEConfig = {
-							id: device.id,
-							name: device.name,
-							emulated: false,
-							rssi: device.rssi,
-							parent: this
-						};
-						// Add the device to the list:
-						this.addDevice(new TympanBLE(tympConf));
-					},
-					()=>{
-						console.log('Scan fail.');
-						clearTimeout(scanTimeout);
-						finishScan();
-					}
-				);
+				return this.TRToast.presentToast('Scanning BLE...').then((tid)=>{
+					scanningToast = tid;
+					return this.ble.scan([ADAFRUIT_SERVICE_UUID],BLE_SCAN_DURATION_SEC)
+					.subscribe(
+						(device)=>{
+							// on device detection, add it to the list of contacted devices
+							this.logger.log(`Detected device! name: ${device.name}, id: ${device.id}`);
+							console.log(device);
+							newDevIds.push(device.id);
+							let tympConf: TympanBLEConfig = {
+								id: device.id,
+								name: device.name,
+								emulated: false,
+								rssi: device.rssi,
+								parent: this
+							};
+							let idx = this.getDeviceIdxWithId(device.id);
+							if (idx<0) {
+								// Add the device to the list:
+								this.addDevice(new TympanBLE(tympConf));
+							} else {
+								// Update an existing device:
+							}
+						},
+						()=>{
+							console.log('Scan fail.');
+							clearTimeout(scanTimeout);
+							finishScan();
+						}
+					);
+				});
 			}
 		});
 	}

@@ -41,8 +41,8 @@ export const DEFAULT_CONFIG = {
         {
           'name': 'Algorithm',
           'buttons': [
-            {'label': '~A', 'cmd': 'd', 'id': 'algA', 'width': 4},
-            {'label': '~B', 'id': 'algB', 'width': 3},
+            {'label': '~A<br>a', 'cmd': 'd', 'id': 'algA', 'width': 4},
+            {'label': '~B\nB', 'id': 'algB', 'width': 4},
             {'label': '~C', 'cmd': 'c', 'id': 'algC', 'width': 4}
           ]
         },
@@ -52,7 +52,42 @@ export const DEFAULT_CONFIG = {
             {'label': '~-', 'cmd': '#', 'id': 'hi', 'width': 4},
             {'label': '~+', 'cmd': '3', 'id': 'rest', 'width': 7}
           ]
-        }
+        },
+        {
+          'name': 'Other',
+          'buttons': [
+            {'label': '~-', 'cmd': '#', 'id': 'hi', 'width': 4},
+            {'label': '~+', 'cmd': '3', 'id': 'rest', 'width': 7}
+          ]
+        },
+        {
+          'name': 'Other',
+          'buttons': [
+            {'label': '~-', 'cmd': '#', 'id': 'hi', 'width': 4},
+            {'label': '~+', 'cmd': '3', 'id': 'rest', 'width': 7}
+          ]
+        },
+        {
+          'name': 'Other',
+          'buttons': [
+            {'label': '~-', 'cmd': '#', 'id': 'hi', 'width': 4},
+            {'label': '~+', 'cmd': '3', 'id': 'rest', 'width': 7}
+          ]
+        },
+        {
+          'name': 'Other',
+          'buttons': [
+            {'label': '~-', 'cmd': '#', 'id': 'hi', 'width': 4},
+            {'label': '~+', 'cmd': '3', 'id': 'rest', 'width': 7}
+          ]
+        },
+        {
+          'name': 'Other9',
+          'buttons': [
+            {'label': '~-', 'cmd': '#', 'id': 'hi', 'width': 4},
+            {'label': '~+', 'cmd': '3', 'id': 'rest', 'width': 7}
+          ]
+        },
       ]
     },
     { 

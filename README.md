@@ -1,6 +1,6 @@
 # Tympan Remote App
 
-Mobile App for Controlling Tympan. Built with ionic 5.  Available for Android devices on the [Play Store](https://play.google.com/store/apps/details?id=com.creare.tympanRemote) and iOS devices on the App Store (soon).
+Mobile App for Controlling Tympan. Built with ionic 5.  Available for Android devices on the [Play Store](https://play.google.com/store/apps/details?id=com.creare.tympanRemote) and iOS devices on the [App Store](https://apps.apple.com/us/app/tympan-remote/id1476570878).
 
 ## Privacy Policy
 

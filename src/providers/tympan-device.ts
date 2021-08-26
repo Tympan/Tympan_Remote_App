@@ -3,6 +3,7 @@ import { BLE } from '@ionic-native/ble/ngx';
 import ieee754 from 'ieee754';
 import { Logger } from './logger';
 import { Plotter } from './plotter';
+import { ToastManager } from './toast-manager';
 import { TympanRemote} from './tympan-remote';
 
 //import { BluetoothType } from './tympan-remote'; 
@@ -73,11 +74,12 @@ export abstract class TympanDevice {
   public status: string;
   protected _config: any;
   protected parent: TympanRemote;
-  protected notifyOnDisconnect: (TympanDevice)=>void;
+  protected notifyOnDisconnect: (TympanDevice, boolean)=>void;
 
   protected plotter: Plotter;
   protected logger: Logger;
-  protected zone: NgZone
+  protected zone: NgZone;
+  protected TRToast: ToastManager;
   
   //public btType: BluetoothType;
 
@@ -92,6 +94,7 @@ export abstract class TympanDevice {
     this.plotter = dev.parent.plotter;
     this.logger = dev.parent.logger;
     this.zone = dev.parent.zone;
+    this.TRToast = dev.parent.TRToast;
     this.parent = dev.parent;
     //this.btType = dev.btType;
     this.emulatedProperties = dev.emulatedProperties; 
@@ -115,14 +118,42 @@ export abstract class TympanDevice {
   }
 
   /* The abstract functions that all extended classes must implement: */
-  public abstract connect(onDisconnect: (TympanDevice)=>void): Promise<any>;
+  public abstract connect(TRonDisconnect: (TympanDevice, boolean)=>void): Promise<any>;
 
   public abstract disconnect();
 
   public abstract write(msg: string);
 
   /* Common protected functions that can be used by extended classes: */
+
+  /**
+   * interpretDataFromDevice: Take a "message" that came from the Tympan
+   * (after it has been unpacked/reassembled from the BLE packets) and do
+   * something with it.  Note that a many messages can be combined into a 
+   * single longer message using the DATASTREAM_SEPARATOR as a separation
+   * character, so in this function we first split the string on that char
+   * before passing it along to the interpreter.
+   * 
+   * @param data The string "message" 
+   */
   protected interpretDataFromDevice(data: string) {
+    let separator_loc = data.indexOf(DATASTREAM_SEPARATOR);
+    if (separator_loc<0) {
+      this.interpretSingleMessageFromDevice(data);
+    } else {
+      let first_msg = data.slice(0,separator_loc);
+      this.interpretSingleMessageFromDevice(first_msg);
+      this.interpretDataFromDevice(data.slice(separator_loc+1));
+    }
+  }
+
+  /**
+   * Parse a single string "message".  This message shouldn't be multiple
+   * messages glued together with the interstitial DATASTREAM_SEPARATOR char.
+   * 
+   * @param data The string message
+   */
+  protected interpretSingleMessageFromDevice(data:string) {
     //this.logger.log(`>${data}`);
     if (data.length>5 && data.slice(0,5)=='JSON=') {
       this.parseConfigStringFromDevice(data);
@@ -156,7 +187,9 @@ export abstract class TympanDevice {
       for (let idx = 0; idx<cfgStr.length; idx=idx+20) {
         this.logger.log(`${idx}: ${cfgStr.slice(idx,idx+20)}`);
       }
+      this.TRToast.presentToast('Improper JSON config string.',3000);
     }
+    this.setStatus('connected');
   }
 
   protected parseStateStringFromDevice(data: string) {
@@ -318,6 +351,12 @@ export abstract class TympanDevice {
     });   
   }
 
+  public setStatus(str: string) {
+    this.zone.run(()=>{
+      this.status = str;
+    });
+  }
+
   protected buildPrescriptionPages(presc: any): any {
 
     let pages = [];
@@ -426,7 +465,10 @@ export abstract class TympanDevice {
       case 'L':
         this.emulateTympanSendingMessage('LOG=T12');
         break;
-    }
+        case 's':
+          this.emulateTympanSendingMessage('LOG=T12'+DATASTREAM_SEPARATOR+'LOG=yes');
+          break;
+      }
   }
 
   /* 
@@ -450,7 +492,7 @@ export class TympanBTSerial extends TympanDevice {
     super(dev as TympanDeviceConfig);
   }
 
-  public connect(onDisconnect: (TympanDevice)=>void): Promise<any> {
+  public connect(TRonDisconnect: (TympanDevice, boolean)=>void): Promise<any> {
     return Promise.reject('No BT Serial implemented.');
   }
 
@@ -482,10 +524,10 @@ export class TympanBLE extends TympanDevice {
     this.incomingMessage = null;
   }
 
-  public connect(TRonDisconnect: (TympanDevice)=>void): Promise<any> {
+  public connect(TRonDisconnect: (TympanDevice, boolean)=>void): Promise<any> {
     const CONNECTION_TIMEOUT_MS = 10000;
 
-    this.status = 'Connecting...';
+    this.setStatus('Connecting...');
     this.notifyOnDisconnect = TRonDisconnect;
 
     if (this.emulated) {
@@ -505,7 +547,7 @@ export class TympanBLE extends TympanDevice {
           let msg = 'FORCE disconnected FAIL'
           reject(new Error(msg));
         }).finally(()=>{
-          this.status = '';
+          this.setStatus('');
         });
       }, CONNECTION_TIMEOUT_MS);
 
@@ -521,12 +563,12 @@ export class TympanBLE extends TympanDevice {
           });
         };
         let disconnectFn = function() {
-          thisDev.onDisconnect();
+          thisDev.onDisconnect(false);
         }
         this.ble.connect(this.id).subscribe(connectFn, disconnectFn);
       } catch {
         let msg = `Could not connect to ${this.id}`;
-        this.status = '';
+        this.setStatus('');
         this.logger.log(msg);
         reject(msg);
       }
@@ -534,12 +576,13 @@ export class TympanBLE extends TympanDevice {
   }
 
   public disconnect() {
+    let appInitiated = true;
     if (this.emulated) {
-      this.onDisconnect();
+      this.onDisconnect(appInitiated);
     } else {
       this.ble.disconnect(this.id)
       .then(()=>{
-        this.onDisconnect();
+        this.onDisconnect(appInitiated);
       });  
     }
   }
@@ -550,7 +593,7 @@ export class TympanBLE extends TympanDevice {
    */
   public onConnect(): Promise<any> {
     this.logger.log(`Connected to ${this.name}`);
-    this.status = 'Connected';
+    this.setStatus('Connected');
 
     // Subscribe to the device
     if (!this.emulated) {
@@ -569,13 +612,15 @@ export class TympanBLE extends TympanDevice {
    * onDisconnect():
    * This function is called when the device has been disconnected.
    * The disconnection could be initiated by the app, or it could be
-   * due to a dropped connection.
+   * due to a dropped connection.  Since the behavior can be different
+   * if the disconnection is app-initiated or device-initiated, the variable
+   * 'appInitiated' should be passed to this function.
    */
-  public onDisconnect() {
+  public onDisconnect(appInitiated=true) {
     this.logger.log(`Disconnected from ${this.name}`);
-    this.status = '';
+    this.setStatus('');
     if (this.notifyOnDisconnect !== undefined) {
-      this.notifyOnDisconnect(this);
+      this.notifyOnDisconnect(this,appInitiated);
     }
   }
 
@@ -693,6 +738,10 @@ export class TympanBLE extends TympanDevice {
       if (idx === (thisDev.incomingMessage.packetsReceived & 0x0F)) {
         thisDev.incomingMessage.msg += String.fromCharCode.apply(null, pkt.slice(1));
         thisDev.incomingMessage.packetsReceived++;
+        if (thisDev.incomingMessage.packetsReceived === 1 && thisDev.incomingMessage.msg.startsWith('JSON=')) {
+          thisDev.setStatus('Receiving...');
+        }
+  
         if (thisDev.incomingMessage.msg.length === thisDev.incomingMessage.msgLen) {
           let msg = thisDev.incomingMessage.msg;
           thisDev.incomingMessage = null;
