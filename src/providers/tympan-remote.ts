@@ -197,17 +197,19 @@ export class TympanRemote {
 	public addDevice(dev: TympanDevice) {
 		let idx = this.getDeviceIdxWithId(dev.id);
 		if (idx<0) {
+			dev.state = TympanDeviceState.AVAILABLE;
 			this.zone.run(()=>{this._allDevices.push(dev)});
 		} else {
 			// Update the device in some way?
+			this.logger.log(`Device ${dev.id} already exists; not adding a duplicate.`);
 		}
-		this.getDeviceWithId(dev.id).state = TympanDeviceState.AVAILABLE;
-
 	}
 
 	public removeDeviceWithId(devId: string) {
 		if (this._allDevices.hasOwnProperty(devId)) {
-			delete this._allDevices[devId];
+			this.zone.run(()=>{
+				delete this._allDevices[devId];
+			});
 		}
 	}
 
@@ -366,7 +368,8 @@ export class TympanRemote {
 	 * If the app initiated the disconnect, then appInitiated should be set to true.
 	 */ 
 	public onDisconnectDevice(device: TympanDevice, appInitiated=false) {
-		let toastId;
+		this.scanning = true; // A scan is about to commence.
+		let toastId = Promise.resolve('');
 		if (this.isActiveId(device.id)) {
 			this.activeDeviceIdx = -1;
 			this.connected = false;
@@ -379,6 +382,8 @@ export class TympanRemote {
 					return this.updateDeviceList();
 				});	
 			});
+		} else {
+			this.scanning = false;
 		}
 	}
 
@@ -469,7 +474,9 @@ export class TympanRemote {
 			for (let i=0; i<priorDevIds.length; i++) {
 				let priorId = priorDevIds[i];
 				if (!newDevIds.includes(priorId)) {
-					thisTR.getDeviceWithId(priorId).state = TympanDeviceState.UNAVAILABLE;
+					thisTR.zone.run(()=>{
+						thisTR.getDeviceWithId(priorId).state = TympanDeviceState.UNAVAILABLE;
+					});
 				}
 			}
 		}
@@ -542,19 +549,20 @@ export class TympanRemote {
 							this.logger.log(`Detected device! name: ${device.name}, id: ${device.id}`);
 							console.log(device);
 							newDevIds.push(device.id);
-							let tympConf: TympanBLEConfig = {
-								id: device.id,
-								name: device.name,
-								emulated: false,
-								rssi: device.rssi,
-								parent: this
-							};
 							let idx = this.getDeviceIdxWithId(device.id);
 							if (idx<0) {
-								// Add the device to the list:
+								// Create a new device:
+								let tympConf: TympanBLEConfig = {
+									id: device.id,
+									name: device.name,
+									emulated: false,
+									rssi: device.rssi,
+									parent: this
+								};
 								this.addDevice(new TympanBLE(tympConf));
 							} else {
-								// Update an existing device:
+								// Make sure the existing device is marked as available.
+								this.getDeviceWithId(device.id).state = TympanDeviceState.AVAILABLE;
 							}
 						},
 						()=>{
